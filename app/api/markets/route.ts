@@ -23,8 +23,8 @@ export async function GET(req: Request) {
   const rows = await db
     .select({
       m: schema.markets,
-      positionCount: sql<number>`(select count(*) from ${schema.positions} p where p.market_id = ${schema.markets.id})`,
-      totalPool: sql<string>`coalesce((select sum(p.stake) from ${schema.positions} p where p.market_id = ${schema.markets.id}), 0)::text`,
+      positionCount: sql<number>`(select count(*) from positions p where p.market_id = markets.id)`,
+      totalPool: sql<string>`coalesce((select sum(p.stake) from positions p where p.market_id = markets.id), 0)::text`,
     })
     .from(schema.markets)
     .where(statusFilter)

@@ -94,7 +94,11 @@ export interface PayoutParams {
 }
 
 export const DEFAULT_PAYOUT_PARAMS: PayoutParams = {
-  gamma: 6,
+  // γ=3 (LOCKED 2026-07-21, softer than Trepa's 6): Kickoff settles once per
+  // matchday, not every 60s — barely-winners should still feel a visible
+  // profit. Per-market override via admin dashboard at listing time; frozen
+  // on-chain once a market opens for staking.
+  gamma: 3,
   takeRateBps: 1000,
   accumulatorShareBps: 5000,
   capMultiple: 100n,

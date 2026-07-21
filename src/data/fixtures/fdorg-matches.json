@@ -1,0 +1,28 @@
+{
+  "matches": [
+    {
+      "id": 500001,
+      "utcDate": "2026-08-15T14:00:00Z",
+      "status": "TIMED",
+      "homeTeam": { "id": 57, "name": "Arsenal FC", "shortName": "Arsenal" },
+      "awayTeam": { "id": 61, "name": "Chelsea FC", "shortName": "Chelsea" },
+      "score": { "fullTime": { "home": null, "away": null } }
+    },
+    {
+      "id": 500002,
+      "utcDate": "2026-08-15T16:30:00Z",
+      "status": "TIMED",
+      "homeTeam": { "id": 65, "name": "Manchester City FC", "shortName": "Man City" },
+      "awayTeam": { "id": 64, "name": "Liverpool FC", "shortName": "Liverpool" },
+      "score": { "fullTime": { "home": null, "away": null } }
+    },
+    {
+      "id": 499001,
+      "utcDate": "2026-05-24T15:00:00Z",
+      "status": "FINISHED",
+      "homeTeam": { "id": 57, "name": "Arsenal FC", "shortName": "Arsenal" },
+      "awayTeam": { "id": 73, "name": "Tottenham Hotspur FC", "shortName": "Spurs" },
+      "score": { "fullTime": { "home": 2, "away": 1 } }
+    }
+  ]
+}

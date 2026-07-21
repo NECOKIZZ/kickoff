@@ -1,0 +1,184 @@
+{
+  "get": "fixtures/players",
+  "response": [
+    {
+      "team": { "id": 42, "name": "Arsenal" },
+      "players": [
+        {
+          "player": { "id": 1001, "name": "B. Saka" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "F", "rating": "8.7" },
+              "goals": { "total": 1, "assists": 1, "saves": null, "conceded": 1 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 1 },
+              "shots": { "total": 5, "on": 4 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 1002, "name": "M. Odegaard" },
+          "statistics": [
+            {
+              "games": { "minutes": 70, "position": "M", "rating": "7.9" },
+              "goals": { "total": 0, "assists": 1, "saves": null, "conceded": 1 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 4 },
+              "shots": { "total": 2, "on": 1 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 1003, "name": "K. Havertz" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "F", "rating": "8.1" },
+              "goals": { "total": 1, "assists": 0, "saves": null, "conceded": 1 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 0 },
+              "shots": { "total": 3, "on": 2 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 1000, "name": "D. Raya" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "G", "rating": "7.2" },
+              "goals": { "total": 0, "assists": 0, "saves": 4, "conceded": 1 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": 0 },
+              "tackles": { "total": 0 },
+              "shots": { "total": 0, "on": 0 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 1004, "name": "D. Rice" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "M", "rating": "7.4" },
+              "goals": { "total": 0, "assists": 0, "saves": null, "conceded": 1 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 7 },
+              "shots": { "total": 1, "on": 0 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 1005, "name": "E. Nwaneri" },
+          "statistics": [
+            {
+              "games": { "minutes": 20, "position": "M", "rating": "6.8" },
+              "goals": { "total": 0, "assists": 0, "saves": null, "conceded": 0 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 1 },
+              "shots": { "total": 1, "on": 1 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 1006, "name": "W. Saliba" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "D", "rating": "7.0" },
+              "goals": { "total": 0, "assists": 0, "saves": null, "conceded": 1 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 2 },
+              "shots": { "total": 0, "on": 0 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 1007, "name": "G. Magalhaes" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "D", "rating": "6.9" },
+              "goals": { "total": 0, "assists": 0, "saves": null, "conceded": 1 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": 1, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 3 },
+              "shots": { "total": 0, "on": 0 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "team": { "id": 47, "name": "Tottenham" },
+      "players": [
+        {
+          "player": { "id": 2001, "name": "H. Son" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "F", "rating": "7.8" },
+              "goals": { "total": 1, "assists": 0, "saves": null, "conceded": 2 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": 1, "commited": null, "scored": 1, "missed": null, "saved": null },
+              "tackles": { "total": 0 },
+              "shots": { "total": 3, "on": 2 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 2002, "name": "J. Maddison" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "M", "rating": "6.6" },
+              "goals": { "total": 0, "assists": 0, "saves": null, "conceded": 2 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 3 },
+              "shots": { "total": 2, "on": 0 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 2003, "name": "C. Romero" },
+          "statistics": [
+            {
+              "games": { "minutes": 78, "position": "D", "rating": "5.1" },
+              "goals": { "total": 0, "assists": 0, "saves": null, "conceded": 2 },
+              "cards": { "yellow": 1, "red": 1 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 4 },
+              "shots": { "total": 0, "on": 0 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 2000, "name": "G. Vicario" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "G", "rating": "6.4" },
+              "goals": { "total": 0, "assists": 0, "saves": 6, "conceded": 2 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": 0 },
+              "tackles": { "total": 0 },
+              "shots": { "total": 0, "on": 0 }
+            }
+          ]
+        },
+        {
+          "player": { "id": 2004, "name": "M. van de Ven" },
+          "statistics": [
+            {
+              "games": { "minutes": 90, "position": "D", "rating": "6.2" },
+              "goals": { "total": 0, "assists": 0, "saves": null, "conceded": 2 },
+              "cards": { "yellow": 0, "red": 0 },
+              "penalty": { "won": null, "commited": null, "scored": null, "missed": null, "saved": null },
+              "tackles": { "total": 5 },
+              "shots": { "total": 0, "on": 0 }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

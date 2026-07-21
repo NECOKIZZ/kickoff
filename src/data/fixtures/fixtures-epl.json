@@ -1,0 +1,29 @@
+{
+  "get": "fixtures",
+  "response": [
+    {
+      "fixture": { "id": 1400001, "date": "2026-08-15T14:00:00+00:00", "status": { "short": "NS", "elapsed": null } },
+      "league": { "id": 39, "season": 2026, "round": "Regular Season - 1" },
+      "teams": { "home": { "id": 42, "name": "Arsenal" }, "away": { "id": 49, "name": "Chelsea" } },
+      "goals": { "home": null, "away": null }
+    },
+    {
+      "fixture": { "id": 1400002, "date": "2026-08-15T16:30:00+00:00", "status": { "short": "NS", "elapsed": null } },
+      "league": { "id": 39, "season": 2026, "round": "Regular Season - 1" },
+      "teams": { "home": { "id": 50, "name": "Manchester City" }, "away": { "id": 40, "name": "Liverpool" } },
+      "goals": { "home": null, "away": null }
+    },
+    {
+      "fixture": { "id": 1400003, "date": "2026-08-16T13:00:00+00:00", "status": { "short": "NS", "elapsed": null } },
+      "league": { "id": 39, "season": 2026, "round": "Regular Season - 1" },
+      "teams": { "home": { "id": 47, "name": "Tottenham" }, "away": { "id": 34, "name": "Newcastle" } },
+      "goals": { "home": null, "away": null }
+    },
+    {
+      "fixture": { "id": 1399001, "date": "2026-05-24T15:00:00+00:00", "status": { "short": "FT", "elapsed": 90 } },
+      "league": { "id": 39, "season": 2025, "round": "Regular Season - 38" },
+      "teams": { "home": { "id": 42, "name": "Arsenal" }, "away": { "id": 47, "name": "Tottenham" } },
+      "goals": { "home": 2, "away": 1 }
+    }
+  ]
+}

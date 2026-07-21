@@ -1,0 +1,176 @@
+import {
+  pgTable,
+  serial,
+  text,
+  integer,
+  bigint,
+  boolean,
+  timestamp,
+  jsonb,
+  pgEnum,
+  uniqueIndex,
+  index,
+} from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+
+// ---------------------------------------------------------------------------
+// Kickoff — proximity markets schema.
+//
+// Money amounts are BIGINT stake-token base units (6 decimals, matches USDC /
+// the engine's SCALE). Distances/weights are BIGINT fixed-point ×1e6. Never
+// floats — the DB mirrors the engine's integer discipline so a settlement can
+// be replayed byte-exactly from stored rows.
+// ---------------------------------------------------------------------------
+
+export const marketKind = pgEnum("market_kind", ["scoreline", "player_points"]);
+
+export const marketStatus = pgEnum("market_status", [
+  "draft",     // created by admin/agent, knobs still editable
+  "open",      // staking live — params FROZEN from here on
+  "locked",    // kickoff reached, no new positions
+  "settling",  // outcome submitted, settlement in flight
+  "settled",   // payouts computed + recorded
+  "void",      // refund-all (N<=1, all-equal-D, abandoned fixture, admin void)
+]);
+
+export const stakeMode = pgEnum("stake_mode", ["variable", "fixed"]);
+
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    // Wallet address is the canonical identity (Privy embedded or external).
+    address: text("address").notNull(),
+    privyDid: text("privy_did"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("users_address_idx").on(t.address)],
+);
+
+export const markets = pgTable(
+  "markets",
+  {
+    id: serial("id").primaryKey(),
+    kind: marketKind("kind").notNull(),
+    status: marketStatus("status").notNull().default("draft"),
+
+    title: text("title").notNull(), // e.g. "Arsenal vs Chelsea — final score"
+    // Fixture linkage (API-Football id is source of truth; fdOrg id for cross-check).
+    fixtureId: integer("fixture_id"),
+    fdOrgMatchId: integer("fd_org_match_id"),
+    homeTeam: text("home_team"),
+    awayTeam: text("away_team"),
+    // player_points markets only:
+    playerId: integer("player_id"),
+    playerName: text("player_name"),
+
+    kickoffAt: timestamp("kickoff_at", { withTimezone: true }).notNull(),
+    locksAt: timestamp("locks_at", { withTimezone: true }).notNull(),
+
+    // --- Per-market knobs (testnet-phase instruments; FROZEN once status
+    // leaves "draft"). Mirrors the future escrow contract's config struct. ---
+    gamma: integer("gamma").notNull().default(3),
+    stakeMode: stakeMode("stake_mode").notNull().default("variable"),
+    minStake: bigint("min_stake", { mode: "bigint" }).notNull().default(sql`'1000000'`), // $1
+    maxStake: bigint("max_stake", { mode: "bigint" }).notNull().default(sql`'500000000'`), // $500
+    fixedStake: bigint("fixed_stake", { mode: "bigint" }), // required when stakeMode = fixed
+    takeRateBps: integer("take_rate_bps").notNull().default(1000),
+    accumulatorShareBps: integer("accumulator_share_bps").notNull().default(5000),
+    capMultiple: integer("cap_multiple").notNull().default(100),
+
+    // On-chain linkage (testnet escrow).
+    escrowAddress: text("escrow_address"),
+    chainId: integer("chain_id").notNull().default(46630),
+
+    // Outcome (set at settlement time).
+    actualHome: integer("actual_home"),
+    actualAway: integer("actual_away"),
+    actualPoints: bigint("actual_points", { mode: "bigint" }), // fixed-point ×1e6
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    openedAt: timestamp("opened_at", { withTimezone: true }),
+    settledAt: timestamp("settled_at", { withTimezone: true }),
+  },
+  (t) => [index("markets_status_idx").on(t.status), index("markets_kickoff_idx").on(t.kickoffAt)],
+);
+
+export const positions = pgTable(
+  "positions",
+  {
+    id: serial("id").primaryKey(),
+    marketId: integer("market_id")
+      .notNull()
+      .references(() => markets.id),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+
+    // The guess: scoreline uses guessHome/guessAway; player_points uses guessPoints.
+    guessHome: integer("guess_home"),
+    guessAway: integer("guess_away"),
+    guessPoints: bigint("guess_points", { mode: "bigint" }), // fixed-point ×1e6
+
+    stake: bigint("stake", { mode: "bigint" }).notNull(), // base units
+    // On-chain proof of the stake landing in escrow.
+    stakeTxHash: text("stake_tx_hash"),
+
+    // Settlement results (filled when market settles; replayable from engine).
+    distanceD: bigint("distance_d", { mode: "bigint" }),
+    isWinner: boolean("is_winner"),
+    accuracyA: bigint("accuracy_a", { mode: "bigint" }),
+    gain: bigint("gain", { mode: "bigint" }),
+    payout: bigint("payout", { mode: "bigint" }),
+    capped: boolean("capped"),
+    claimTxHash: text("claim_tx_hash"),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // One position per user per market — repeat stakes update the row pre-lock.
+    uniqueIndex("positions_market_user_idx").on(t.marketId, t.userId),
+    index("positions_user_idx").on(t.userId),
+  ],
+);
+
+export const settlements = pgTable("settlements", {
+  id: serial("id").primaryKey(),
+  marketId: integer("market_id")
+    .notNull()
+    .references(() => markets.id)
+    .unique(),
+  voidReason: text("void_reason"), // null = settled normally
+  medianD: bigint("median_d", { mode: "bigint" }),
+  coalitionMode: boolean("coalition_mode").notNull().default(false),
+  losersStakeSum: bigint("losers_stake_sum", { mode: "bigint" }).notNull().default(sql`'0'`),
+  dividendPool: bigint("dividend_pool", { mode: "bigint" }).notNull().default(sql`'0'`),
+  accumulatorContribution: bigint("accumulator_contribution", { mode: "bigint" }).notNull().default(sql`'0'`),
+  platformCut: bigint("platform_cut", { mode: "bigint" }).notNull().default(sql`'0'`),
+  totalPool: bigint("total_pool", { mode: "bigint" }).notNull().default(sql`'0'`),
+  settleTxHash: text("settle_tx_hash"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Season accumulator ledger — one row per settlement contribution. */
+export const accumulatorEntries = pgTable("accumulator_entries", {
+  id: serial("id").primaryKey(),
+  settlementId: integer("settlement_id")
+    .notNull()
+    .references(() => settlements.id),
+  amount: bigint("amount", { mode: "bigint" }).notNull(),
+  season: text("season").notNull().default("2026-27"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Audit trail — every admin/agent action, proposal and execution separately. */
+export const adminEvents = pgTable(
+  "admin_events",
+  {
+    id: serial("id").primaryKey(),
+    actor: text("actor").notNull(), // "admin" | "agent" | signer address
+    action: text("action").notNull(), // e.g. "market.create", "market.settle", "market.void"
+    marketId: integer("market_id"),
+    detail: jsonb("detail"), // full request payload for replay/debugging
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("admin_events_market_idx").on(t.marketId)],
+);

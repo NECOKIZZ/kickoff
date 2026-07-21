@@ -14,8 +14,8 @@ import {
 
 const usd = (n: number): bigint => BigInt(Math.round(n * 1e6));
 
-/** Trepa's own params (20% take) — used to replicate docs.trepa.io examples exactly. */
-const TREPA_PARAMS: PayoutParams = { ...DEFAULT_PAYOUT_PARAMS, takeRateBps: 2000 };
+/** Trepa's own params (γ=6, 20% take) — used to replicate docs.trepa.io examples exactly. */
+const TREPA_PARAMS: PayoutParams = { ...DEFAULT_PAYOUT_PARAMS, gamma: 6, takeRateBps: 2000 };
 
 // ---------------------------------------------------------------------------
 // distanceA — spec §6.1
@@ -338,8 +338,8 @@ describe("§7.4 worked example, corrected formula (golden)", () => {
   });
 });
 
-// Golden values — pinned from the engine run of 2026-07-21 (see git history).
-// Old (pure-Trepa) formula gave A=$146.67 / C=$42.35; corrected stake×a split
-// shifts slightly toward A, who has both more stake and a perfect guess.
-const GOLDEN_A = 147_106_550n; // $147.106550
-const GOLDEN_C = 41_893_422n;  // $41.893422
+// Golden values — pinned from the engine run of 2026-07-21 under γ=3 (locked).
+// For reference: γ=6 gave A=$147.11/C=$41.89; old pure-Trepa γ=6 gave
+// A=$146.67/C=$42.35. If these move, the math moved.
+const GOLDEN_A = 138_008_050n; // $138.008050 (2.76×)
+const GOLDEN_C = 50_991_923n;  // $50.991923 (1.27×)

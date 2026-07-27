@@ -9,7 +9,7 @@
 // guessed (spec §2).
 
 import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
-import type { Fixture, PlayerMatchStats, MatchEvent } from "@kickoff/schema";
+import type { Fixture, PlayerMatchStats, MatchEvent, MatchState, MatchStats } from "@kickoff/schema";
 import { db, schema } from "./db";
 import { resolveFixtureId, KICKOFF_TOLERANCE_MS } from "./identity";
 
@@ -172,6 +172,55 @@ export async function insertEvents(events: MatchEvent[], rawPayloadId: number | 
       })),
     )
     .onConflictDoNothing();
+}
+
+/** Live match state — one row per fixture, overwritten each poll (chart lane). */
+export async function upsertMatchState(state: MatchState, source: "flashscore", fetchedAt: Date): Promise<void> {
+  await db
+    .insert(schema.matchState)
+    .values({
+      fixtureId: state.fixture_id,
+      minute: state.minute,
+      period: state.period,
+      scoreHome: state.score.home,
+      scoreAway: state.score.away,
+      lastEventAt: state.last_event_at ? new Date(state.last_event_at) : null,
+      source,
+      fetchedAt,
+    })
+    .onConflictDoUpdate({
+      target: schema.matchState.fixtureId,
+      set: {
+        minute: sql`excluded.minute`,
+        period: sql`excluded.period`,
+        scoreHome: sql`excluded.score_home`,
+        scoreAway: sql`excluded.score_away`,
+        lastEventAt: sql`excluded.last_event_at`,
+        source: sql`excluded.source`,
+        fetchedAt: sql`excluded.fetched_at`,
+      },
+    });
+}
+
+/** Chart-lane stat rows — replaced per (fixture, period, source) each poll. */
+export async function upsertMatchStats(rows: MatchStats[], source: "flashscore", fetchedAt: Date): Promise<void> {
+  if (rows.length === 0) return;
+  await db
+    .insert(schema.matchStats)
+    .values(
+      rows.map((r) => ({
+        fixtureId: r.fixture_id,
+        period: r.period,
+        home: r.home,
+        away: r.away,
+        source,
+        fetchedAt,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: [schema.matchStats.fixtureId, schema.matchStats.period, schema.matchStats.source],
+      set: { home: sql`excluded.home`, away: sql`excluded.away`, fetchedAt: sql`excluded.fetched_at` },
+    });
 }
 
 /** Fixtures the planner cares about: near-future + not-yet-settled past. */

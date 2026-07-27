@@ -31,7 +31,22 @@ async function tick(): Promise<void> {
 
   const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining });
 
-  for (const job of jobs) {
+  // s3.livePoll: ONE actor run returns every live match, so N due fixtures
+  // collapse into one execution — but lastRun advances for ALL their keys.
+  const s3Jobs = jobs.filter((j) => j.kind === "s3.livePoll");
+  const rest = jobs.filter((j) => j.kind !== "s3.livePoll");
+
+  if (s3Jobs.length > 0 && runners["s3.livePoll"]) {
+    try {
+      await runners["s3.livePoll"]!(s3Jobs[0], now);
+      for (const j of s3Jobs) lastRun.set(jobKey(j), now);
+      console.log(`[worker] ok s3.livePoll (${s3Jobs.length} fixture(s))`);
+    } catch (e) {
+      console.error(`[worker] FAIL s3.livePoll: ${(e as Error).message}`);
+    }
+  }
+
+  for (const job of rest) {
     const runner = runners[job.kind];
     if (!runner) {
       // S3/S4 until build step 4 — planner speaks them, worker skips them.

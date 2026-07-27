@@ -1,0 +1,2396 @@
+[{
+  "match_id": "8pzrmjup",
+  "match_url": "https://www.flashscore.com/match/football/ivory-coast-2iLuzkms/burkina-faso-U96KCev4/?mid=8pzrmjup",
+  "status": "LIVE",
+  "kickoff_time": "2026-07-27T20:00:00+00:00",
+  "home_team": "Ivory Coast W",
+  "away_team": "Burkina Faso W",
+  "home_team_id": "AgwIrcnK",
+  "away_team_id": "6POmwyAs",
+  "round": "2",
+  "has_live_stream": true,
+  "league": "AFRICA: Africa Cup of Nations Women",
+  "league_id": "0Q2H9Ccm",
+  "league_url": "/football/africa/africa-cup-of-nations-women/",
+  "match_minute": 38,
+  "match_period": "2nd Half",
+  "home_score": 0,
+  "away_score": 3,
+  "home_score_halftime": 0,
+  "away_score_halftime": -1,
+  "lineups_confirmed": true,
+  "events": [
+    {
+      "event_id": "UTTQtZQE",
+      "side": "home",
+      "minute": "7'",
+      "type": "10",
+      "type_label": "Penalty",
+      "player_name": "Elloh R.",
+      "player_id": "27vL9CgO",
+      "extra_info": null,
+      "home_score_after": 1,
+      "away_score_after": 0
+    },
+    {
+      "event_id": "G4AioOil",
+      "side": "home",
+      "minute": "14'",
+      "type": "assist",
+      "type_label": "Assistance",
+      "player_name": "Kouassi R.",
+      "player_id": "EPqUDEgl",
+      "extra_info": null,
+      "home_score_after": 2,
+      "away_score_after": 0
+    },
+    {
+      "event_id": "Ic4Pt31e",
+      "side": "away",
+      "minute": "16'",
+      "type": "yellow_card",
+      "type_label": "Yellow Card",
+      "player_name": "Rouamba M.",
+      "player_id": "S2nUeFnn",
+      "extra_info": null,
+      "home_score_after": null,
+      "away_score_after": null
+    },
+    {
+      "event_id": "65VzG9GL",
+      "side": "home",
+      "minute": "23'",
+      "type": "assist",
+      "type_label": "Assistance",
+      "player_name": "Ouedraogo N.",
+      "player_id": "tzboBJrH",
+      "extra_info": null,
+      "home_score_after": 3,
+      "away_score_after": 0
+    }
+  ],
+  "statistics": [
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 432,
+      "stat_name": "Expected goals (xG)",
+      "home_value": "1.84",
+      "away_value": "0.39"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 12,
+      "stat_name": "Ball possession",
+      "home_value": "50%",
+      "away_value": "50%"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "6",
+      "away_value": "3"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "5",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 459,
+      "stat_name": "Big chances",
+      "home_value": "2",
+      "away_value": "2"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 342,
+      "stat_name": "Passes",
+      "home_value": "62% (87/140)",
+      "away_value": "66% (93/140)"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 23,
+      "stat_name": "Yellow cards",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 432,
+      "stat_name": "Expected goals (xG)",
+      "home_value": "1.84",
+      "away_value": "0.39"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 499,
+      "stat_name": "xG on target (xGOT)",
+      "home_value": "2.07",
+      "away_value": "0.59"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "6",
+      "away_value": "3"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "5",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 14,
+      "stat_name": "Shots off target",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 158,
+      "stat_name": "Blocked shots",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 461,
+      "stat_name": "Shots inside the box",
+      "home_value": "5",
+      "away_value": "2"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 463,
+      "stat_name": "Shots outside the box",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 457,
+      "stat_name": "Hit the woodwork",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 465,
+      "stat_name": "Headed goals",
+      "home_value": "1",
+      "away_value": "0"
+    },
+    {
+      "period": "Match",
+      "category": "Attack",
+      "stat_id": 459,
+      "stat_name": "Big chances",
+      "home_value": "2",
+      "away_value": "2"
+    },
+    {
+      "period": "Match",
+      "category": "Attack",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Attack",
+      "stat_id": 471,
+      "stat_name": "Touches in opposition box",
+      "home_value": "15",
+      "away_value": "4"
+    },
+    {
+      "period": "Match",
+      "category": "Attack",
+      "stat_id": 521,
+      "stat_name": "Accurate through passes",
+      "home_value": "1",
+      "away_value": "0"
+    },
+    {
+      "period": "Match",
+      "category": "Attack",
+      "stat_id": 17,
+      "stat_name": "Offsides",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Attack",
+      "stat_id": 15,
+      "stat_name": "Free kicks",
+      "home_value": "5",
+      "away_value": "11"
+    },
+    {
+      "period": "Match",
+      "category": "Passes",
+      "stat_id": 342,
+      "stat_name": "Passes",
+      "home_value": "62% (87/140)",
+      "away_value": "66% (93/140)"
+    },
+    {
+      "period": "Match",
+      "category": "Passes",
+      "stat_id": 517,
+      "stat_name": "Long passes",
+      "home_value": "30% (12/40)",
+      "away_value": "33% (10/30)"
+    },
+    {
+      "period": "Match",
+      "category": "Passes",
+      "stat_id": 467,
+      "stat_name": "Passes in final third",
+      "home_value": "50% (21/42)",
+      "away_value": "50% (21/42)"
+    },
+    {
+      "period": "Match",
+      "category": "Passes",
+      "stat_id": 433,
+      "stat_name": "Crosses",
+      "home_value": "40% (2/5)",
+      "away_value": "13% (1/8)"
+    },
+    {
+      "period": "Match",
+      "category": "Passes",
+      "stat_id": 503,
+      "stat_name": "Expected assists (xA)",
+      "home_value": "0.77",
+      "away_value": "0.17"
+    },
+    {
+      "period": "Match",
+      "category": "Passes",
+      "stat_id": 18,
+      "stat_name": "Throw ins",
+      "home_value": "9",
+      "away_value": "11"
+    },
+    {
+      "period": "Match",
+      "category": "Defense",
+      "stat_id": 21,
+      "stat_name": "Fouls",
+      "home_value": "11",
+      "away_value": "5"
+    },
+    {
+      "period": "Match",
+      "category": "Defense",
+      "stat_id": 475,
+      "stat_name": "Tackles",
+      "home_value": "73% (8/11)",
+      "away_value": "91% (10/11)"
+    },
+    {
+      "period": "Match",
+      "category": "Defense",
+      "stat_id": 513,
+      "stat_name": "Duels won",
+      "home_value": "32",
+      "away_value": "23"
+    },
+    {
+      "period": "Match",
+      "category": "Defense",
+      "stat_id": 479,
+      "stat_name": "Clearances",
+      "home_value": "15",
+      "away_value": "6"
+    },
+    {
+      "period": "Match",
+      "category": "Defense",
+      "stat_id": 434,
+      "stat_name": "Interceptions",
+      "home_value": "1",
+      "away_value": "6"
+    },
+    {
+      "period": "Match",
+      "category": "Defense",
+      "stat_id": 507,
+      "stat_name": "Errors leading to shot",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "Match",
+      "category": "Defense",
+      "stat_id": 509,
+      "stat_name": "Errors leading to goal",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Goalkeeping",
+      "stat_id": 19,
+      "stat_name": "Goalkeeper saves",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Goalkeeping",
+      "stat_id": 501,
+      "stat_name": "xGOT faced",
+      "home_value": "0.59",
+      "away_value": "2.07"
+    },
+    {
+      "period": "Match",
+      "category": "Goalkeeping",
+      "stat_id": 511,
+      "stat_name": "Goals prevented",
+      "home_value": "0.59",
+      "away_value": "-0.93"
+    },
+    {
+      "period": "Match",
+      "category": "Goalkeeping",
+      "stat_id": 20,
+      "stat_name": "Goal kicks",
+      "home_value": "2",
+      "away_value": "2"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 432,
+      "stat_name": "Expected goals (xG)",
+      "home_value": "1.84",
+      "away_value": "0.39"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 12,
+      "stat_name": "Ball possession",
+      "home_value": "50%",
+      "away_value": "50%"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "6",
+      "away_value": "3"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "5",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 459,
+      "stat_name": "Big chances",
+      "home_value": "2",
+      "away_value": "2"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 342,
+      "stat_name": "Passes",
+      "home_value": "62% (87/140)",
+      "away_value": "66% (93/140)"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 23,
+      "stat_name": "Yellow cards",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 432,
+      "stat_name": "Expected goals (xG)",
+      "home_value": "1.84",
+      "away_value": "0.39"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 499,
+      "stat_name": "xG on target (xGOT)",
+      "home_value": "2.07",
+      "away_value": "0.59"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "6",
+      "away_value": "3"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "5",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 14,
+      "stat_name": "Shots off target",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 158,
+      "stat_name": "Blocked shots",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 461,
+      "stat_name": "Shots inside the box",
+      "home_value": "5",
+      "away_value": "2"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 463,
+      "stat_name": "Shots outside the box",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 457,
+      "stat_name": "Hit the woodwork",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 465,
+      "stat_name": "Headed goals",
+      "home_value": "1",
+      "away_value": "0"
+    },
+    {
+      "period": "1st Half",
+      "category": "Attack",
+      "stat_id": 459,
+      "stat_name": "Big chances",
+      "home_value": "2",
+      "away_value": "2"
+    },
+    {
+      "period": "1st Half",
+      "category": "Attack",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Attack",
+      "stat_id": 471,
+      "stat_name": "Touches in opposition box",
+      "home_value": "15",
+      "away_value": "4"
+    },
+    {
+      "period": "1st Half",
+      "category": "Attack",
+      "stat_id": 521,
+      "stat_name": "Accurate through passes",
+      "home_value": "1",
+      "away_value": "0"
+    },
+    {
+      "period": "1st Half",
+      "category": "Attack",
+      "stat_id": 17,
+      "stat_name": "Offsides",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Attack",
+      "stat_id": 15,
+      "stat_name": "Free kicks",
+      "home_value": "5",
+      "away_value": "11"
+    },
+    {
+      "period": "1st Half",
+      "category": "Passes",
+      "stat_id": 342,
+      "stat_name": "Passes",
+      "home_value": "62% (87/140)",
+      "away_value": "66% (93/140)"
+    },
+    {
+      "period": "1st Half",
+      "category": "Passes",
+      "stat_id": 517,
+      "stat_name": "Long passes",
+      "home_value": "30% (12/40)",
+      "away_value": "33% (10/30)"
+    },
+    {
+      "period": "1st Half",
+      "category": "Passes",
+      "stat_id": 467,
+      "stat_name": "Passes in final third",
+      "home_value": "50% (21/42)",
+      "away_value": "50% (21/42)"
+    },
+    {
+      "period": "1st Half",
+      "category": "Passes",
+      "stat_id": 433,
+      "stat_name": "Crosses",
+      "home_value": "40% (2/5)",
+      "away_value": "13% (1/8)"
+    },
+    {
+      "period": "1st Half",
+      "category": "Passes",
+      "stat_id": 503,
+      "stat_name": "Expected assists (xA)",
+      "home_value": "0.77",
+      "away_value": "0.17"
+    },
+    {
+      "period": "1st Half",
+      "category": "Passes",
+      "stat_id": 18,
+      "stat_name": "Throw ins",
+      "home_value": "9",
+      "away_value": "11"
+    },
+    {
+      "period": "1st Half",
+      "category": "Defense",
+      "stat_id": 21,
+      "stat_name": "Fouls",
+      "home_value": "11",
+      "away_value": "5"
+    },
+    {
+      "period": "1st Half",
+      "category": "Defense",
+      "stat_id": 475,
+      "stat_name": "Tackles",
+      "home_value": "73% (8/11)",
+      "away_value": "91% (10/11)"
+    },
+    {
+      "period": "1st Half",
+      "category": "Defense",
+      "stat_id": 513,
+      "stat_name": "Duels won",
+      "home_value": "32",
+      "away_value": "23"
+    },
+    {
+      "period": "1st Half",
+      "category": "Defense",
+      "stat_id": 479,
+      "stat_name": "Clearances",
+      "home_value": "15",
+      "away_value": "6"
+    },
+    {
+      "period": "1st Half",
+      "category": "Defense",
+      "stat_id": 434,
+      "stat_name": "Interceptions",
+      "home_value": "1",
+      "away_value": "6"
+    },
+    {
+      "period": "1st Half",
+      "category": "Defense",
+      "stat_id": 507,
+      "stat_name": "Errors leading to shot",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "1st Half",
+      "category": "Defense",
+      "stat_id": 509,
+      "stat_name": "Errors leading to goal",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Goalkeeping",
+      "stat_id": 19,
+      "stat_name": "Goalkeeper saves",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Goalkeeping",
+      "stat_id": 501,
+      "stat_name": "xGOT faced",
+      "home_value": "0.59",
+      "away_value": "2.07"
+    },
+    {
+      "period": "1st Half",
+      "category": "Goalkeeping",
+      "stat_id": 511,
+      "stat_name": "Goals prevented",
+      "home_value": "0.59",
+      "away_value": "-0.93"
+    },
+    {
+      "period": "1st Half",
+      "category": "Goalkeeping",
+      "stat_id": 20,
+      "stat_name": "Goal kicks",
+      "home_value": "2",
+      "away_value": "2"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Top stats",
+      "stat_id": 432,
+      "stat_name": "Expected goals (xG)",
+      "home_value": "0.00",
+      "away_value": "0.00"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Top stats",
+      "stat_id": 12,
+      "stat_name": "Ball possession",
+      "home_value": "0%",
+      "away_value": "0%"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Top stats",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Top stats",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Top stats",
+      "stat_id": 459,
+      "stat_name": "Big chances",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Top stats",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 432,
+      "stat_name": "Expected goals (xG)",
+      "home_value": "0.00",
+      "away_value": "0.00"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 499,
+      "stat_name": "xG on target (xGOT)",
+      "home_value": "0.00",
+      "away_value": "0.00"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 14,
+      "stat_name": "Shots off target",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 158,
+      "stat_name": "Blocked shots",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 461,
+      "stat_name": "Shots inside the box",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 463,
+      "stat_name": "Shots outside the box",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Shots",
+      "stat_id": 457,
+      "stat_name": "Hit the woodwork",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Attack",
+      "stat_id": 459,
+      "stat_name": "Big chances",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Attack",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Attack",
+      "stat_id": 471,
+      "stat_name": "Touches in opposition box",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Attack",
+      "stat_id": 521,
+      "stat_name": "Accurate through passes",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Attack",
+      "stat_id": 17,
+      "stat_name": "Offsides",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Attack",
+      "stat_id": 15,
+      "stat_name": "Free kicks",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Passes",
+      "stat_id": 503,
+      "stat_name": "Expected assists (xA)",
+      "home_value": "0.00",
+      "away_value": "0.00"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Passes",
+      "stat_id": 18,
+      "stat_name": "Throw ins",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Defense",
+      "stat_id": 21,
+      "stat_name": "Fouls",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Defense",
+      "stat_id": 513,
+      "stat_name": "Duels won",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Defense",
+      "stat_id": 479,
+      "stat_name": "Clearances",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Defense",
+      "stat_id": 434,
+      "stat_name": "Interceptions",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Defense",
+      "stat_id": 507,
+      "stat_name": "Errors leading to shot",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Defense",
+      "stat_id": 509,
+      "stat_name": "Errors leading to goal",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Goalkeeping",
+      "stat_id": 19,
+      "stat_name": "Goalkeeper saves",
+      "home_value": "0",
+      "away_value": "0"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Goalkeeping",
+      "stat_id": 501,
+      "stat_name": "xGOT faced",
+      "home_value": "0.00",
+      "away_value": "0.00"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Goalkeeping",
+      "stat_id": 511,
+      "stat_name": "Goals prevented",
+      "home_value": "0.00",
+      "away_value": "0.00"
+    },
+    {
+      "period": "2nd Half",
+      "category": "Goalkeeping",
+      "stat_id": 20,
+      "stat_name": "Goal kicks",
+      "home_value": "0",
+      "away_value": "0"
+    }
+  ],
+  "lineups": {
+    "home_formation": "1-4-4-2",
+    "away_formation": "1-4-4-2",
+    "confirmed": true,
+    "home": [
+      {
+        "player_id": "CWaLzeh2",
+        "name": "Amani B.",
+        "surname": "Amani",
+        "shirt_number": 6,
+        "position": "Captain",
+        "position_badge": "(C)",
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "KYQDJyqm",
+        "name": "Diakite A.",
+        "surname": "Diakite",
+        "shirt_number": 1,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "0xFX8u3D",
+        "name": "Diakite M.",
+        "surname": "Diakite",
+        "shirt_number": 5,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "27vL9CgO",
+        "name": "Elloh R.",
+        "surname": "Elloh",
+        "shirt_number": 10,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": "7' Elloh R."
+      },
+      {
+        "player_id": "SbULHFDa",
+        "name": "Fofana A.",
+        "surname": "Fofana",
+        "shirt_number": 25,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "MaQbVGL6",
+        "name": "Gbehi A.",
+        "surname": "Gbehi",
+        "shirt_number": 15,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "M1sCcIaF",
+        "name": "Konan I.",
+        "surname": "Konan",
+        "shirt_number": 19,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": "23' Konan I. (Ouedraogo N.)"
+      },
+      {
+        "player_id": "EPqUDEgl",
+        "name": "Kouassi R.",
+        "surname": "Kouassi",
+        "shirt_number": 12,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": "14' Konan I. (Kouassi R.)"
+      },
+      {
+        "player_id": "tzboBJrH",
+        "name": "Ouedraogo N.",
+        "surname": "Ouedraogo",
+        "shirt_number": 11,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": "23' Konan I. (Ouedraogo N.)"
+      },
+      {
+        "player_id": "W0CjM0F7",
+        "name": "Sery G.",
+        "surname": "Sery",
+        "shirt_number": 26,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "llDEqVXi",
+        "name": "Yapo K.",
+        "surname": "Yapo",
+        "shirt_number": 3,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "2ozADzrr",
+        "name": "Belem A.",
+        "surname": "Belem",
+        "shirt_number": 9,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "dMQe6N6L",
+        "name": "Congo A.",
+        "surname": "Congo",
+        "shirt_number": 6,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "6sPECshR",
+        "name": "Guira D.",
+        "surname": "Guira",
+        "shirt_number": 19,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "dd5OQTbf",
+        "name": "Judicael D.",
+        "surname": "Judicael",
+        "shirt_number": 26,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "voG05sMR",
+        "name": "Kabre A.",
+        "surname": "Kabre",
+        "shirt_number": 15,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "xxpd8p4D",
+        "name": "Ouedraogo F.",
+        "surname": "Ouedraogo",
+        "shirt_number": 1,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "S2nUeFnn",
+        "name": "Rouamba M.",
+        "surname": "Rouamba",
+        "shirt_number": 14,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": "16' Rouamba M."
+      },
+      {
+        "player_id": "hpSrWmdK",
+        "name": "Sam S.",
+        "surname": "Sam",
+        "shirt_number": 22,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "StwCJGId",
+        "name": "Sawadogo B.",
+        "surname": "Sawadogo",
+        "shirt_number": 11,
+        "position": "Captain",
+        "position_badge": "(C)",
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "6PVrGGbJ",
+        "name": "Traore M.",
+        "surname": "Traore",
+        "shirt_number": 2,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      },
+      {
+        "player_id": "Sl7Mb3Cs",
+        "name": "Zida S.",
+        "surname": "Zida",
+        "shirt_number": 5,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": true,
+        "in_match_event": null
+      }
+    ],
+    "away": [
+      {
+        "player_id": "2LlqdQu8",
+        "name": "Abrogoua A.",
+        "surname": "Abrogoua",
+        "shirt_number": 18,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "YeN28qEM",
+        "name": "Amani L.",
+        "surname": "Amani",
+        "shirt_number": 23,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "rZdjZbMs",
+        "name": "Behinan M.",
+        "surname": "Behinan",
+        "shirt_number": 7,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "KzdthVY7",
+        "name": "Cisse M.",
+        "surname": "Cisse",
+        "shirt_number": 20,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "zqdBSWRH",
+        "name": "Dagba E.",
+        "surname": "Dagba",
+        "shirt_number": 21,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "6RxGF0Lk",
+        "name": "Daple A.",
+        "surname": "Daple",
+        "shirt_number": 2,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "8xd89x3k",
+        "name": "Diallo A.",
+        "surname": "Diallo",
+        "shirt_number": 14,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "tMzxEXCO",
+        "name": "Diawara M.",
+        "surname": "Diawara",
+        "shirt_number": 24,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "Kn6nYzbt",
+        "name": "Gnounoue E.",
+        "surname": "Gnounoue",
+        "shirt_number": 22,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "AiTc9hj2",
+        "name": "Huviezo A. A.",
+        "surname": "Huviezo",
+        "shirt_number": 4,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ghana",
+        "rating": "82",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "8puHAhvI",
+        "name": "Koko",
+        "surname": "Koko",
+        "shirt_number": 17,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "4Qn7bbp9",
+        "name": "Kokora S.",
+        "surname": "Kokora",
+        "shirt_number": 8,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "rV689qlS",
+        "name": "Kreto P.",
+        "surname": "Kreto",
+        "shirt_number": 9,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "xUTgA5qA",
+        "name": "Lamfir O.",
+        "surname": "Lamfir",
+        "shirt_number": 16,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "8zZIONQq",
+        "name": "Toure Y.",
+        "surname": "Toure",
+        "shirt_number": 13,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Ivory Coast",
+        "rating": "58",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "8ITFO5lf",
+        "name": "Compaore M.",
+        "surname": "Compaore",
+        "shirt_number": 7,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "Gd8o3GUs",
+        "name": "Dabilgou N.",
+        "surname": "Dabilgou",
+        "shirt_number": 16,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "8EsR7QG8",
+        "name": "Goungounga E.",
+        "surname": "Goungounga",
+        "shirt_number": 13,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "QkIt0Ec2",
+        "name": "Kafando F.",
+        "surname": "Kafando",
+        "shirt_number": 8,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "rqQdrrS0",
+        "name": "Korogo A.",
+        "surname": "Korogo",
+        "shirt_number": 23,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "GAw4tMdD",
+        "name": "Koudougou R.",
+        "surname": "Koudougou",
+        "shirt_number": 20,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "ja2GSkUs",
+        "name": "Leaticia G.",
+        "surname": "Leaticia",
+        "shirt_number": 17,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "8jcwivUN",
+        "name": "Millogo K.",
+        "surname": "Millogo",
+        "shirt_number": 12,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "06Je9whD",
+        "name": "Nako A.",
+        "surname": "Nako",
+        "shirt_number": 24,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "pAJNgfHF",
+        "name": "Nana J.",
+        "surname": "Nana",
+        "shirt_number": 18,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "dCuSoGS8",
+        "name": "Sawadogo R.",
+        "surname": "Sawadogo",
+        "shirt_number": 10,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "QycuNobJ",
+        "name": "Soulier E.",
+        "surname": "Soulier",
+        "shirt_number": 25,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "SvtFd087",
+        "name": "Sow S.",
+        "surname": "Sow",
+        "shirt_number": 3,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "htSurqog",
+        "name": "Tarnagda F.",
+        "surname": "Tarnagda",
+        "shirt_number": 21,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "M5ogXFkd",
+        "name": "Zongo D.",
+        "surname": "Zongo",
+        "shirt_number": 4,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "CCU5psJ5",
+        "name": "Pedros R.",
+        "surname": "Pedros R.",
+        "shirt_number": null,
+        "position": null,
+        "position_badge": null,
+        "nationality": "France",
+        "rating": "77",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "6qfACYtA",
+        "name": "Sawadogo P.",
+        "surname": "Sawadogo P.",
+        "shirt_number": null,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Burkina Faso",
+        "rating": "42",
+        "is_starter": false,
+        "in_match_event": null
+      }
+    ]
+  },
+  "odds": {
+    "bookmaker_id": "8",
+    "home": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    },
+    "draw": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    },
+    "away": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    }
+  },
+  "referee": null,
+  "scraped_at": "2026-07-27T21:02:50.608128+00:00",
+  "venue": null,
+  "venue_capacity": null,
+  "venue_city": null
+},
+{
+  "match_id": "jgMSFyJ8",
+  "match_url": "https://www.flashscore.com/match/football/comercial-pi-6eAMuLr4/river-pi-Kzaxl81d/?mid=jgMSFyJ8",
+  "status": "LIVE",
+  "kickoff_time": "2026-07-27T19:00:00+00:00",
+  "home_team": "Comercial PI U20",
+  "away_team": "River-PI U20",
+  "home_team_id": "hGLN4aKq",
+  "away_team_id": "QTJV2wkd",
+  "round": "2",
+  "has_live_stream": true,
+  "league": "BRAZIL: Piauiense U20 - Play Offs",
+  "league_id": "C0soJddp",
+  "league_url": "/football/brazil/piauiense-u20/",
+  "match_minute": 13,
+  "match_period": "2nd Half",
+  "home_score": 1,
+  "away_score": 1,
+  "home_score_halftime": 1,
+  "away_score_halftime": 0,
+  "lineups_confirmed": true,
+  "events": [
+    {
+      "event_id": "vsUW02xq",
+      "side": "home",
+      "minute": "45+4'",
+      "type": "goal",
+      "type_label": "Goal",
+      "player_name": null,
+      "player_id": null,
+      "extra_info": null,
+      "home_score_after": 1,
+      "away_score_after": 0
+    },
+    {
+      "event_id": "jutVRjbd",
+      "side": "away",
+      "minute": "45+7'",
+      "type": "goal",
+      "type_label": "Goal",
+      "player_name": null,
+      "player_id": null,
+      "extra_info": null,
+      "home_score_after": 1,
+      "away_score_after": 1
+    }
+  ],
+  "lineups": {
+    "home_formation": null,
+    "away_formation": null,
+    "confirmed": false,
+    "home": [],
+    "away": []
+  },
+  "odds": {
+    "bookmaker_id": "8",
+    "home": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    },
+    "draw": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    },
+    "away": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    }
+  },
+  "referee": null,
+  "scraped_at": "2026-07-27T21:02:50.818140+00:00",
+  "statistics": null,
+  "venue": null,
+  "venue_capacity": null,
+  "venue_city": null
+},
+{
+  "match_id": "WtDjSmhl",
+  "match_url": "https://www.flashscore.com/match/football/envigado-xtFGm2B8/real-cundinamarca-ze01M68P/?mid=WtDjSmhl",
+  "status": "LIVE",
+  "kickoff_time": "2026-07-27T20:30:00+00:00",
+  "home_team": "Envigado",
+  "away_team": "Real Cundinamarca",
+  "home_team_id": "W45LP16b",
+  "away_team_id": "OCNSNuyB",
+  "round": "2",
+  "has_live_stream": true,
+  "league": "COLOMBIA: Primera B - Clausura",
+  "league_id": "4dzRa7y9",
+  "league_url": "/football/colombia/primera-b/",
+  "match_minute": 12,
+  "match_period": "2nd Half",
+  "home_score": 0,
+  "away_score": 0,
+  "home_score_halftime": 0,
+  "away_score_halftime": 0,
+  "lineups_confirmed": true,
+  "events": [
+    {
+      "event_id": "Y3aSuOrL",
+      "side": "home",
+      "minute": "13'",
+      "type": "sub_in",
+      "type_label": "Substitution - In",
+      "player_name": "Villa M.",
+      "player_id": "Kfl78jzn",
+      "extra_info": null,
+      "home_score_after": null,
+      "away_score_after": null
+    },
+    {
+      "event_id": "8fkp8wOr",
+      "side": "away",
+      "minute": "15'",
+      "type": "sub_in",
+      "type_label": "Substitution - In",
+      "player_name": "Castro B.",
+      "player_id": "OOW01QLH",
+      "extra_info": null,
+      "home_score_after": null,
+      "away_score_after": null
+    },
+    {
+      "event_id": "ngtAjlGM",
+      "side": "away",
+      "minute": "26'",
+      "type": "yellow_card",
+      "type_label": "Yellow Card",
+      "player_name": "Vidal K.",
+      "player_id": "OURWLzHL",
+      "extra_info": null,
+      "home_score_after": null,
+      "away_score_after": null
+    }
+  ],
+  "statistics": [
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 12,
+      "stat_name": "Ball possession",
+      "home_value": "51%",
+      "away_value": "49%"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "1",
+      "away_value": "2"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "3"
+    },
+    {
+      "period": "Match",
+      "category": "Top stats",
+      "stat_id": 23,
+      "stat_name": "Yellow cards",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "1",
+      "away_value": "2"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Shots",
+      "stat_id": 14,
+      "stat_name": "Shots off target",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "Match",
+      "category": "Attack",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "3"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 12,
+      "stat_name": "Ball possession",
+      "home_value": "51%",
+      "away_value": "49%"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "1",
+      "away_value": "2"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "3"
+    },
+    {
+      "period": "1st Half",
+      "category": "Top stats",
+      "stat_id": 23,
+      "stat_name": "Yellow cards",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 34,
+      "stat_name": "Total shots",
+      "home_value": "1",
+      "away_value": "2"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 13,
+      "stat_name": "Shots on target",
+      "home_value": "0",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Shots",
+      "stat_id": 14,
+      "stat_name": "Shots off target",
+      "home_value": "1",
+      "away_value": "1"
+    },
+    {
+      "period": "1st Half",
+      "category": "Attack",
+      "stat_id": 16,
+      "stat_name": "Corner kicks",
+      "home_value": "2",
+      "away_value": "3"
+    }
+  ],
+  "lineups": {
+    "home_formation": null,
+    "away_formation": null,
+    "confirmed": true,
+    "home": [
+      {
+        "player_id": "UqdIaYcb",
+        "name": "Aristizabal J.",
+        "surname": "Aristizabal",
+        "shirt_number": 80,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "rPocEjtm",
+        "name": "Betancurt M.",
+        "surname": "Betancurt",
+        "shirt_number": 14,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "06P3SZM7",
+        "name": "Catano J.",
+        "surname": "Catano",
+        "shirt_number": 20,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "MHBro0Gi",
+        "name": "Hurtado W.",
+        "surname": "Hurtado",
+        "shirt_number": 8,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "2aNX8YJt",
+        "name": "Londono E.",
+        "surname": "Londono",
+        "shirt_number": 33,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "6LbMOYAU",
+        "name": "Norena S.",
+        "surname": "Norena",
+        "shirt_number": 5,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "U3hg2u98",
+        "name": "Palacios D.",
+        "surname": "Palacios",
+        "shirt_number": 2,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "WQpgreD5",
+        "name": "Rodriguez A.",
+        "surname": "Rodriguez",
+        "shirt_number": 9,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "4veUMiHc",
+        "name": "Rodriguez J.",
+        "surname": "Rodriguez",
+        "shirt_number": 10,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "z35rEn7s",
+        "name": "Valencia Mosquera D. A.",
+        "surname": "Valencia Mosquera",
+        "shirt_number": 77,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "U5FpMlua",
+        "name": "Amaya J.",
+        "surname": "Amaya",
+        "shirt_number": 10,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": "15'"
+      },
+      {
+        "player_id": "M3WfCmMc",
+        "name": "Cano A.",
+        "surname": "Cano",
+        "shirt_number": 5,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "hQLvJwsS",
+        "name": "Cortes J.",
+        "surname": "Cortes",
+        "shirt_number": 19,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "CCBA9GHD",
+        "name": "Cuellar K.",
+        "surname": "Cuellar",
+        "shirt_number": 17,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "OQgvjpOu",
+        "name": "Jaramillo J.",
+        "surname": "Jaramillo",
+        "shirt_number": 29,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "0jHG2qOd",
+        "name": "Rodriguez J.",
+        "surname": "Rodriguez",
+        "shirt_number": 15,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Mexico",
+        "rating": "128",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "rVl1rZ1i",
+        "name": "Suaza J.",
+        "surname": "Suaza",
+        "shirt_number": 2,
+        "position": "Captain",
+        "position_badge": "(C)",
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "OURWLzHL",
+        "name": "Vidal K.",
+        "surname": "Vidal",
+        "shirt_number": 23,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": "26' Vidal K."
+      },
+      {
+        "player_id": "v544MAQR",
+        "name": "Zambrano C.",
+        "surname": "Zambrano",
+        "shirt_number": 16,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      }
+    ],
+    "away": [
+      {
+        "player_id": "86JAtikS",
+        "name": "Tovar A.",
+        "surname": "Tovar Escalante",
+        "shirt_number": 88,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": "13'"
+      },
+      {
+        "player_id": "As6vtxIb",
+        "name": "Valencia M.",
+        "surname": "Valencia",
+        "shirt_number": 1,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "MR4F8gZO",
+        "name": "Cuervo G.",
+        "surname": "Cuervo",
+        "shirt_number": null,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "OMDeLg3b",
+        "name": "Gamboa Valencia J. J.",
+        "surname": "Gamboa Valencia",
+        "shirt_number": null,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "nXieekyD",
+        "name": "Hernandez J.",
+        "surname": "Hernandez",
+        "shirt_number": null,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Venezuela",
+        "rating": "205",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "Ig2V5OgB",
+        "name": "Palacio J.",
+        "surname": "Palacio",
+        "shirt_number": null,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "Kfl78jzn",
+        "name": "Villa M.",
+        "surname": "Villa",
+        "shirt_number": null,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": "13'"
+      },
+      {
+        "player_id": "OOW01QLH",
+        "name": "Castro B.",
+        "surname": "Castro",
+        "shirt_number": 14,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": "15'"
+      },
+      {
+        "player_id": "K8LxfLUg",
+        "name": "Giraldo J.",
+        "surname": "Giraldo",
+        "shirt_number": 40,
+        "position": "Goalkeeper",
+        "position_badge": "(G)",
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "6oHQKpH0",
+        "name": "Hoyos J.",
+        "surname": "Hoyos",
+        "shirt_number": 6,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "Kzf5o1nn",
+        "name": "Negrete C.",
+        "surname": "Negrete",
+        "shirt_number": 9,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "MFtZHTEF",
+        "name": "Ortegon M.",
+        "surname": "Ortegon",
+        "shirt_number": 13,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "2aasrLTq",
+        "name": "Quinonez B.",
+        "surname": "Quinonez",
+        "shirt_number": 18,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      },
+      {
+        "player_id": "tIGj20W1",
+        "name": "Zavala K.",
+        "surname": "Zavala",
+        "shirt_number": 11,
+        "position": null,
+        "position_badge": null,
+        "nationality": "Colombia",
+        "rating": "53",
+        "is_starter": false,
+        "in_match_event": null
+      }
+    ]
+  },
+  "odds": {
+    "bookmaker_id": "8",
+    "home": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    },
+    "draw": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    },
+    "away": {
+      "current": null,
+      "opening": null,
+      "change": null,
+      "previous": null
+    }
+  },
+  "referee": null,
+  "scraped_at": "2026-07-27T21:02:50.945408+00:00",
+  "venue": null,
+  "venue_capacity": null,
+  "venue_city": null
+}]

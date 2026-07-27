@@ -80,6 +80,7 @@ export async function POST(req: Request) {
       accumulatorShareBps,
       capMultiple,
       escrowAddress: typeof b.escrowAddress === "string" ? b.escrowAddress : null,
+      onChainMarketId: b.onChainMarketId == null ? null : BigInt(b.onChainMarketId as string | number),
     })
     .returning();
 

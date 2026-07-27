@@ -16,7 +16,23 @@ import {
 import { getEplMatches } from "./footballDataOrg";
 import { normalizeAfFixture, normalizeAfEvents, normalizeAfPlayers } from "./normalize/apiFootball";
 import { normalizeFdMatch } from "./normalize/footballDataOrg";
-import { upsertFixture, upsertPlayerStats, insertEvents } from "./ingest";
+import {
+  isEplLive,
+  isEplExtractor,
+  normalizeFsLiveFixture,
+  normalizeFsMatchState,
+  normalizeFsEvents,
+  normalizeFsStats,
+  normalizeFsExtractorMatch,
+} from "./normalize/flashscore";
+import { getLiveMatches, getFixtureWindow } from "./flashscore";
+import {
+  upsertFixture,
+  upsertPlayerStats,
+  insertEvents,
+  upsertMatchState,
+  upsertMatchStats,
+} from "./ingest";
 import { db, schema } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -114,6 +130,36 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
     const raw = await getEplMatches(day, to);
     for (const m of raw) {
       const n = normalizeFdMatch(m);
+      await upsertFixture(n, { statusUnknown: n.statusUnknown });
+    }
+  },
+
+  /** S3 live poll — the chart engine. ONE actor run returns ALL live
+   *  matches, so this runner ignores job.fixtureId and serves every live
+   *  EPL fixture at once (the planner may emit several s3.livePoll jobs per
+   *  tick; the worker dedupes same-kind jobs to one run — see worker.ts). */
+  "s3.livePoll": async (_job, now) => {
+    const all = await getLiveMatches();
+    const nowIso = now.toISOString();
+    for (const m of all) {
+      if (!isEplLive(m)) continue;
+      const fx = normalizeFsLiveFixture(m);
+      if (!fx) continue;
+      const id = await upsertFixture(fx, { statusUnknown: fx.statusUnknown });
+      await upsertMatchState(normalizeFsMatchState(id, m, nowIso), "flashscore", now);
+      await insertEvents(normalizeFsEvents(id, m, nowIso), null);
+      await upsertMatchStats(normalizeFsStats(id, m), "flashscore", now);
+    }
+  },
+
+  /** S4 fixture window sync — listing redundancy. Corroborates existence +
+   *  status; never overwrites S1's kickoff times (upsert semantics). */
+  "s4.fixtureSync": async () => {
+    const raw = await getFixtureWindow(["Premier League"]);
+    for (const m of raw) {
+      if (!isEplExtractor(m)) continue;
+      const n = normalizeFsExtractorMatch(m);
+      if (!n) continue;
       await upsertFixture(n, { statusUnknown: n.statusUnknown });
     }
   },

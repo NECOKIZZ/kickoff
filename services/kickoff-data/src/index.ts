@@ -25,3 +25,18 @@ export {
   normalizeAfPlayers,
 } from "./normalize/apiFootball";
 export { fdStatus, normalizeFdMatch } from "./normalize/footballDataOrg";
+export * from "./flashscore";
+export {
+  parseMinute,
+  fsPeriod,
+  fsStatus,
+  fsEventType,
+  isEplLive,
+  isEplExtractor,
+  normalizeFsLiveFixture,
+  normalizeFsMatchState,
+  normalizeFsEvents,
+  normalizeFsStats,
+  normalizeFsExtractorMatch,
+  s4Status,
+} from "./normalize/flashscore";

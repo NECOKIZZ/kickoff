@@ -11,6 +11,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fixturesDir } from "./mockDir";
+import { archiveRaw } from "./archive";
+import { mirrorSpend, restoreSpend } from "./budget";
 
 const BASE = "https://v3.football.api-sports.io";
 
@@ -43,6 +45,13 @@ export function budgetState(): { used: number; remaining: number; breakerTripped
   return { used: budget.used, remaining, breakerTripped: remaining < CIRCUIT_BREAKER_THRESHOLD };
 }
 
+/** Restore today's spend from the DB mirror — call once at worker startup so
+ *  a restart doesn't forget the day's usage (spec §4 global rules). */
+export async function restoreBudget(): Promise<void> {
+  const used = await restoreSpend("apiFootball", today());
+  if (budget.dayUtc === today() && used > budget.used) budget.used = used;
+}
+
 // ---------------------------------------------------------------------------
 // Core fetch
 // ---------------------------------------------------------------------------
@@ -64,11 +73,14 @@ async function apiGet(endpoint: string, params: Record<string, string>): Promise
     headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY! },
   });
   budget.used += 1;
+  mirrorSpend("apiFootball", budget.dayUtc);
 
   if (!res.ok) throw new Error(`API-Football ${endpoint} → HTTP ${res.status}`);
-  const body = await res.json();
+  const body: any = await res.json();
   if (body.errors && Object.keys(body.errors).length > 0)
     throw new Error(`API-Football ${endpoint} → ${JSON.stringify(body.errors)}`);
+  // Archive BEFORE normalization (spec §4) — evidence trail for disputes.
+  await archiveRaw("apiFootball", `${endpoint}?${new URLSearchParams(params)}`, body);
   return body;
 }
 

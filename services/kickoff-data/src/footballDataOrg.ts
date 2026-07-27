@@ -7,6 +7,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fixturesDir } from "./mockDir";
+import { archiveRaw } from "./archive";
 
 const BASE = "https://api.football-data.org/v4";
 
@@ -28,7 +29,10 @@ async function apiGet(endpoint: string, params: Record<string, string> = {}): Pr
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   const res = await fetch(url, { headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_ORG_KEY! } });
   if (!res.ok) throw new Error(`football-data.org ${endpoint} → HTTP ${res.status}`);
-  return res.json();
+  const body = await res.json();
+  // Archive BEFORE normalization (spec §4) — evidence trail for disputes.
+  await archiveRaw("fdorg", `${endpoint}?${new URLSearchParams(params)}`, body);
+  return body;
 }
 
 export interface FdMatch {

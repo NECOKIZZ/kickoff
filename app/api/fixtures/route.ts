@@ -1,6 +1,8 @@
 import { json, jsonError } from "@/lib/http";
-import { getEplFixtures, budgetState, isMockMode } from "@/data/apiFootball";
-import { getEplMatches, fixtureKey, isMockMode as fdMock } from "@/data/footballDataOrg";
+// TRANSITIONAL (spec §8 step 5): direct in-process import of the data
+// service. Replaced by the /v1 consumer API once kickoff-data serves HTTP.
+import { getEplFixtures, budgetState, isMockMode } from "@kickoff/data";
+import { getEplMatches, fixtureKey, fdorgIsMockMode as fdMock } from "@kickoff/data";
 
 /**
  * GET /api/fixtures?from=2026-08-15&to=2026-08-22

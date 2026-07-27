@@ -14,7 +14,7 @@ import {
   DEFAULT_DIST_PARAMS,
   DEFAULT_PAYOUT_PARAMS,
   type Position,
-} from "../src/engine/engine.js";
+} from "@kickoff/engine";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const OUT = join(__dir, "../contracts/test/fixtures/differential.json");

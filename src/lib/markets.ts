@@ -7,7 +7,7 @@ import {
   type Position as EnginePosition,
   type PayoutParams,
   type SettleResult,
-} from "@/engine/engine";
+} from "@kickoff/engine";
 
 export type MarketRow = typeof schema.markets.$inferSelect;
 export type PositionRow = typeof schema.positions.$inferSelect;

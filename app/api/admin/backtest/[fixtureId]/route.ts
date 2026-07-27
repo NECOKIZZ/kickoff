@@ -1,8 +1,9 @@
 import { json, jsonError } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
-import { backtestFixture } from "@/data/backtest";
-import { isMockMode } from "@/data/apiFootball";
+// TRANSITIONAL (spec §8 step 5): direct in-process import of the data
+// service. Replaced by the /v1 consumer API once kickoff-data serves HTTP.
+import { backtestFixture, isMockMode } from "@kickoff/data";
 
 /**
  * POST /api/admin/backtest/:fixtureId — replay a completed fixture through

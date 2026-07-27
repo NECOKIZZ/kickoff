@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { deriveConceded, deriveOwnGoals, scorePlayer } from "@/data/scoring";
-import { teamSlug, fixtureKey } from "@/data/footballDataOrg";
-import type { AfEvent, AfLineup, AfPlayerStats } from "@/data/apiFootball";
+import { deriveConceded, deriveOwnGoals, scorePlayer } from "../src/scoring";
+import { teamSlug, fixtureKey } from "../src/footballDataOrg";
+import type { AfEvent, AfLineup, AfPlayerStats } from "../src/apiFootball";
+import { fixturesDir } from "../src/mockDir";
 
 async function loadFixture(name: string): Promise<any> {
-  const raw = await readFile(path.join(process.cwd(), "src/data/fixtures", name), "utf8");
+  const raw = await readFile(path.join(fixturesDir(), name), "utf8");
   return JSON.parse(raw);
 }
 

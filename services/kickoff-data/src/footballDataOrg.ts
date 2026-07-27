@@ -6,6 +6,7 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fixturesDir } from "./mockDir";
 
 const BASE = "https://api.football-data.org/v4";
 
@@ -18,7 +19,7 @@ export function isMockMode(): boolean {
 
 async function apiGet(endpoint: string, params: Record<string, string> = {}): Promise<any> {
   if (isMockMode()) {
-    const dir = path.join(process.cwd(), "src/data/fixtures");
+    const dir = fixturesDir();
     const name = endpoint.startsWith("/competitions") ? "fdorg-matches.json" : `fdorg-${endpoint.replaceAll("/", "_")}.json`;
     const raw = await readFile(path.join(dir, name), "utf8");
     return JSON.parse(raw);

@@ -10,6 +10,7 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fixturesDir } from "./mockDir";
 
 const BASE = "https://v3.football.api-sports.io";
 
@@ -72,12 +73,12 @@ async function apiGet(endpoint: string, params: Record<string, string>): Promise
 }
 
 async function mockGet(endpoint: string, params: Record<string, string>): Promise<any> {
-  // Recorded payloads live in src/data/fixtures/<name>.json. Naming:
+  // Recorded payloads live in fixtures/<name>.json. Naming:
   //   /fixtures?ids=X            → fixtures-byid-<X>.json
   //   /fixtures?league&season&…  → fixtures-epl.json
   //   /fixtures/players?fixture= → players-<fixtureId>.json
   //   /fixtures/lineups?fixture= → lineups-<fixtureId>.json
-  const dir = path.join(process.cwd(), "src/data/fixtures");
+  const dir = fixturesDir();
   let name: string;
   if (endpoint === "/fixtures/players") name = `players-${params.fixture}.json`;
   else if (endpoint === "/fixtures/lineups") name = `lineups-${params.fixture}.json`;

@@ -10,7 +10,7 @@ import {
   conserves,
   type Position,
   type PayoutParams,
-} from "@/engine/engine";
+} from "@kickoff/engine";
 
 const usd = (n: number): bigint => BigInt(Math.round(n * 1e6));
 

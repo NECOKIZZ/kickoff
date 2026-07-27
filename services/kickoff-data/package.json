@@ -1,0 +1,23 @@
+{
+  "name": "@kickoff/data",
+  "version": "0.1.0",
+  "private": true,
+  "description": "kickoff-data — standalone data-truth service. Aggregates football sources into a canonical schema; serves listing, settlement, and charts lanes.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@kickoff/engine": "workspace:*",
+    "@kickoff/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

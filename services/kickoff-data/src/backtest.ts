@@ -7,7 +7,7 @@
 
 import { getFixturesByIds, getFixtureEvents, getFixtureLineups, getFixturePlayers, isMockMode } from "./apiFootball";
 import { deriveConceded, deriveOwnGoals, scorePlayer, type PlayerScore } from "./scoring";
-import { distanceA, distanceB, settle, SCALE, type Position } from "../engine/engine";
+import { distanceA, distanceB, settle, SCALE, type Position } from "@kickoff/engine";
 
 export interface BacktestReport {
   fixtureId: number;

@@ -1,0 +1,1568 @@
+{
+  "cases": [
+    {
+      "gamma": 3,
+      "actualHome": 4,
+      "actualAway": 1,
+      "stakes": [
+        "205509887",
+        "398191369",
+        "366002303",
+        "8456318",
+        "39067741",
+        "20402062",
+        "71975469"
+      ],
+      "guessHome": [
+        4,
+        5,
+        1,
+        4,
+        5,
+        2,
+        5
+      ],
+      "guessAway": [
+        5,
+        1,
+        3,
+        4,
+        5,
+        1,
+        5
+      ],
+      "expectedPayouts": [
+        "0",
+        "630692708",
+        "418176405",
+        "0",
+        "0",
+        "28234787",
+        "0"
+      ],
+      "expectedPlatformCut": "16250779",
+      "expectedAcc": "16250470",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 3,
+      "actualAway": 5,
+      "stakes": [
+        "74207337",
+        "381918252",
+        "49305204",
+        "273706587",
+        "35797482"
+      ],
+      "guessHome": [
+        0,
+        1,
+        1,
+        0,
+        1
+      ],
+      "guessAway": [
+        1,
+        1,
+        2,
+        0,
+        0
+      ],
+      "expectedPayouts": [
+        "437951743",
+        "0",
+        "307840871",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "34571132",
+      "expectedAcc": "34571116",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 0,
+      "actualAway": 5,
+      "stakes": [
+        "325854002",
+        "198432535",
+        "3222056",
+        "244935569",
+        "195582310",
+        "232898715"
+      ],
+      "guessHome": [
+        5,
+        3,
+        1,
+        1,
+        2,
+        2
+      ],
+      "guessAway": [
+        5,
+        3,
+        2,
+        2,
+        0,
+        1
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "14355060",
+        "1091293369",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "47638380",
+      "expectedAcc": "47638378",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 1,
+      "actualHome": 0,
+      "actualAway": 3,
+      "stakes": [
+        "438699907",
+        "444010603"
+      ],
+      "guessHome": [
+        3,
+        3
+      ],
+      "guessAway": [
+        1,
+        4
+      ],
+      "expectedPayouts": [
+        "0",
+        "838840370"
+      ],
+      "expectedPlatformCut": "21935145",
+      "expectedAcc": "21934995",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 1,
+      "actualHome": 3,
+      "actualAway": 0,
+      "stakes": [
+        "234389851",
+        "78770529",
+        "462212405",
+        "481842901",
+        "21755928",
+        "195377177",
+        "481286970",
+        "112634262"
+      ],
+      "guessHome": [
+        1,
+        5,
+        1,
+        3,
+        0,
+        0,
+        1,
+        4
+      ],
+      "guessAway": [
+        4,
+        4,
+        0,
+        4,
+        0,
+        5,
+        0,
+        0
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "850082841",
+        "0",
+        "0",
+        "0",
+        "885164029",
+        "231809335"
+      ],
+      "expectedPlatformCut": "50606999",
+      "expectedAcc": "50606819",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 1,
+      "actualAway": 2,
+      "stakes": [
+        "388611506",
+        "343152393",
+        "140357967",
+        "246718256",
+        "477609000",
+        "119952285",
+        "75643529",
+        "415807725",
+        "355529957"
+      ],
+      "guessHome": [
+        1,
+        5,
+        4,
+        5,
+        3,
+        2,
+        5,
+        0,
+        2
+      ],
+      "guessAway": [
+        3,
+        0,
+        5,
+        5,
+        2,
+        1,
+        3,
+        3,
+        2
+      ],
+      "expectedPayouts": [
+        "980810141",
+        "0",
+        "285574216",
+        "0",
+        "0",
+        "0",
+        "0",
+        "773476464",
+        "397214241"
+      ],
+      "expectedPlatformCut": "63153783",
+      "expectedAcc": "63153773",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 1,
+      "actualHome": 0,
+      "actualAway": 3,
+      "stakes": [
+        "473216604",
+        "35120746",
+        "432347739"
+      ],
+      "guessHome": [
+        2,
+        5,
+        5
+      ],
+      "guessAway": [
+        1,
+        0,
+        5
+      ],
+      "expectedPayouts": [
+        "893937997",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "23373668",
+      "expectedAcc": "23373424",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 5,
+      "actualAway": 0,
+      "stakes": [
+        "77186321",
+        "182924490",
+        "156818254",
+        "221945070",
+        "358238091",
+        "47951769"
+      ],
+      "guessHome": [
+        5,
+        3,
+        3,
+        0,
+        3,
+        2
+      ],
+      "guessAway": [
+        5,
+        0,
+        0,
+        4,
+        5,
+        4
+      ],
+      "expectedPayouts": [
+        "0",
+        "524708008",
+        "449823824",
+        "0",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "35266101",
+      "expectedAcc": "35266062",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 5,
+      "actualAway": 5,
+      "stakes": [
+        "122182228",
+        "217084875",
+        "402241413",
+        "477128663",
+        "407059478",
+        "138226958"
+      ],
+      "guessHome": [
+        1,
+        0,
+        0,
+        2,
+        1,
+        4
+      ],
+      "guessAway": [
+        3,
+        5,
+        5,
+        3,
+        4,
+        5
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "0",
+        "1216867034",
+        "0",
+        "432199683"
+      ],
+      "expectedPlatformCut": "57428499",
+      "expectedAcc": "57428399",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 0,
+      "actualAway": 4,
+      "stakes": [
+        "150860479",
+        "403052228",
+        "333527061"
+      ],
+      "guessHome": [
+        5,
+        1,
+        0
+      ],
+      "guessAway": [
+        5,
+        0,
+        5
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "832048445"
+      ],
+      "expectedPlatformCut": "27695688",
+      "expectedAcc": "27695635",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 1,
+      "actualHome": 1,
+      "actualAway": 1,
+      "stakes": [
+        "133475881",
+        "307273428"
+      ],
+      "guessHome": [
+        3,
+        1
+      ],
+      "guessAway": [
+        1,
+        5
+      ],
+      "expectedPayouts": [
+        "410021953",
+        "0"
+      ],
+      "expectedPlatformCut": "15363685",
+      "expectedAcc": "15363671",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 3,
+      "actualAway": 2,
+      "stakes": [
+        "88686193",
+        "300398729",
+        "294817966",
+        "85585227",
+        "469919815",
+        "394617348"
+      ],
+      "guessHome": [
+        0,
+        1,
+        5,
+        5,
+        2,
+        2
+      ],
+      "guessAway": [
+        0,
+        0,
+        2,
+        0,
+        2,
+        5
+      ],
+      "expectedPayouts": [
+        "0",
+        "1072205221",
+        "457939197",
+        "0",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "51940431",
+      "expectedAcc": "51940429",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 0,
+      "actualAway": 2,
+      "stakes": [
+        "175122446",
+        "169943554",
+        "209775350",
+        "359929940",
+        "190845771"
+      ],
+      "guessHome": [
+        0,
+        4,
+        2,
+        0,
+        3
+      ],
+      "guessAway": [
+        1,
+        1,
+        0,
+        3,
+        3
+      ],
+      "expectedPayouts": [
+        "343193487",
+        "0",
+        "0",
+        "705367100",
+        "0"
+      ],
+      "expectedPlatformCut": "28528241",
+      "expectedAcc": "28528233",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 5,
+      "actualAway": 0,
+      "stakes": [
+        "1328483",
+        "185743689",
+        "485135116",
+        "16717938",
+        "307483543",
+        "119696327",
+        "477633943",
+        "25276665"
+      ],
+      "guessHome": [
+        1,
+        4,
+        2,
+        1,
+        1,
+        5,
+        2,
+        3
+      ],
+      "guessAway": [
+        2,
+        0,
+        5,
+        4,
+        5,
+        5,
+        0,
+        1
+      ],
+      "expectedPayouts": [
+        "0",
+        "958545178",
+        "0",
+        "0",
+        "0",
+        "0",
+        "535409856",
+        "32024513"
+      ],
+      "expectedPlatformCut": "46518087",
+      "expectedAcc": "46518070",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 4,
+      "actualAway": 2,
+      "stakes": [
+        "422637067",
+        "294900075",
+        "68645705",
+        "273089146",
+        "344178949",
+        "327374505",
+        "279548497"
+      ],
+      "guessHome": [
+        4,
+        2,
+        1,
+        3,
+        5,
+        3,
+        2
+      ],
+      "guessAway": [
+        0,
+        3,
+        3,
+        5,
+        1,
+        0,
+        4
+      ],
+      "expectedPayouts": [
+        "553739804",
+        "0",
+        "0",
+        "0",
+        "852585678",
+        "512430093",
+        "0"
+      ],
+      "expectedPlatformCut": "45809198",
+      "expectedAcc": "45809171",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 0,
+      "actualAway": 4,
+      "stakes": [
+        "149172632",
+        "136157035",
+        "261961881",
+        "379685197",
+        "198466229",
+        "325735500"
+      ],
+      "guessHome": [
+        3,
+        3,
+        0,
+        2,
+        3,
+        3
+      ],
+      "guessAway": [
+        4,
+        1,
+        2,
+        4,
+        5,
+        3
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "595777121",
+        "774448205",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "40476579",
+      "expectedAcc": "40476569",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 0,
+      "actualAway": 3,
+      "stakes": [
+        "44641383",
+        "322478995",
+        "277106978",
+        "452456646",
+        "12544338",
+        "269792202",
+        "214178852",
+        "351748048",
+        "228313478"
+      ],
+      "guessHome": [
+        2,
+        3,
+        0,
+        0,
+        2,
+        3,
+        1,
+        5,
+        0
+      ],
+      "guessAway": [
+        1,
+        2,
+        4,
+        2,
+        2,
+        4,
+        1,
+        2,
+        2
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "520722435",
+        "850228776",
+        "0",
+        "278717777",
+        "0",
+        "0",
+        "429032685"
+      ],
+      "expectedPlatformCut": "47279667",
+      "expectedAcc": "47279580",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 1,
+      "actualHome": 1,
+      "actualAway": 1,
+      "stakes": [
+        "263411350",
+        "55194282",
+        "12899790",
+        "92801522",
+        "348555109",
+        "135381922",
+        "211280597",
+        "88322808",
+        "36284246",
+        "4516938"
+      ],
+      "guessHome": [
+        2,
+        2,
+        4,
+        4,
+        0,
+        1,
+        3,
+        5,
+        1,
+        2
+      ],
+      "guessAway": [
+        5,
+        0,
+        1,
+        3,
+        2,
+        4,
+        5,
+        3,
+        0,
+        0
+      ],
+      "expectedPayouts": [
+        "0",
+        "144758904",
+        "0",
+        "0",
+        "914160925",
+        "0",
+        "0",
+        "0",
+        "97472273",
+        "11846641"
+      ],
+      "expectedPlatformCut": "40204922",
+      "expectedAcc": "40204899",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 5,
+      "actualAway": 1,
+      "stakes": [
+        "460027509",
+        "173237527",
+        "6097749",
+        "124013444",
+        "246252703",
+        "130387837",
+        "412161143",
+        "455410105"
+      ],
+      "guessHome": [
+        5,
+        1,
+        4,
+        2,
+        5,
+        5,
+        0,
+        2
+      ],
+      "guessAway": [
+        3,
+        5,
+        5,
+        3,
+        5,
+        4,
+        5,
+        5
+      ],
+      "expectedPayouts": [
+        "1511357937",
+        "181453280",
+        "0",
+        "0",
+        "0",
+        "190383282",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "62196761",
+      "expectedAcc": "62196757",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 4,
+      "actualAway": 1,
+      "stakes": [
+        "428021879",
+        "5236616",
+        "17709997",
+        "497725622",
+        "281031231",
+        "350909114",
+        "454319638",
+        "317812074"
+      ],
+      "guessHome": [
+        3,
+        1,
+        1,
+        1,
+        2,
+        1,
+        2,
+        1
+      ],
+      "guessAway": [
+        5,
+        5,
+        3,
+        1,
+        5,
+        2,
+        4,
+        1
+      ],
+      "expectedPayouts": [
+        "0",
+        "23756966",
+        "80345025",
+        "0",
+        "0",
+        "0",
+        "2061114126",
+        "0"
+      ],
+      "expectedPlatformCut": "93775058",
+      "expectedAcc": "93774996",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 1,
+      "actualHome": 0,
+      "actualAway": 3,
+      "stakes": [
+        "248934627",
+        "47500366",
+        "221038107",
+        "79497679",
+        "300015138"
+      ],
+      "guessHome": [
+        5,
+        4,
+        3,
+        1,
+        1
+      ],
+      "guessAway": [
+        2,
+        0,
+        0,
+        1,
+        0
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "617512337",
+        "219828476",
+        "0"
+      ],
+      "expectedPlatformCut": "29822598",
+      "expectedAcc": "29822506",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 0,
+      "actualAway": 5,
+      "stakes": [
+        "388034975",
+        "38836025",
+        "55728892"
+      ],
+      "guessHome": [
+        0,
+        3,
+        0
+      ],
+      "guessAway": [
+        5,
+        3,
+        0
+      ],
+      "expectedPayouts": [
+        "473143074",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "4728573",
+      "expectedAcc": "4728245",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 3,
+      "actualAway": 2,
+      "stakes": [
+        "468895187",
+        "422032070",
+        "442467859",
+        "433343475",
+        "331678525"
+      ],
+      "guessHome": [
+        4,
+        3,
+        2,
+        1,
+        2
+      ],
+      "guessAway": [
+        3,
+        3,
+        4,
+        5,
+        2
+      ],
+      "expectedPayouts": [
+        "1935464894",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "81476126",
+      "expectedAcc": "81476096",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 2,
+      "actualAway": 1,
+      "stakes": [
+        "365282542",
+        "116826408",
+        "279182377",
+        "8052998"
+      ],
+      "guessHome": [
+        2,
+        2,
+        1,
+        4
+      ],
+      "guessAway": [
+        4,
+        5,
+        3,
+        4
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "0",
+        "693215192"
+      ],
+      "expectedPlatformCut": "38064567",
+      "expectedAcc": "38064566",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 3,
+      "actualAway": 5,
+      "stakes": [
+        "492539022",
+        "472410622",
+        "62845390",
+        "126954742",
+        "386648001",
+        "264869848",
+        "92707570"
+      ],
+      "guessHome": [
+        4,
+        4,
+        2,
+        1,
+        0,
+        4,
+        2
+      ],
+      "guessAway": [
+        1,
+        4,
+        3,
+        5,
+        2,
+        3,
+        0
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "189060015",
+        "341744560",
+        "1235917757",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "66126510",
+      "expectedAcc": "66126353",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 3,
+      "actualAway": 3,
+      "stakes": [
+        "112129570",
+        "144818178",
+        "425185400",
+        "71636551",
+        "293723968",
+        "467491535",
+        "435539980",
+        "243429103",
+        "484544476"
+      ],
+      "guessHome": [
+        3,
+        0,
+        0,
+        0,
+        5,
+        3,
+        4,
+        3,
+        1
+      ],
+      "guessAway": [
+        5,
+        4,
+        1,
+        0,
+        5,
+        1,
+        1,
+        0,
+        4
+      ],
+      "expectedPayouts": [
+        "145743142",
+        "0",
+        "0",
+        "280965726",
+        "1470804647",
+        "607633518",
+        "0",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "86675872",
+      "expectedAcc": "86675856",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 3,
+      "actualAway": 3,
+      "stakes": [
+        "476092562",
+        "445547709",
+        "194009598",
+        "167632856",
+        "62062655",
+        "254325887",
+        "131487381"
+      ],
+      "guessHome": [
+        3,
+        2,
+        4,
+        1,
+        2,
+        5,
+        2
+      ],
+      "guessAway": [
+        0,
+        3,
+        2,
+        2,
+        0,
+        1,
+        0
+      ],
+      "expectedPayouts": [
+        "0",
+        "971452623",
+        "374989677",
+        "292319482",
+        "0",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "46198442",
+      "expectedAcc": "46198424",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 5,
+      "actualAway": 2,
+      "stakes": [
+        "106667631",
+        "408303793",
+        "64701043",
+        "202168900",
+        "130321184",
+        "87360789",
+        "157415162"
+      ],
+      "guessHome": [
+        4,
+        0,
+        3,
+        2,
+        0,
+        5,
+        5
+      ],
+      "guessAway": [
+        5,
+        2,
+        1,
+        4,
+        0,
+        5,
+        4
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "274539600",
+        "265529794",
+        "0",
+        "0",
+        "543603765"
+      ],
+      "expectedPlatformCut": "36632674",
+      "expectedAcc": "36632669",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 1,
+      "actualHome": 2,
+      "actualAway": 1,
+      "stakes": [
+        "275333781",
+        "78829956",
+        "364796535",
+        "290189990",
+        "319374495"
+      ],
+      "guessHome": [
+        3,
+        5,
+        5,
+        0,
+        5
+      ],
+      "guessAway": [
+        3,
+        5,
+        4,
+        5,
+        4
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "674005936",
+        "0",
+        "590083196"
+      ],
+      "expectedPlatformCut": "32217939",
+      "expectedAcc": "32217686",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 4,
+      "actualAway": 5,
+      "stakes": [
+        "146901931",
+        "52872611"
+      ],
+      "guessHome": [
+        2,
+        4
+      ],
+      "guessAway": [
+        4,
+        3
+      ],
+      "expectedPayouts": [
+        "194487278",
+        "0"
+      ],
+      "expectedPlatformCut": "2643634",
+      "expectedAcc": "2643630",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 2,
+      "actualAway": 5,
+      "stakes": [
+        "332980460",
+        "459089900",
+        "50270369",
+        "399747207",
+        "102745355"
+      ],
+      "guessHome": [
+        4,
+        5,
+        5,
+        0,
+        4
+      ],
+      "guessAway": [
+        1,
+        3,
+        1,
+        5,
+        1
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "0",
+        "1250324648",
+        "0"
+      ],
+      "expectedPlatformCut": "47254339",
+      "expectedAcc": "47254304",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 1,
+      "actualAway": 0,
+      "stakes": [
+        "212430902",
+        "222942892"
+      ],
+      "guessHome": [
+        4,
+        0
+      ],
+      "guessAway": [
+        5,
+        4
+      ],
+      "expectedPayouts": [
+        "413079502",
+        "0"
+      ],
+      "expectedPlatformCut": "11147148",
+      "expectedAcc": "11147144",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 0,
+      "actualAway": 2,
+      "stakes": [
+        "236211904",
+        "457916377",
+        "400450464",
+        "185788143",
+        "134942521"
+      ],
+      "guessHome": [
+        1,
+        1,
+        0,
+        2,
+        3
+      ],
+      "guessAway": [
+        2,
+        2,
+        1,
+        4,
+        1
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "1313823514",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "50742948",
+      "expectedAcc": "50742947",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 5,
+      "actualAway": 3,
+      "stakes": [
+        "231806946",
+        "174585738",
+        "62899381",
+        "95083823",
+        "232093689"
+      ],
+      "guessHome": [
+        0,
+        4,
+        4,
+        3,
+        4
+      ],
+      "guessAway": [
+        1,
+        4,
+        2,
+        3,
+        4
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "723112551",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "36678517",
+      "expectedAcc": "36678509",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 0,
+      "actualAway": 3,
+      "stakes": [
+        "64878458",
+        "147713929",
+        "261608957",
+        "359854328",
+        "42523045",
+        "19844787",
+        "3747496",
+        "356425262",
+        "32858384",
+        "402476057"
+      ],
+      "guessHome": [
+        5,
+        5,
+        3,
+        4,
+        3,
+        2,
+        0,
+        0,
+        3,
+        2
+      ],
+      "guessAway": [
+        5,
+        5,
+        2,
+        3,
+        3,
+        2,
+        1,
+        5,
+        0,
+        1
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "10967881",
+        "1043158497",
+        "40625678",
+        "507536262"
+      ],
+      "expectedPlatformCut": "44821210",
+      "expectedAcc": "44821175",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 2,
+      "actualAway": 3,
+      "stakes": [
+        "467023048",
+        "383890027",
+        "251471654",
+        "297152494",
+        "25612042",
+        "60654014"
+      ],
+      "guessHome": [
+        5,
+        2,
+        1,
+        5,
+        0,
+        4
+      ],
+      "guessAway": [
+        1,
+        3,
+        2,
+        5,
+        5,
+        3
+      ],
+      "expectedPayouts": [
+        "0",
+        "975876472",
+        "424882534",
+        "0",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "42522194",
+      "expectedAcc": "42522079",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 12,
+      "actualHome": 5,
+      "actualAway": 3,
+      "stakes": [
+        "346002102",
+        "313598246",
+        "269606730",
+        "320639089",
+        "390766324",
+        "193273282"
+      ],
+      "guessHome": [
+        0,
+        0,
+        5,
+        2,
+        3,
+        5
+      ],
+      "guessAway": [
+        5,
+        3,
+        4,
+        4,
+        5,
+        2
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "988300844",
+        "0",
+        "0",
+        "708484343"
+      ],
+      "expectedPlatformCut": "68550298",
+      "expectedAcc": "68550288",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 3,
+      "actualHome": 5,
+      "actualAway": 4,
+      "stakes": [
+        "196240490",
+        "53583788",
+        "259979835",
+        "83747196",
+        "424597429",
+        "301063367",
+        "287225429",
+        "492735525"
+      ],
+      "guessHome": [
+        3,
+        5,
+        1,
+        0,
+        4,
+        1,
+        0,
+        1
+      ],
+      "guessAway": [
+        0,
+        5,
+        0,
+        4,
+        5,
+        5,
+        1,
+        1
+      ],
+      "expectedPayouts": [
+        "579314401",
+        "127647772",
+        "1233273970",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "expectedPlatformCut": "79468469",
+      "expectedAcc": "79468447",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 4,
+      "actualAway": 4,
+      "stakes": [
+        "178180474",
+        "281071753",
+        "186792083"
+      ],
+      "guessHome": [
+        2,
+        3,
+        4
+      ],
+      "guessAway": [
+        3,
+        5,
+        4
+      ],
+      "expectedPayouts": [
+        "0",
+        "0",
+        "600119066"
+      ],
+      "expectedPlatformCut": "22962633",
+      "expectedAcc": "22962611",
+      "expectedVoid": false
+    },
+    {
+      "gamma": 6,
+      "actualHome": 3,
+      "actualAway": 2,
+      "stakes": [
+        "324266606",
+        "117984271",
+        "329456830"
+      ],
+      "guessHome": [
+        3,
+        5,
+        2
+      ],
+      "guessAway": [
+        4,
+        2,
+        2
+      ],
+      "expectedPayouts": [
+        "0",
+        "706335356",
+        "0"
+      ],
+      "expectedPlatformCut": "32686180",
+      "expectedAcc": "32686171",
+      "expectedVoid": false
+    }
+  ]
+}

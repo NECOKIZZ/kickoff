@@ -1,0 +1,16 @@
+{
+  "robinhood-testnet": {
+    "chainId": 46630,
+    "rpc": "https://rpc.testnet.chain.robinhood.com/rpc",
+    "explorer": "https://explorer.testnet.chain.robinhood.com",
+    "deployedAt": "2026-07-27",
+    "deployer": "0x4799d45A40a76f5cB3650b17D0b899AcDA7B28aE",
+    "contracts": {
+      "MockUSDC": "0x6d25C3501b7706a52b8350FC8B9E3356133abA14",
+      "AccumulatorVault": "0x0D704d76DA7b435352084f57DFB7aDA131543bA0",
+      "KickoffEscrow": "0xD729d390B98826dBAeDDf5a6A383201570DBeB2e"
+    },
+    "verified": true,
+    "notes": "Testnet phase: deployer is owner+relayer+agent (one throwaway key). Split into distinct keys via setRoles/setRelayer before mainnet. Market #1 = live smoke test (scoreline, gamma=3, locks ~1h after deploy, one $50 position at 2-1)."
+  }
+}

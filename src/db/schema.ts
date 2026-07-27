@@ -78,8 +78,12 @@ export const markets = pgTable(
     accumulatorShareBps: integer("accumulator_share_bps").notNull().default(5000),
     capMultiple: integer("cap_multiple").notNull().default(100),
 
-    // On-chain linkage (testnet escrow).
+    // On-chain linkage (testnet escrow). The deployed KickoffEscrow is a
+    // single multi-market contract, so a market is addressed by
+    // (escrowAddress, onChainMarketId) — ids are the contract's own counter
+    // and need not match this table's serial id.
     escrowAddress: text("escrow_address"),
+    onChainMarketId: bigint("onchain_market_id", { mode: "bigint" }),
     chainId: integer("chain_id").notNull().default(46630),
 
     // Outcome (set at settlement time).

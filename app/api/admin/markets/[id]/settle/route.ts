@@ -3,6 +3,7 @@ import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
 import { computeSettlement, positionDistance } from "@/lib/markets";
+import { settleOnChain } from "@/lib/chain";
 import { eq } from "drizzle-orm";
 
 /**
@@ -51,6 +52,24 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   const { positions, engine } = await computeSettlement(m, outcome);
 
+  // On-chain settlement first (when the market is linked to the escrow and
+  // chain wiring is on). The contract runs the same engine byte-identically;
+  // the DB write below is the authoritative off-chain mirror. If the chain
+  // call fails we abort BEFORE touching the DB so the two never diverge —
+  // admin can retry once the RPC/relayer issue is fixed.
+  let settleTxHash: string | null = null;
+  if (m.escrowAddress && m.onChainMarketId != null) {
+    try {
+      settleTxHash = await settleOnChain(
+        m.onChainMarketId,
+        m.kind === "scoreline" ? outcome.home! : Number(outcome.points!),
+        m.kind === "scoreline" ? outcome.away! : 0,
+      );
+    } catch (err) {
+      return jsonError(`on-chain settle failed, DB untouched: ${err instanceof Error ? err.message : err}`, 502);
+    }
+  }
+
   const result = await db.transaction(async (tx) => {
     // Per-position results.
     for (let i = 0; i < positions.length; i++) {
@@ -80,6 +99,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         accumulatorContribution: engine.accumulatorContribution,
         platformCut: engine.platformCut,
         totalPool: engine.totalPool,
+        settleTxHash,
       })
       .returning();
 
@@ -109,6 +129,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     void: engine.void,
     totalPool: engine.totalPool.toString(),
     accumulatorContribution: engine.accumulatorContribution.toString(),
+    settleTxHash,
   });
 
   return json({

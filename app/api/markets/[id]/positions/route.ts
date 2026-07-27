@@ -2,6 +2,7 @@ import { db, schema } from "@/db";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyCaller } from "@/lib/auth";
 import { validateGuess, validateStake } from "@/lib/markets";
+import { verifyStakeTx } from "@/lib/chain";
 import { eq, and } from "drizzle-orm";
 
 /**
@@ -44,6 +45,21 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (m.kind === "player_points" && guessPoints === null)
     return jsonError("guessPoints must be a fixed-point amount (points × 1e6)", 400);
 
+  const stakeTxHash = typeof body.stakeTxHash === "string" ? body.stakeTxHash : null;
+
+  // When the market is escrow-linked and chain wiring is on, a provided
+  // stakeTxHash must actually be a successful Staked(marketId, trader) tx on
+  // the escrow. Absent hash is still allowed in the testnet phase (dev-mode
+  // header flow has no wallet); verifyStakeTx returns null when wiring is off.
+  if (stakeTxHash && m.escrowAddress && m.onChainMarketId != null) {
+    const ok = await verifyStakeTx(
+      stakeTxHash as `0x${string}`,
+      m.onChainMarketId,
+      caller.address as `0x${string}`,
+    );
+    if (ok === false) return jsonError("stakeTxHash does not match a successful escrow stake for this market/address", 400);
+  }
+
   const values = {
     marketId,
     userId: caller.userId,
@@ -51,7 +67,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     guessAway: m.kind === "scoreline" ? (body.guessAway as number) : null,
     guessPoints,
     stake,
-    stakeTxHash: typeof body.stakeTxHash === "string" ? body.stakeTxHash : null,
+    stakeTxHash,
   };
 
   // One position per user per market; re-posting pre-lock updates the guess/stake.

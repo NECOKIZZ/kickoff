@@ -2,6 +2,7 @@ import { db, schema } from "@/db";
 import { json, jsonError } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
+import { voidOnChain } from "@/lib/chain";
 import { eq } from "drizzle-orm";
 
 /**
@@ -27,6 +28,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (m.status === "settled" || m.status === "void")
     return jsonError(`market already '${m.status}'`, 409);
 
+  // On-chain void first (escrow-linked markets only) — same order-of-
+  // operations rule as settle: chain failure aborts before the DB writes.
+  let settleTxHash: string | null = null;
+  if (m.escrowAddress && m.onChainMarketId != null) {
+    try {
+      settleTxHash = await voidOnChain(m.onChainMarketId, reason);
+    } catch (err) {
+      return jsonError(`on-chain void failed, DB untouched: ${err instanceof Error ? err.message : err}`, 502);
+    }
+  }
+
   const result = await db.transaction(async (tx) => {
     const positions = await tx.select().from(schema.positions).where(eq(schema.positions.marketId, marketId));
     let totalPool = 0n;
@@ -39,7 +51,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     }
     const [settlement] = await tx
       .insert(schema.settlements)
-      .values({ marketId, voidReason: reason, totalPool })
+      .values({ marketId, voidReason: reason, totalPool, settleTxHash })
       .returning();
     const [market] = await tx
       .update(schema.markets)
@@ -49,6 +61,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return { market, settlement, refunded: positions.length };
   });
 
-  await logAdminEvent("admin", "market.void", marketId, { reason });
+  await logAdminEvent("admin", "market.void", marketId, { reason, settleTxHash });
   return json(result);
 }

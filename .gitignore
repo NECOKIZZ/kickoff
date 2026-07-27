@@ -4,3 +4,5 @@ node_modules/
 .env.local
 *.tsbuildinfo
 drizzle/meta/
+contracts/broadcast/*/*/dry-run/
+contracts/broadcast/*/*/run-1*.json

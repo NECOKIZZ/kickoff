@@ -1,0 +1,17 @@
+[profile.default]
+src = "src"
+out = "/tmp/kickoff-forge-out"        # /home disk is tiny — build artifacts on /tmp
+cache_path = "/tmp/kickoff-forge-cache"
+libs = ["lib"]
+solc_version = "0.8.28"
+optimizer = true
+optimizer_runs = 200
+via_ir = true          # settle() has many locals — IR pipeline avoids stack-too-deep
+fs_permissions = [{ access = "read", path = "./test/fixtures" }]
+
+[rpc_endpoints]
+robinhood_testnet = "https://rpc.testnet.chain.robinhood.com/rpc"
+
+# Blockscout verification — confirm exact verifier URL at deploy time (spec 🟡)
+[etherscan]
+robinhood_testnet = { key = "verifyContract", chain = 46630, url = "https://explorer.testnet.chain.robinhood.com/api/" }

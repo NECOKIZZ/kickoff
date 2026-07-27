@@ -9,4 +9,7 @@ mountpoint -q node_modules || { mkdir -p node_modules; sudo mount --bind /tmp/ki
 mkdir -p /tmp/kickoff-next
 [ -L .next ] || { rm -rf .next; ln -s /tmp/kickoff-next .next; }
 sudo service postgresql start || true
-echo "ready: node_modules mounted, .next on /tmp, postgres up"
+# Forge build artifacts also live on /tmp (see contracts/foundry.toml) —
+# nothing to restore, forge recreates them; just make sure the dirs exist.
+mkdir -p /tmp/kickoff-forge-out /tmp/kickoff-forge-cache
+echo "ready: node_modules mounted, .next on /tmp, postgres up, forge dirs on /tmp"

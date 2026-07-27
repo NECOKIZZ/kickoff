@@ -14,8 +14,12 @@ sudo -u postgres psql -tc "select 1 from pg_roles where rolname='kickoff'" | gre
   sudo -u postgres psql -c "CREATE ROLE kickoff LOGIN PASSWORD 'kickoff_dev'"
 sudo -u postgres psql -tc "select 1 from pg_database where datname='kickoff'" | grep -q 1 || \
   sudo -u postgres psql -c "CREATE DATABASE kickoff OWNER kickoff"
+sudo -u postgres psql -tc "select 1 from pg_database where datname='kickoff_data'" | grep -q 1 || \
+  sudo -u postgres psql -c "CREATE DATABASE kickoff_data OWNER kickoff"
 set -a; source .env.local; set +a
 ./node_modules/.bin/drizzle-kit migrate
+# kickoff-data service owns its own DB + migrations.
+(cd services/kickoff-data && ../../node_modules/.bin/drizzle-kit migrate)
 # Forge build artifacts also live on /tmp (see contracts/foundry.toml) —
 # nothing to restore, forge recreates them; just make sure the dirs exist.
 mkdir -p /tmp/kickoff-forge-out /tmp/kickoff-forge-cache

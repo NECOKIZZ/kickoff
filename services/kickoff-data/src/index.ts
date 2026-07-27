@@ -14,3 +14,14 @@ export {
 } from "./footballDataOrg";
 export * from "./scoring";
 export * from "./backtest";
+export * from "./identity";
+export * from "./archive";
+export * from "./budget";
+export {
+  afStatus,
+  afEventType,
+  normalizeAfFixture,
+  normalizeAfEvents,
+  normalizeAfPlayers,
+} from "./normalize/apiFootball";
+export { fdStatus, normalizeFdMatch } from "./normalize/footballDataOrg";

@@ -26,6 +26,9 @@ import {
   normalizeFsExtractorMatch,
 } from "./normalize/flashscore";
 import { getLiveMatches, getFixtureWindow } from "./flashscore";
+import { fsStatus } from "./normalize/flashscore";
+import { getTiebreakScore } from "./fsfd";
+import { recordVote, markDisputed } from "./settlementLane";
 import {
   upsertFixture,
   upsertPlayerStats,
@@ -110,28 +113,39 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
     );
   },
 
-  /** Settlement vote reads land in the settlement lane at build step 6 —
-   *  until then they only refresh the fixture's final status/score. */
-  "s1.settlementVote": async (job) => {
+  /** Settlement vote: S1's final-score read → the settlement lane, plus a
+   *  status/score refresh of the fixture row. */
+  "s1.settlementVote": async (job, now) => {
     const s1Id = await s1IdFor(job.fixtureId!);
     if (s1Id === null) throw new Error(`no apiFootball ref for ${job.fixtureId}`);
     const byId = await getFixturesByIds([s1Id]);
-    if (byId[0]) {
-      const n = normalizeAfFixture(byId[0]);
-      await upsertFixture(n, { statusUnknown: n.statusUnknown });
+    const raw = byId[0];
+    if (!raw) throw new Error(`S1 returned no fixture for id ${s1Id}`);
+    const n = normalizeAfFixture(raw);
+    await upsertFixture(n, { statusUnknown: n.statusUnknown });
+    if (n.status !== "ft") throw new Error(`S1 says ${job.fixtureId} not FT yet — retry next tick`);
+    if (raw.goals.home === null || raw.goals.away === null) {
+      throw new Error(`S1 FT read has null goals for ${job.fixtureId}`);
     }
+    await recordVote(job.fixtureId!, "apiFootball", { home: raw.goals.home, away: raw.goals.away }, now);
   },
 
   "s2.settlementVote": async (job, now) => {
-    // S2's matches endpoint is windowed; re-sync the day and let the upsert
-    // refresh this fixture's final score/status.
+    // S2's matches endpoint is windowed; re-sync the day, refresh every
+    // fixture, and cast the vote for the one this job is about.
     const day = new Date(now.getTime() - 24 * 3600_000).toISOString().slice(0, 10);
     const to = now.toISOString().slice(0, 10);
     const raw = await getEplMatches(day, to);
+    let voted = false;
     for (const m of raw) {
       const n = normalizeFdMatch(m);
-      await upsertFixture(n, { statusUnknown: n.statusUnknown });
+      const id = await upsertFixture(n, { statusUnknown: n.statusUnknown });
+      if (id === job.fixtureId && n.status === "ft" && n.finalScore) {
+        await recordVote(id, "fdorg", n.finalScore, now);
+        voted = true;
+      }
     }
+    if (!voted) throw new Error(`S2 has no FT score for ${job.fixtureId} yet — retry next tick`);
   },
 
   /** S3 live poll — the chart engine. ONE actor run returns ALL live
@@ -149,6 +163,12 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
       await upsertMatchState(normalizeFsMatchState(id, m, nowIso), "flashscore", now);
       await insertEvents(normalizeFsEvents(id, m, nowIso), null);
       await upsertMatchStats(normalizeFsStats(id, m), "flashscore", now);
+      // FT → cast the Flashscore settlement vote (S3+S4 = ONE vote). Recorded
+      // even pre-burn-in: the engine excludes untrusted votes from quorum but
+      // keeps them in the array — that's the shadow-mode diff for spec §6.
+      if (fsStatus(m) === "ft" && m.home_score !== null && m.away_score !== null) {
+        await recordVote(id, "flashscore", { home: m.home_score, away: m.away_score }, now);
+      }
     }
   },
 
@@ -162,5 +182,24 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
       if (!n) continue;
       await upsertFixture(n, { statusUnknown: n.statusUnknown });
     }
+  },
+
+  /** S5 tie-break — once per fixture, only when the settlement lane reports
+   *  the primaries disagree. No unambiguous answer → no vote → the lane goes
+   *  disputed on the next decide() rather than trusting a fuzzy match. */
+  "s5.tiebreak": async (job, now) => {
+    const rows = await db
+      .select({ homeSlug: schema.fixtures.homeSlug, awaySlug: schema.fixtures.awaySlug })
+      .from(schema.fixtures)
+      .where(eq(schema.fixtures.id, job.fixtureId!));
+    const fx = rows[0];
+    if (!fx) throw new Error(`unknown fixture ${job.fixtureId}`);
+    const score = await getTiebreakScore(fx.homeSlug, fx.awaySlug);
+    if (score === null) {
+      console.error(`[jobs] s5.tiebreak: no unambiguous score for ${job.fixtureId} — disputing`);
+      await markDisputed(job.fixtureId!);
+      return;
+    }
+    await recordVote(job.fixtureId!, "fsfd", score, now);
   },
 };

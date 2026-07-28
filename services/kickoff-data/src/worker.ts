@@ -12,6 +12,7 @@ import { installDbBudgetStore } from "./budget";
 import { budgetState, restoreBudget, isMockMode } from "./apiFootball";
 import { loadPlannerFixtures, loadSettledIds, installStatusChangeListener } from "./ingest";
 import { deliver, webhookConfigFromEnv } from "./api/webhooks";
+import { freezeDue, needsTiebreak, installSettlementEmitter, s3Trusted } from "./settlementLane";
 
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
 
@@ -21,12 +22,14 @@ async function tick(): Promise<void> {
   const now = new Date();
   const rows = await loadPlannerFixtures(now);
   const settled = await loadSettledIds(rows.map((r) => r.id));
+  const tiebreak = await needsTiebreak(rows.map((r) => r.id));
 
   const fixtures: PlannerFixture[] = rows.map((r) => ({
     id: r.id,
     kickoffUtc: r.kickoffUtc,
     status: r.status as PlannerFixture["status"],
     settled: settled.has(r.id),
+    needsTiebreak: tiebreak.has(r.id),
     // nearSettlement arrives from the markets app via the consumer API later.
   }));
 
@@ -62,6 +65,14 @@ async function tick(): Promise<void> {
       console.error(`[worker] FAIL ${key}: ${(e as Error).message}`);
     }
   }
+
+  // Settlement freeze sweep — provisional outcomes whose 15-min finality
+  // window elapsed become immutable snapshots (fires settlement.ready).
+  try {
+    await freezeDue(now);
+  } catch (e) {
+    console.error(`[worker] freeze sweep error: ${(e as Error).message}`);
+  }
 }
 
 async function main(): Promise<void> {
@@ -75,9 +86,13 @@ async function main(): Promise<void> {
   installStatusChangeListener((fixtureId, from, to) => {
     void deliver(webhookConfig, { type: "fixture.status_changed", fixture_id: fixtureId, from, to });
   });
+  // settlement.ready / settlement.disputed — same fire-and-forget contract.
+  installSettlementEmitter((event) => {
+    void deliver(webhookConfig, event);
+  });
 
   console.log(
-    `[worker] up — tick=${TICK_SECONDS}s, s1=${JSON.stringify(budgetState())}, mock=${isMockMode()}, webhooks=${webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)"}`,
+    `[worker] up — tick=${TICK_SECONDS}s, s1=${JSON.stringify(budgetState())}, mock=${isMockMode()}, s3Trusted=${s3Trusted()}, webhooks=${webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)"}`,
   );
 
   // Sequential ticks — never overlap; a slow tick just delays the next.

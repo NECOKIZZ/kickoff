@@ -19,7 +19,10 @@ export type JobKind =
   | "s2.settlementVote"
   // S3/S4 (Apify — clients land at build step 4; planner already speaks them)
   | "s3.livePoll"
-  | "s4.fixtureSync";
+  | "s4.fixtureSync"
+  // S5 FSFD — never scheduled on cadence; emitted ONLY when the settlement
+  // lane reports the primaries disagree (tie-break, spec §5.3).
+  | "s5.tiebreak";
 
 export interface Job {
   kind: JobKind;
@@ -40,6 +43,8 @@ export interface PlannerFixture {
   nearSettlement?: boolean;
   /** Settlement snapshot already frozen — stop polling for this fixture. */
   settled?: boolean;
+  /** Settlement lane reports all primaries voted and disagree → S5 runs once. */
+  needsTiebreak?: boolean;
 }
 
 export interface PlannerState {
@@ -126,6 +131,10 @@ export function plan(state: PlannerState): Job[] {
 
       const s2Vote: Job = { kind: "s2.settlementVote", fixtureId: f.id };
       if (!ranEver(state, s2Vote)) jobs.push(s2Vote);
+
+      // S5 tie-break: exactly once, and only when the lane asks for it.
+      const s5Job: Job = { kind: "s5.tiebreak", fixtureId: f.id };
+      if (f.needsTiebreak && !ranEver(state, s5Job)) jobs.push(s5Job);
     }
   }
 

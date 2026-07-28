@@ -150,6 +150,32 @@ describe("settlement engine: finality-delay state machine", () => {
   });
 });
 
+describe("settlement engine: dead-provider guarantees", () => {
+  it("one source alone NEVER settles, no matter how many times it re-reports", () => {
+    // S2 is down; S1 keeps re-reporting the same score across an hour.
+    const votes = [vote("apiFootball", 2, 1, 0), vote("apiFootball", 2, 1, 600), vote("apiFootball", 2, 1, 3600)];
+    const d = decide(votes, { s3Trusted: false });
+    expect(d.kind).toBe("await-votes"); // hangs (stall escalation disputes it) — never pays out on one voice
+    const s = fold(votes);
+    expect(s.status).toBe("pending");
+    expect(s.freezesAt).toBeNull();
+  });
+
+  it("post-burn-in, one provider dying is survivable: remaining 2 of 3 settle", () => {
+    // S2 dead; S1 + trusted S3 agree.
+    const d = decide([vote("apiFootball", 2, 1), vote("flashscore", 2, 1)], { s3Trusted: true });
+    expect(d.kind).toBe("quorum");
+  });
+
+  it("a disputed row recovers if the dead provider comes back and completes quorum", () => {
+    // Stall escalation disputed it; then S2 revives agreeing with S1.
+    let s: WorkingState = { status: "disputed", outcome: null, votes: [vote("apiFootball", 2, 1, 0)], freezesAt: null };
+    s = transition(s, vote("fdorg", 2, 1, 7200), new Date(T0.getTime() + 7200_000), OPTS).next;
+    expect(s.status).toBe("provisional");
+    expect(s.outcome).toEqual({ home: 2, away: 1 });
+  });
+});
+
 describe("settlement engine: order independence (spec §8.6 property)", () => {
   it("same votes in ANY arrival order → identical status + outcome + canonical votes", () => {
     const sets: Array<{ votes: SettlementVote[]; opts: typeof OPTS }> = [

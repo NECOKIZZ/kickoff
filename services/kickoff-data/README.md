@@ -94,6 +94,34 @@ At-least-once, retry ladder 1s/5s/30s then give up — the app dedupes on
 6. Order-independence is property-tested: same votes, any arrival order →
    identical snapshot.
 
+## What if a provider shuts down?
+
+Integrity degrades to *unavailability*, never to a one-source payout:
+
+- **One of S1/S2 dies pre-burn-in** → quorum can't form; the market does NOT
+  settle on the survivor's word alone. After
+  `KICKOFF_DATA_SETTLEMENT_STALL_SECONDS` (default 1h) post-FT without
+  quorum, the stall escalation marks the fixture `disputed` and fires
+  `settlement.disputed` — the admin is summoned instead of the market
+  silently hanging. If the dead provider revives and completes quorum, the
+  disputed row recovers to provisional automatically.
+- **One provider dies post-burn-in** → survivable with no human: quorum is
+  2-of-3 (S1, S2, Flashscore). This is the availability reason the burn-in
+  matters beyond chart quality.
+- **Everything dies** → admin override: a signed attestation is quorum by
+  itself, audited, written as immutable version N+1.
+
+## Webhook receiver (markets app side)
+
+`POST /api/data-hooks` (app repo, `app/api/data-hooks/route.ts`). Verifies
+the HMAC, then: `settlement.ready` → re-fetches the frozen snapshot from
+/v1 (the webhook is a doorbell, the API is the source of truth) and
+auto-settles every linked scoreline market through the same
+`executeSettlement()` the admin dashboard uses — audit-logged with actor
+`kickoff-data` + snapshot version. `settlement.disputed` → audit log +
+loud console error. Idempotent under at-least-once delivery: already-settled
+markets are skipped by status guard.
+
 ## Burn-in gate (spec §6)
 
 `KICKOFF_DATA_S3_TRUSTED=false` until S3 runs ≥3 full matchdays in shadow

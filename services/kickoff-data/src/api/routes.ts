@@ -59,6 +59,9 @@ export interface ApiStore {
     outcome: { home: number; away: number },
     reason: string,
   ): Promise<SettlementSnapshot>;
+  /** Replay a completed fixture through the pipeline (admin dashboard button).
+   *  Takes S1's numeric id — backtest is a source-level tool, pre-reconciliation. */
+  runBacktest(s1FixtureId: number): Promise<unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,6 +230,14 @@ export async function handleRequest(
       reason.trim(),
     );
     return { status: 200, body: snapshot };
+  }
+
+  // POST /v1/admin/backtest/:s1FixtureId
+  if (req.method === "POST" && segments[1] === "admin" && segments[2] === "backtest" && segments.length === 4) {
+    const id = Number(segments[3]);
+    if (!Number.isInteger(id)) return err(400, "invalid fixture id");
+    const report = await store.runBacktest(id);
+    return { status: 200, body: report };
   }
 
   return err(404, "not found");

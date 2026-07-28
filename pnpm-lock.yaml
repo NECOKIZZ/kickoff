@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@kickoff/data':
-        specifier: workspace:*
-        version: link:services/kickoff-data
       '@kickoff/engine':
         specifier: workspace:*
         version: link:packages/engine

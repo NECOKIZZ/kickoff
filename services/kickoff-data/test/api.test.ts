@@ -65,6 +65,7 @@ function makeStore(overrides: Partial<ApiStore> = {}): ApiStore {
         frozen_at: NOW.toISOString(),
         supersedes_reason: reason,
       }),
+    runBacktest: (id) => Promise.resolve({ fixtureId: id, schemaChecks: [] }),
     ...overrides,
   };
 }
@@ -232,5 +233,13 @@ describe("consumer API: admin override", () => {
 
   it("unknown fixture → 404", async () => {
     expect((await admin({ home: 1, away: 0, reason: "x" }, "epl-nope")).status).toBe(404);
+  });
+
+  it("POST /v1/admin/backtest/:id needs the admin key and an integer id", async () => {
+    const bt = (id: string, key = "admin-key") =>
+      call({ method: "POST", path: `/v1/admin/backtest/${id}`, headers: { authorization: `Bearer ${key}` } });
+    expect((await bt("1399001")).status).toBe(200);
+    expect((await bt("abc")).status).toBe(400);
+    expect((await bt("1399001", "app-key")).status).toBe(401);
   });
 });

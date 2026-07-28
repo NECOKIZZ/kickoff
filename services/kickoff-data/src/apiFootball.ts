@@ -13,6 +13,7 @@ import path from "node:path";
 import { fixturesDir } from "./mockDir";
 import { archiveRaw } from "./archive";
 import { mirrorSpend, restoreSpend } from "./budget";
+import { log } from "./log";
 
 const BASE = "https://v3.football.api-sports.io";
 
@@ -64,21 +65,45 @@ async function apiGet(endpoint: string, params: Record<string, string>): Promise
   if (isMockMode()) return mockGet(endpoint, params);
 
   const state = budgetState();
-  if (state.remaining <= 0) throw new Error("API-Football daily budget exhausted (100/day)");
+  if (state.remaining <= 0) {
+    log.error("apiFootball", "budget exhausted", { endpoint, used: budget.used, limit: DAILY_LIMIT });
+    throw new Error("API-Football daily budget exhausted (100/day)");
+  }
+  if (state.breakerTripped) {
+    log.warn("apiFootball", "circuit breaker tripped", { remaining: state.remaining, endpoint });
+  }
 
   const url = new URL(BASE + endpoint);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const res = await fetch(url, {
-    headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY! },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY! },
+    });
+  } catch (e) {
+    log.error("apiFootball", "fetch failed", { endpoint, error: e as Error });
+    throw e;
+  }
   budget.used += 1;
   mirrorSpend("apiFootball", budget.dayUtc);
 
-  if (!res.ok) throw new Error(`API-Football ${endpoint} → HTTP ${res.status}`);
+  if (res.status === 429) {
+    // ~10 req/min free-plan limit (found live 2026-07-28) — distinct from the
+    // daily wall; the worker retries next tick which naturally spaces calls.
+    log.warn("apiFootball", "rate limited", { status: 429, endpoint, budgetUsed: budget.used });
+    throw new Error(`API-Football ${endpoint} → HTTP 429 (per-minute limit; retried next tick)`);
+  }
+  if (!res.ok) {
+    log.error("apiFootball", "http error", { status: res.status, endpoint });
+    throw new Error(`API-Football ${endpoint} → HTTP ${res.status}`);
+  }
   const body: any = await res.json();
-  if (body.errors && Object.keys(body.errors).length > 0)
+  if (body.errors && Object.keys(body.errors).length > 0) {
+    log.error("apiFootball", "api error body", { endpoint, errors: body.errors });
     throw new Error(`API-Football ${endpoint} → ${JSON.stringify(body.errors)}`);
+  }
+  log.debug("apiFootball", "ok", { endpoint, budgetUsed: budget.used, remaining: DAILY_LIMIT - budget.used });
   // Archive BEFORE normalization (spec §4) — evidence trail for disputes.
   await archiveRaw("apiFootball", `${endpoint}?${new URLSearchParams(params)}`, body);
   return body;

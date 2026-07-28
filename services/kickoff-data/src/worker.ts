@@ -1,10 +1,14 @@
-// kickoff-data worker — the only long-running process. One tick: load
+// kickoff-data worker — the only long-running ingest process. One tick: load
 // fixtures, plan, run due jobs, record lastRun. Failures are per-job (a dead
 // source never stalls the loop) and logged; lastRun only advances on success
 // so failed jobs retry next tick.
 //
+// Every tick touches the service_heartbeat row — /health reads it, so a
+// crashed worker is visible from the API container within one tick.
+//
 // Run: pnpm worker   (tsx src/worker.ts)
 
+import { sql } from "drizzle-orm";
 import { plan, jobKey, type Job, type PlannerFixture } from "./scheduler/planner";
 import { runners } from "./jobs";
 import { installDbSink } from "./archive";
@@ -13,12 +17,29 @@ import { budgetState, restoreBudget, isMockMode } from "./apiFootball";
 import { loadPlannerFixtures, loadSettledIds, installStatusChangeListener } from "./ingest";
 import { deliver, webhookConfigFromEnv } from "./api/webhooks";
 import { freezeDue, needsTiebreak, escalateStalled, installSettlementEmitter, s3Trusted } from "./settlementLane";
+import { db, schema } from "./db";
+import { log } from "./log";
 
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
 
 const lastRun = new Map<string, Date>();
+const startedAt = new Date();
 
-async function tick(): Promise<void> {
+async function heartbeat(now: Date, jobsRun: number): Promise<void> {
+  try {
+    await db
+      .insert(schema.serviceHeartbeat)
+      .values({ process: "worker", lastTickAt: now, lastTickJobs: jobsRun, startedAt })
+      .onConflictDoUpdate({
+        target: schema.serviceHeartbeat.process,
+        set: { lastTickAt: now, lastTickJobs: jobsRun, startedAt: sql`excluded.started_at` },
+      });
+  } catch (e) {
+    log.error("worker", "heartbeat write failed", { error: e as Error });
+  }
+}
+
+async function tick(): Promise<number> {
   const now = new Date();
   const rows = await loadPlannerFixtures(now);
   const settled = await loadSettledIds(rows.map((r) => r.id));
@@ -34,6 +55,7 @@ async function tick(): Promise<void> {
   }));
 
   const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining });
+  let jobsRun = 0;
 
   // s3.livePoll: ONE actor run returns every live match, so N due fixtures
   // collapse into one execution — but lastRun advances for ALL their keys.
@@ -44,25 +66,24 @@ async function tick(): Promise<void> {
     try {
       await runners["s3.livePoll"]!(s3Jobs[0], now);
       for (const j of s3Jobs) lastRun.set(jobKey(j), now);
-      console.log(`[worker] ok s3.livePoll (${s3Jobs.length} fixture(s))`);
+      jobsRun++;
+      log.info("worker", "job ok", { job: "s3.livePoll", fixtures: s3Jobs.length });
     } catch (e) {
-      console.error(`[worker] FAIL s3.livePoll: ${(e as Error).message}`);
+      log.error("worker", "job failed", { job: "s3.livePoll", error: e as Error });
     }
   }
 
   for (const job of rest) {
     const runner = runners[job.kind];
-    if (!runner) {
-      // S3/S4 until build step 4 — planner speaks them, worker skips them.
-      continue;
-    }
+    if (!runner) continue; // planner speaks kinds the worker may not serve yet
     const key = jobKey(job);
     try {
       await runner(job, now);
       lastRun.set(key, now);
-      console.log(`[worker] ok ${key}`);
+      jobsRun++;
+      log.info("worker", "job ok", { job: key });
     } catch (e) {
-      console.error(`[worker] FAIL ${key}: ${(e as Error).message}`);
+      log.error("worker", "job failed", { job: key, error: e as Error });
     }
   }
 
@@ -75,8 +96,10 @@ async function tick(): Promise<void> {
     await freezeDue(now);
     await escalateStalled(now);
   } catch (e) {
-    console.error(`[worker] settlement sweep error: ${(e as Error).message}`);
+    log.error("worker", "settlement sweep failed", { error: e as Error });
   }
+
+  return jobsRun;
 }
 
 async function main(): Promise<void> {
@@ -95,24 +118,38 @@ async function main(): Promise<void> {
     void deliver(webhookConfig, event);
   });
 
-  console.log(
-    `[worker] up — tick=${TICK_SECONDS}s, s1=${JSON.stringify(budgetState())}, mock=${isMockMode()}, s3Trusted=${s3Trusted()}, webhooks=${webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)"}`,
-  );
+  log.info("worker", "up", {
+    tickSeconds: TICK_SECONDS,
+    s1: budgetState(),
+    mock: isMockMode(),
+    s3Trusted: s3Trusted(),
+    webhooks: webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)",
+  });
 
   // Sequential ticks — never overlap; a slow tick just delays the next.
   for (;;) {
     const started = Date.now();
+    let jobsRun = 0;
     try {
-      await tick();
+      jobsRun = await tick();
     } catch (e) {
-      console.error(`[worker] tick error: ${(e as Error).message}`);
+      log.error("worker", "tick failed", { error: e as Error });
     }
+    const now = new Date();
+    await heartbeat(now, jobsRun);
+    // Heartbeat visibility: idle ticks are debug (thousands/day otherwise);
+    // /health reads the DB heartbeat for liveness regardless of log level.
+    log[jobsRun > 0 ? "info" : "debug"]("worker", "tick", {
+      jobs: jobsRun,
+      ms: Date.now() - started,
+      s1Remaining: budgetState().remaining,
+    });
     const elapsed = Date.now() - started;
     await new Promise((r) => setTimeout(r, Math.max(0, TICK_SECONDS * 1000 - elapsed)));
   }
 }
 
 main().catch((e) => {
-  console.error("[worker] fatal:", e);
+  log.error("worker", "fatal", { error: e as Error });
   process.exit(1);
 });

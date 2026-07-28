@@ -9,6 +9,7 @@
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { WebhookEvent } from "@kickoff/schema";
+import { log } from "../log";
 
 export interface WebhookConfig {
   /** Markets-app endpoint, e.g. https://kickoff.cash/api/data-hooks */
@@ -75,9 +76,9 @@ export async function deliver(
       if (res.ok) return true;
       // 4xx = our bug or their outage-config, 5xx = transient; retry both —
       // the delay ladder is short enough that it doesn't matter.
-      console.error(`[webhook] ${event.type} → ${res.status} (attempt ${attempt + 1})`);
+      log.warn("webhook", "delivery failed", { event: event.type, status: res.status, attempt: attempt + 1 });
     } catch (e) {
-      console.error(`[webhook] ${event.type} → ${(e as Error).message} (attempt ${attempt + 1})`);
+      log.warn("webhook", "delivery failed", { event: event.type, error: e as Error, attempt: attempt + 1 });
     }
     if (attempt >= RETRY_DELAYS_MS.length - 1) return false;
     await sleep(RETRY_DELAYS_MS[attempt]!);

@@ -8,6 +8,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fixturesDir } from "./mockDir";
 import { archiveRaw } from "./archive";
+import { log } from "./log";
 
 const BASE = "https://api.football-data.org/v4";
 
@@ -27,9 +28,23 @@ async function apiGet(endpoint: string, params: Record<string, string> = {}): Pr
   }
   const url = new URL(BASE + endpoint);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-  const res = await fetch(url, { headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_ORG_KEY! } });
-  if (!res.ok) throw new Error(`football-data.org ${endpoint} → HTTP ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_ORG_KEY! } });
+  } catch (e) {
+    log.error("fdorg", "fetch failed", { endpoint, error: e as Error });
+    throw e;
+  }
+  if (res.status === 429) {
+    log.warn("fdorg", "rate limited", { status: 429, endpoint });
+    throw new Error(`football-data.org ${endpoint} → HTTP 429 (10/min limit; retried next tick)`);
+  }
+  if (!res.ok) {
+    log.error("fdorg", "http error", { status: res.status, endpoint });
+    throw new Error(`football-data.org ${endpoint} → HTTP ${res.status}`);
+  }
   const body = await res.json();
+  log.debug("fdorg", "ok", { endpoint });
   // Archive BEFORE normalization (spec §4) — evidence trail for disputes.
   await archiveRaw("fdorg", `${endpoint}?${new URLSearchParams(params)}`, body);
   return body;

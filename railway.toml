@@ -1,0 +1,19 @@
+# Railway config for the kickoff-data API service (service 1 of 2).
+# Both Railway services deploy from THIS repo with root directory "/";
+# they differ only in start command — see services/kickoff-data/DEPLOY.md.
+#
+# Service "kickoff-data-api"    → this file's start command (default)
+# Service "kickoff-data-worker" → override start command in the Railway UI:
+#     pnpm --filter @kickoff/data worker
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "corepack enable && pnpm install --frozen-lockfile"
+
+[deploy]
+# Migrations run before the API binds — idempotent, safe on every deploy.
+startCommand = "pnpm --filter @kickoff/data db:migrate && pnpm --filter @kickoff/data api"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

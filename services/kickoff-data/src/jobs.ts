@@ -38,6 +38,7 @@ import {
 } from "./ingest";
 import { db, schema } from "./db";
 import { eq } from "drizzle-orm";
+import { log } from "./log";
 
 function seasonFor(now: Date): number {
   // EPL season = the year it starts in (Aug–May).
@@ -196,7 +197,7 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
     if (!fx) throw new Error(`unknown fixture ${job.fixtureId}`);
     const score = await getTiebreakScore(fx.homeSlug, fx.awaySlug);
     if (score === null) {
-      console.error(`[jobs] s5.tiebreak: no unambiguous score for ${job.fixtureId} — disputing`);
+      log.error("jobs", "s5.tiebreak: no unambiguous score, disputing", { fixtureId: job.fixtureId });
       await markDisputed(job.fixtureId!);
       return;
     }

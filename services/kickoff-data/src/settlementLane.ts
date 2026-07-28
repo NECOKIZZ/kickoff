@@ -14,6 +14,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import type { SettlementVote, WebhookEvent } from "@kickoff/schema";
 import { db, schema } from "./db";
 import { archiveRaw } from "./archive";
+import { log } from "./log";
 import {
   EMPTY_WORKING,
   decide,
@@ -39,7 +40,7 @@ function fire(event: WebhookEvent): void {
   try {
     emit?.(event);
   } catch (e) {
-    console.error(`[settlement] emitter threw: ${(e as Error).message}`);
+    log.error("settlement", "emitter threw", { error: e as Error });
   }
 }
 
@@ -121,7 +122,7 @@ export async function recordVote(
   }
 
   if (becameDisputed) {
-    console.error(`[settlement] DISPUTED ${fixtureId} — all primaries disagree, tie-break failed`);
+    log.error("settlement", "disputed: primaries disagree, tie-break failed", { fixtureId });
     fire({ type: "settlement.disputed", fixture_id: fixtureId, votes: next.votes });
   }
 }
@@ -146,7 +147,7 @@ export async function markDisputed(fixtureId: string): Promise<void> {
     .update(schema.settlementSnapshots)
     .set({ status: "disputed", outcomeHome: null, outcomeAway: null, freezesAt: null })
     .where(eq(schema.settlementSnapshots.id, working.id));
-  console.error(`[settlement] DISPUTED ${fixtureId} — tie-break could not answer`);
+  log.error("settlement", "disputed: tie-break could not answer", { fixtureId });
   fire({ type: "settlement.disputed", fixture_id: fixtureId, votes: working.state.votes });
 }
 
@@ -176,10 +177,11 @@ export async function escalateStalled(now: Date): Promise<number> {
     if (frozenVersion > 0) continue; // settled
     if (working?.state.status === "disputed") continue; // already escalated
     if (working?.state.status === "provisional") continue; // finality window is running — not stalled
-    console.error(
-      `[settlement] STALLED ${f.id} — FT >${STALL_SECONDS}s without quorum ` +
-        `(${working?.state.votes.length ?? 0} vote(s)); escalating to disputed`,
-    );
+    log.error("settlement", "stalled: FT without quorum, escalating to disputed", {
+      fixtureId: f.id,
+      stallSeconds: STALL_SECONDS,
+      votes: working?.state.votes.length ?? 0,
+    });
     await markDisputed(f.id);
     escalated++;
   }
@@ -207,7 +209,12 @@ export async function freezeDue(now: Date): Promise<number> {
       .set({ status: "frozen", quorumRule: decision.rule, frozenAt: now })
       .where(eq(schema.settlementSnapshots.id, r.id));
     frozen++;
-    console.log(`[settlement] FROZEN ${r.fixtureId} v${r.version} ${r.outcomeHome}-${r.outcomeAway} (${decision.rule})`);
+    log.info("settlement", "frozen", {
+      fixtureId: r.fixtureId,
+      version: r.version,
+      outcome: `${r.outcomeHome}-${r.outcomeAway}`,
+      rule: decision.rule,
+    });
     fire({ type: "settlement.ready", fixture_id: r.fixtureId, snapshot_version: r.version });
   }
   return frozen;

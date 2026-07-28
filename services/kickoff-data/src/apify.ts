@@ -11,6 +11,7 @@ import path from "node:path";
 import { fixturesDir } from "./mockDir";
 import { archiveRaw } from "./archive";
 import { mirrorSpend } from "./budget";
+import { log } from "./log";
 
 const BASE = "https://api.apify.com/v2";
 
@@ -30,14 +31,25 @@ export async function runActor(
   }
 
   const url = `${BASE}/acts/${actorId}/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}&timeout=${opts.timeoutSeconds ?? 120}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
+  const started = Date.now();
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+  } catch (e) {
+    log.error("apify", "fetch failed", { actor: actorId, error: e as Error });
+    throw e;
+  }
   mirrorSpend(opts.source, new Date().toISOString().slice(0, 10));
-  if (!res.ok) throw new Error(`Apify ${actorId} → HTTP ${res.status}`);
+  if (!res.ok) {
+    log.error("apify", "actor run failed", { actor: actorId, status: res.status, ms: Date.now() - started });
+    throw new Error(`Apify ${actorId} → HTTP ${res.status}`);
+  }
   const items = (await res.json()) as any[];
+  log.info("apify", "actor run ok", { actor: actorId, items: items.length, ms: Date.now() - started });
   // Archive BEFORE normalization (spec §4) — evidence trail for disputes.
   await archiveRaw(opts.source, actorId, items);
   return items;

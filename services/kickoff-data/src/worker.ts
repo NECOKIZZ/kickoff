@@ -10,7 +10,8 @@ import { runners } from "./jobs";
 import { installDbSink } from "./archive";
 import { installDbBudgetStore } from "./budget";
 import { budgetState, restoreBudget, isMockMode } from "./apiFootball";
-import { loadPlannerFixtures, loadSettledIds } from "./ingest";
+import { loadPlannerFixtures, loadSettledIds, installStatusChangeListener } from "./ingest";
+import { deliver, webhookConfigFromEnv } from "./api/webhooks";
 
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
 
@@ -67,8 +68,16 @@ async function main(): Promise<void> {
   await installDbSink();
   await installDbBudgetStore();
   await restoreBudget();
+
+  // fixture.status_changed → webhook. Fire-and-forget: deliver() retries
+  // internally and a dead consumer never stalls ingest or the tick loop.
+  const webhookConfig = webhookConfigFromEnv();
+  installStatusChangeListener((fixtureId, from, to) => {
+    void deliver(webhookConfig, { type: "fixture.status_changed", fixture_id: fixtureId, from, to });
+  });
+
   console.log(
-    `[worker] up — tick=${TICK_SECONDS}s, s1=${JSON.stringify(budgetState())}, mock=${isMockMode()}`,
+    `[worker] up — tick=${TICK_SECONDS}s, s1=${JSON.stringify(budgetState())}, mock=${isMockMode()}, webhooks=${webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)"}`,
   );
 
   // Sequential ticks — never overlap; a slow tick just delays the next.

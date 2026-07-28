@@ -9,9 +9,20 @@
 // guessed (spec §2).
 
 import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
-import type { Fixture, PlayerMatchStats, MatchEvent, MatchState, MatchStats } from "@kickoff/schema";
+import type { Fixture, FixtureStatus, PlayerMatchStats, MatchEvent, MatchState, MatchStats } from "@kickoff/schema";
 import { db, schema } from "./db";
 import { resolveFixtureId, KICKOFF_TOLERANCE_MS } from "./identity";
+
+// Status-change hook — installed by the worker (same pattern as
+// installDbSink/installDbBudgetStore) to fire the fixture.status_changed
+// webhook. Never awaited on the ingest path and never allowed to throw into
+// it: a dead consumer must not fail a write.
+type StatusChangeListener = (fixtureId: string, from: FixtureStatus, to: FixtureStatus) => void;
+let onStatusChange: StatusChangeListener | null = null;
+
+export function installStatusChangeListener(fn: StatusChangeListener): void {
+  onStatusChange = fn;
+}
 
 /**
  * Upsert one normalized fixture. Returns the canonical id it landed under
@@ -57,6 +68,13 @@ export async function upsertFixture(
   const id = resolved ?? fixture.id;
   const needsReview = opts.statusUnknown === true;
 
+  // Old status for the status_changed hook — one cheap PK read per upsert.
+  const prev = await db
+    .select({ status: schema.fixtures.status })
+    .from(schema.fixtures)
+    .where(eq(schema.fixtures.id, id))
+    .limit(1);
+
   await db
     .insert(schema.fixtures)
     .values({
@@ -83,6 +101,15 @@ export async function upsertFixture(
         updatedAt: sql`now()`,
       },
     });
+
+  const from = prev[0]?.status;
+  if (onStatusChange && from !== undefined && from !== fixture.status) {
+    try {
+      onStatusChange(id, from, fixture.status);
+    } catch (e) {
+      console.error(`[ingest] status listener threw: ${(e as Error).message}`);
+    }
+  }
 
   return id;
 }

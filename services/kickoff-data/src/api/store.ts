@@ -17,6 +17,7 @@ import type {
   StatLine,
 } from "@kickoff/schema";
 import { db, schema } from "../db";
+import { backtestFixture } from "../backtest";
 import type { ApiStore, FixtureFilter, SnapshotRow, Stamped } from "./routes";
 
 type FixtureRow = typeof schema.fixtures.$inferSelect;
@@ -259,5 +260,9 @@ export const drizzleStore: ApiStore = {
       };
       return snapshot;
     });
+  },
+
+  runBacktest(s1FixtureId) {
+    return backtestFixture(s1FixtureId);
   },
 };

@@ -1,9 +1,8 @@
-// @kickoff/data public surface.
+// @kickoff/data public surface — the service's OWN worker/routes/tests.
 //
-// TRANSITIONAL: the markets app currently imports these client functions
-// directly (in-process). Build-order step 5 replaces that with the /v1 HTTP
-// consumer API + webhooks, after which the app's only compile-time dependency
-// is @kickoff/schema and this barrel serves the service's own worker/routes.
+// The markets app no longer imports this package (build step 5 done): it
+// consumes the /v1 HTTP consumer API via src/lib/dataService.ts, and its
+// only compile-time dependency is @kickoff/schema.
 export * from "./apiFootball";
 export {
   isMockMode as fdorgIsMockMode,

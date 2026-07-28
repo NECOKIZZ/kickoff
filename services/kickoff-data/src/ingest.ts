@@ -12,6 +12,7 @@ import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import type { Fixture, FixtureStatus, PlayerMatchStats, MatchEvent, MatchState, MatchStats } from "@kickoff/schema";
 import { db, schema } from "./db";
 import { resolveFixtureId, KICKOFF_TOLERANCE_MS } from "./identity";
+import { log } from "./log";
 
 // Status-change hook — installed by the worker (same pattern as
 // installDbSink/installDbBudgetStore) to fire the fixture.status_changed
@@ -107,7 +108,7 @@ export async function upsertFixture(
     try {
       onStatusChange(id, from, fixture.status);
     } catch (e) {
-      console.error(`[ingest] status listener threw: ${(e as Error).message}`);
+      log.error("ingest", "status listener threw", { error: e as Error });
     }
   }
 

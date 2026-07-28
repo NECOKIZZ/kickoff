@@ -245,3 +245,17 @@ export const sourceBudget = pgTable(
   },
   (t) => [uniqueIndex("source_budget_day_idx").on(t.source, t.dayUtc)],
 );
+
+// ---------------------------------------------------------------------------
+// Service heartbeat — one row per process ("worker"), touched every tick.
+// The /health endpoint reads it: a stale heartbeat = the worker died even
+// though the API container is fine (they are separate processes on Railway).
+// ---------------------------------------------------------------------------
+
+export const serviceHeartbeat = pgTable("service_heartbeat", {
+  process: text("process").primaryKey(), // "worker"
+  lastTickAt: timestamp("last_tick_at", { withTimezone: true }).notNull(),
+  /** Jobs run in the last tick — quick visual that the planner is planning. */
+  lastTickJobs: integer("last_tick_jobs").notNull().default(0),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+});

@@ -7,6 +7,8 @@
 // startup. Archiving must never break a fetch — sink errors are logged and
 // swallowed (losing one archive row beats losing a live poll).
 
+import { log } from "./log";
+
 export interface ArchiveSink {
   (source: string, endpoint: string, payload: unknown): Promise<number | null>;
 }
@@ -27,7 +29,7 @@ export async function archiveRaw(
   try {
     return await sink(source, endpoint, payload);
   } catch (e) {
-    console.error(`archive failed (${source} ${endpoint}):`, (e as Error).message);
+    log.error("archive", "archive failed", { source, endpoint, error: e as Error });
     return null;
   }
 }

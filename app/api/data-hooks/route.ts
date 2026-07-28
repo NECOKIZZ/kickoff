@@ -42,6 +42,7 @@ export async function POST(req: Request) {
     return jsonError("invalid JSON body", 400);
   }
   if (!event.type || !event.fixture_id) return jsonError("missing type/fixture_id", 400);
+  console.log(`[data-hooks] received ${event.type} for ${event.fixture_id}`);
 
   switch (event.type) {
     case "settlement.ready":

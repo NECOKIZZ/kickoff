@@ -94,7 +94,7 @@ async function mockGet(endpoint: string, params: Record<string, string>): Promis
   let name: string;
   if (endpoint === "/fixtures/players") name = `players-${params.fixture}.json`;
   else if (endpoint === "/fixtures/lineups") name = `lineups-${params.fixture}.json`;
-  else if (endpoint === "/fixtures" && params.ids) name = `fixtures-byid-${params.ids}.json`;
+  else if (endpoint === "/fixtures" && (params.id || params.ids)) name = `fixtures-byid-${params.id ?? params.ids}.json`;
   else if (endpoint === "/fixtures") name = "fixtures-epl.json";
   else throw new Error(`no mock recorded for ${endpoint}`);
   const raw = await readFile(path.join(dir, name), "utf8");
@@ -110,6 +110,8 @@ export interface AfFixture {
   league: { id: number; season: number; round: string };
   teams: { home: { id: number; name: string }; away: { id: number; name: string } };
   goals: { home: number | null; away: number | null };
+  /** Rides along on /fixtures?id= responses only (absent on windowed syncs). */
+  events?: AfEvent[];
 }
 
 export interface AfPlayerStats {
@@ -160,12 +162,18 @@ export async function getEplFixtures(season: number, from?: string, to?: string)
   return body.response as AfFixture[];
 }
 
-/** Batched fixture fetch — up to 20 ids in ONE request (the §4.3 bulk trick). */
+/** Fixture fetch by id. REAL-KEY FINDING (2026-07-28): the free plan
+ *  rejects the plural `ids=` batch param ("Free plans do not have access to
+ *  the Ids parameter") — so this loops one `id=` request per fixture. The
+ *  consolation is big: a single `id=` response rides along events, lineups,
+ *  players AND statistics, so post-match needs 1 request, not 3. */
 export async function getFixturesByIds(ids: number[]): Promise<AfFixture[]> {
-  if (ids.length === 0) return [];
-  if (ids.length > 20) throw new Error("API-Football batches at most 20 fixture ids per request");
-  const body = await apiGet("/fixtures", { ids: ids.join("-") });
-  return body.response as AfFixture[];
+  const out: AfFixture[] = [];
+  for (const id of ids) {
+    const body = await apiGet("/fixtures", { id: String(id) });
+    if (body.response[0]) out.push(body.response[0] as AfFixture);
+  }
+  return out;
 }
 
 /** Every player's full stat line for a fixture — ONE request. */
@@ -176,7 +184,7 @@ export async function getFixturePlayers(fixtureId: number): Promise<Array<{ team
 
 /** Fixture events (goals, cards, substitutions) — used for derived scoring. */
 export async function getFixtureEvents(fixtureId: number): Promise<AfEvent[]> {
-  const body = await apiGet("/fixtures", { ids: String(fixtureId) });
+  const body = await apiGet("/fixtures", { id: String(fixtureId) });
   // events ride along on the fixture-by-id response
   return (body.response[0]?.events ?? []) as AfEvent[];
 }

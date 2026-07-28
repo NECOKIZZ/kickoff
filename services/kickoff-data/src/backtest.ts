@@ -26,11 +26,10 @@ export async function backtestFixture(fixtureId: number): Promise<BacktestReport
   if (fixture.fixture.status.short !== "FT")
     throw new Error(`fixture ${fixtureId} is not finished (${fixture.fixture.status.short})`);
 
-  const [events, lineups, teams] = [
-    await getFixtureEvents(fixtureId),
-    await getFixtureLineups(fixtureId),
-    await getFixturePlayers(fixtureId),
-  ];
+  // Events ride along on the by-id response — reuse them instead of a second
+  // /fixtures call (free plan is 100/day AND ~10/min; every request counts).
+  const events = fixture.events?.length ? fixture.events : await getFixtureEvents(fixtureId);
+  const [lineups, teams] = [await getFixtureLineups(fixtureId), await getFixturePlayers(fixtureId)];
 
   const schemaChecks: BacktestReport["schemaChecks"] = [];
   const check = (name: string, ok: boolean, note: string) => schemaChecks.push({ check: name, ok, note });
@@ -75,16 +74,25 @@ export async function backtestFixture(fixtureId: number): Promise<BacktestReport
     .sort((a, b) => (b.basePoints > a.basePoints ? 1 : -1));
 
   // --- Cross-check derived conceded vs the provider's own conceded field ---
+  // REAL-KEY FINDING (2026-07-28, fixture 1035104): the provider populates
+  // goals.conceded ONLY for goalkeepers — outfield players read 0 even when
+  // on the pitch for goals. So the cross-check is GK-only; outfield conceded
+  // comes exclusively from our lineup+events derivation.
   let concededMismatches = 0;
+  let gksChecked = 0;
   for (const p of allPlayers) {
+    const s = p.statistics[0];
+    if (s.games.position !== "G" || (s.games.minutes ?? 0) === 0) continue;
+    gksChecked++;
     const derived = conceded.concededBy.get(p.player.id) ?? 0;
-    const provider = p.statistics[0].goals.conceded;
-    if (provider != null && (p.statistics[0].games.minutes ?? 0) > 0 && derived !== provider) concededMismatches++;
+    if (s.goals.conceded != null && derived !== s.goals.conceded) concededMismatches++;
   }
   check(
-    "derived-conceded-vs-provider",
-    concededMismatches === 0,
-    concededMismatches === 0 ? "derived goals-conceded matches provider for all players" : `${concededMismatches} mismatches — check sub-window logic`,
+    "derived-conceded-vs-provider-gk",
+    concededMismatches === 0 && gksChecked > 0,
+    concededMismatches === 0
+      ? `derived goals-conceded matches provider for all ${gksChecked} keeper(s) (provider fills conceded for GKs only)`
+      : `${concededMismatches} GK mismatches — check sub-window logic`,
   );
 
   // --- Simulated settlements: 5 synthetic traders on each market ---

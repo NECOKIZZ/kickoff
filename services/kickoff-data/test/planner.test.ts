@@ -125,3 +125,20 @@ describe("planner: FT settlement fan-out", () => {
     expect(again.every((k) => k.startsWith("s3.livePoll"))).toBe(true);
   });
 });
+
+describe("planner: S5 tie-break gate", () => {
+  it("s5.tiebreak fires only for FT fixtures the lane flagged, exactly once", () => {
+    // Unflagged FT fixture: never.
+    expect(kinds(state({ fixtures: [fx({ status: "ft" })] }))).not.toContain("s5.tiebreak");
+    // Flagged: once, then lastRun suppresses it forever.
+    const s = state({ fixtures: [fx({ status: "ft", needsTiebreak: true })] });
+    expect(kinds(s)).toContain("s5.tiebreak");
+    s.lastRun.set("s5.tiebreak:epl-arsenal-chelsea-202608151400", s.now);
+    expect(kinds(s)).not.toContain("s5.tiebreak");
+  });
+
+  it("a settled fixture never gets a tie-break (short-circuit)", () => {
+    const s = state({ fixtures: [fx({ status: "ft", needsTiebreak: true, settled: true })] });
+    expect(kinds(s)).not.toContain("s5.tiebreak");
+  });
+});

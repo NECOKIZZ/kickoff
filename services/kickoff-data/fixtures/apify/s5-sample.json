@@ -1,0 +1,21 @@
+[
+  {
+    "match_id": "s5-0001",
+    "league": "Premier League",
+    "status": "finished",
+    "home_team": "Arsenal",
+    "away_team": "Chelsea",
+    "home_score": 2,
+    "away_score": 1,
+    "match_date": "2026-08-15"
+  },
+  {
+    "match_id": "s5-0002",
+    "league": "Premier League",
+    "status": "finished",
+    "homeTeam": "Manchester City",
+    "awayTeam": "Liverpool",
+    "score": "1-1",
+    "match_date": "2026-08-15"
+  }
+]

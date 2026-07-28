@@ -12,7 +12,7 @@ import { installDbBudgetStore } from "./budget";
 import { budgetState, restoreBudget, isMockMode } from "./apiFootball";
 import { loadPlannerFixtures, loadSettledIds, installStatusChangeListener } from "./ingest";
 import { deliver, webhookConfigFromEnv } from "./api/webhooks";
-import { freezeDue, needsTiebreak, installSettlementEmitter, s3Trusted } from "./settlementLane";
+import { freezeDue, needsTiebreak, escalateStalled, installSettlementEmitter, s3Trusted } from "./settlementLane";
 
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
 
@@ -68,10 +68,14 @@ async function tick(): Promise<void> {
 
   // Settlement freeze sweep — provisional outcomes whose 15-min finality
   // window elapsed become immutable snapshots (fires settlement.ready).
+  // Stall escalation — FT fixtures stuck without quorum past the stall
+  // window (dead provider) go disputed so the admin is summoned instead of
+  // the market silently hanging.
   try {
     await freezeDue(now);
+    await escalateStalled(now);
   } catch (e) {
-    console.error(`[worker] freeze sweep error: ${(e as Error).message}`);
+    console.error(`[worker] settlement sweep error: ${(e as Error).message}`);
   }
 }
 

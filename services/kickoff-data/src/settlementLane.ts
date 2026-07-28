@@ -151,6 +151,42 @@ export async function markDisputed(fixtureId: string): Promise<void> {
 }
 
 /**
+ * Stall escalation — the "provider shut down" alarm. A fixture that has been
+ * FT for longer than the stall window without a frozen snapshot means quorum
+ * can never form on its own (a voter is dead or perpetually disagreeing).
+ * Escalate to disputed → settlement.disputed webhook → admin decides.
+ *
+ * Non-destructive: transition() recovers a disputed row to provisional if a
+ * late vote completes quorum after all (e.g. the provider comes back up).
+ */
+const STALL_SECONDS = Number(process.env.KICKOFF_DATA_SETTLEMENT_STALL_SECONDS ?? 3600);
+
+export async function escalateStalled(now: Date): Promise<number> {
+  const cutoff = new Date(now.getTime() - STALL_SECONDS * 1000);
+  const ftFixtures = await db
+    .select({ id: schema.fixtures.id, updatedAt: schema.fixtures.updatedAt })
+    .from(schema.fixtures)
+    .where(eq(schema.fixtures.status, "ft"));
+  let escalated = 0;
+  for (const f of ftFixtures) {
+    // updated_at last advanced when the fixture hit FT (or later) — a cheap
+    // conservative proxy for "FT since"; it only ever under-counts the wait.
+    if (new Date(f.updatedAt) > cutoff) continue;
+    const { frozenVersion, working } = await loadLatest(f.id);
+    if (frozenVersion > 0) continue; // settled
+    if (working?.state.status === "disputed") continue; // already escalated
+    if (working?.state.status === "provisional") continue; // finality window is running — not stalled
+    console.error(
+      `[settlement] STALLED ${f.id} — FT >${STALL_SECONDS}s without quorum ` +
+        `(${working?.state.votes.length ?? 0} vote(s)); escalating to disputed`,
+    );
+    await markDisputed(f.id);
+    escalated++;
+  }
+  return escalated;
+}
+
+/**
  * Freeze sweep — called each worker tick. Provisional rows whose finality
  * window has elapsed become frozen (immutable) and settlement.ready fires.
  * The quorum rule is recomputed at freeze time from the final vote set.

@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "worker": "tsx src/worker.ts",
+    "api": "tsx src/api/server.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

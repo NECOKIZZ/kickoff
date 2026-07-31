@@ -210,6 +210,7 @@ function AccumulatorPool() {
 }
 
 // ── Score / Player toggle — 3D per brand (buttons are strictly always 3D) ──────
+// Theme mapping: Score Markets = purple/white, Player Perps = green/black.
 
 function MarketToggle({
   active,
@@ -223,9 +224,9 @@ function MarketToggle({
       {(["score", "player"] as const).map((tab) => {
         const isActive = active === tab;
         const isScoreTab = tab === "score";
-        const bg = isScoreTab ? "#00C805" : "#7B62F6";
-        const shadow = isScoreTab ? "#008C04" : "#4e3cb5";
-        const text = isScoreTab ? "#111210" : "#ffffff";
+        const bg = isScoreTab ? "#7B62F6" : "#00C805";
+        const shadow = isScoreTab ? "#4e3cb5" : "#008C04";
+        const text = isScoreTab ? "#ffffff" : "#111210";
         return (
           <button
             key={tab}
@@ -293,7 +294,7 @@ const HOW_STEPS: Record<"score" | "player", Array<{ title: string; body: string 
   ],
 };
 
-/** Mini 5×5 grid demo — the proximity mechanic, made touchable. */
+/** Mini 5×5 grid demo — the proximity mechanic, made touchable. Purple theme (score markets). */
 function MiniProximityGrid() {
   const [pick, setPick] = useState<{ h: number; a: number }>({ h: 2, a: 1 });
   return (
@@ -314,17 +315,17 @@ function MiniProximityGrid() {
                 width: 40,
                 height: 40,
                 borderRadius: 8,
-                border: isPick ? "1.5px solid #00C805" : "1px solid rgba(17,18,16,0.12)",
+                border: isPick ? "1.5px solid #7B62F6" : "1px solid rgba(17,18,16,0.12)",
                 background: isPick
-                  ? "#00C805"
-                  : `rgba(0, 200, 5, ${glow * 0.35})`,
-                color: isPick ? "#111210" : "rgba(17,18,16,0.65)",
+                  ? "#7B62F6"
+                  : `rgba(123, 98, 246, ${glow * 0.35})`,
+                color: isPick ? "#ffffff" : "rgba(17,18,16,0.65)",
                 fontFamily: "'Inter', sans-serif",
                 fontSize: "0.66rem",
                 fontWeight: 700,
                 cursor: "pointer",
                 transition: "all 0.2s ease",
-                boxShadow: isPick ? "0 0 18px rgba(0,200,5,0.4)" : "none",
+                boxShadow: isPick ? "0 0 18px rgba(123,98,246,0.45)" : "none",
               }}
             >
               {h}–{a}
@@ -347,11 +348,11 @@ function MiniProximityGrid() {
   );
 }
 
-/** Placeholder player-card fan — interiors get replaced by the designed cards. */
+/** Placeholder player-card fan — interiors get replaced by the designed cards. Green theme (player perps). */
 function PlayerCardFan() {
   const cards = [
     { pos: "ST", line: "8.5", rot: -8, x: -70, accent: "#00C805" },
-    { pos: "AM", line: "6.0", rot: 0, x: 0, accent: "#7B62F6" },
+    { pos: "AM", line: "6.0", rot: 0, x: 0, accent: "#00C805" },
     { pos: "RW", line: "7.5", rot: 8, x: 70, accent: "#00C805" },
   ];
   return (
@@ -469,7 +470,8 @@ function Footer() {
 export default function LandingPage() {
   const [howTab, setHowTab] = useState<"score" | "player">("score");
   const steps = HOW_STEPS[howTab];
-  const accent = howTab === "score" ? "#00C805" : "#7B62F6";
+  // Section theme follows the toggle: score = purple/white, player = green/black
+  const accent = howTab === "score" ? "#7B62F6" : "#00C805";
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
@@ -517,10 +519,10 @@ export default function LandingPage() {
         id="how-it-works"
         style={{ background: "#F7F5F0", minHeight: 600, width: "100%", position: "relative", overflow: "hidden", paddingTop: 28, paddingBottom: 80 }}
       >
-        {/* Brand glow orbs */}
-        <div style={{ position: "absolute", top: "50%", left: "5%", width: 300, height: 300, borderRadius: "50%", background: "#00C805", filter: "blur(120px)", opacity: 0.38, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: "55%", right: "5%", width: 280, height: 280, borderRadius: "50%", background: "#7B62F6", filter: "blur(110px)", opacity: 0.42, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "5%", left: "40%", width: 260, height: 260, borderRadius: "50%", background: "#00C805", filter: "blur(100px)", opacity: 0.28, pointerEvents: "none" }} />
+        {/* Brand glow orbs — recolor with the active market theme */}
+        <div style={{ position: "absolute", top: "50%", left: "5%", width: 300, height: 300, borderRadius: "50%", background: accent, filter: "blur(120px)", opacity: 0.38, pointerEvents: "none", transition: "background 0.5s ease" }} />
+        <div style={{ position: "absolute", top: "55%", right: "5%", width: 280, height: 280, borderRadius: "50%", background: accent, filter: "blur(110px)", opacity: 0.32, pointerEvents: "none", transition: "background 0.5s ease" }} />
+        <div style={{ position: "absolute", bottom: "5%", left: "40%", width: 260, height: 260, borderRadius: "50%", background: accent, filter: "blur(100px)", opacity: 0.28, pointerEvents: "none", transition: "background 0.5s ease" }} />
 
         <div className="max-w-6xl mx-auto px-6 text-center" style={{ position: "relative", zIndex: 1 }}>
           <h2
@@ -611,7 +613,7 @@ export default function LandingPage() {
                 </p>
               </div>
             )}
-            <Button3D color={howTab === "score" ? "green" : "purple"} size="lg" onClick={() => (window.location.href = "/markets")}>
+            <Button3D color={howTab === "score" ? "purple" : "green"} size="lg" onClick={() => (window.location.href = "/markets")}>
               Enter the markets
             </Button3D>
           </div>

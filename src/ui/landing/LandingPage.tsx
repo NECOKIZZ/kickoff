@@ -486,7 +486,7 @@ export default function LandingPage() {
           alt="Footballers mid-play"
           style={{
             position: "absolute",
-            bottom: -20,
+            bottom: 0,
             left: "50%",
             transform: "translateX(-55%)",
             height: 500,

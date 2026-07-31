@@ -31,7 +31,7 @@ function Navbar() {
           <Logo variant="white" size={28} />
         </span>
 
-        {/* Nav links — green underline marks the selected item */}
+        {/* Nav links — white on the purple environment, green underline when selected */}
         <div className="hidden sm:flex items-center gap-8" style={{ overflow: "visible" }}>
           {NAV_LINKS.map((l) => (
             <NavUnderlineItem
@@ -39,6 +39,8 @@ function Navbar() {
               href={l.href}
               active={active === l.href}
               onClick={() => setActive(l.href)}
+              muted="rgba(255,255,255,0.75)"
+              activeColor="#ffffff"
             >
               {l.label}
             </NavUnderlineItem>
@@ -77,7 +79,7 @@ function Hero() {
         <p
           style={{
             fontFamily: "'Fraunces', serif",
-            color: "var(--muted-foreground)",
+            color: "rgba(255,255,255,0.85)",
             fontSize: "clamp(1.1rem, 2.4vw, 1.9rem)",
             fontWeight: 400,
             fontStyle: "italic",
@@ -86,7 +88,7 @@ function Hero() {
           }}
         >
           Beat the pack,{" "}
-          <span style={{ color: "var(--primary)", fontStyle: "normal", fontWeight: 600 }}>
+          <span style={{ color: "var(--color-kickoff-green)", fontStyle: "normal", fontWeight: 600 }}>
             Keep the stack.
           </span>
         </p>
@@ -95,7 +97,7 @@ function Hero() {
           className="leading-none"
           style={{
             fontFamily: "'Fraunces', serif",
-            color: "var(--foreground)",
+            color: "#ffffff",
             fontSize: "clamp(3.2rem, 8vw, 7.5rem)",
             fontWeight: 700,
             letterSpacing: "-0.025em",
@@ -186,8 +188,13 @@ function AccumulatorPool() {
 
 // ── Score / Player toggle pill ─────────────────────────────────────────────────
 
-function MarketToggle() {
-  const [active, setActive] = useState<"score" | "player">("score");
+function MarketToggle({
+  active,
+  onChange,
+}: {
+  active: "score" | "player";
+  onChange: (t: "score" | "player") => void;
+}) {
   const isScore = active === "score";
   const accent = isScore ? "#00C805" : "#7B62F6";
 
@@ -225,7 +232,7 @@ function MarketToggle() {
         return (
           <button
             key={tab}
-            onClick={() => setActive(tab)}
+            onClick={() => onChange(tab)}
             style={{
               fontFamily: "'Clash Display', sans-serif",
               fontSize: "0.78rem",
@@ -249,6 +256,93 @@ function MarketToggle() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// ── How it works — steps per market type, driven by the toggle ─────────────────
+
+const HOW_STEPS: Record<"score" | "player", Array<{ title: string; body: string }>> = {
+  score: [
+    {
+      title: "Pick a scoreline",
+      body: "Choose the final score you see coming — 2–1, 0–0, anything. Stake USDC on it before kickoff.",
+    },
+    {
+      title: "Close still pays",
+      body: "This isn't yes/no. Payouts scale with how close you land — 2–1 when it ends 2–0 still earns.",
+    },
+    {
+      title: "Split the pool",
+      body: "At full time the pool splits by stake × accuracy. Nail it exactly and you take the biggest share.",
+    },
+  ],
+  player: [
+    {
+      title: "Call the points line",
+      body: "Predict a player's fantasy points for the matchweek — goals, assists, cards, the lot.",
+    },
+    {
+      title: "Distance decides",
+      body: "The nearer your call to the player's real score, the bigger your cut. No over/under coin-flip.",
+    },
+    {
+      title: "Climb the season board",
+      body: "Every settled market feeds your precision rating — and the accumulator pool waiting at season's end.",
+    },
+  ],
+};
+
+/** Mini 5×5 grid demo — the proximity mechanic, made touchable. */
+function MiniProximityGrid() {
+  const [pick, setPick] = useState<{ h: number; a: number }>({ h: 2, a: 1 });
+  return (
+    <div>
+      <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(5, 40px)", justifyContent: "center" }}>
+        {Array.from({ length: 25 }, (_, i) => {
+          const h = Math.floor(i / 5);
+          const a = i % 5;
+          const isPick = pick.h === h && pick.a === a;
+          const dist = Math.max(Math.abs(pick.h - h), Math.abs(pick.a - a));
+          const glow = isPick ? 1 : dist === 1 ? 0.4 : dist === 2 ? 0.15 : 0.05;
+          return (
+            <button
+              key={i}
+              onClick={() => setPick({ h, a })}
+              aria-label={`Score ${h}–${a}`}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                border: isPick ? "1.5px solid #00C805" : "1px solid rgba(17,18,16,0.12)",
+                background: isPick
+                  ? "#00C805"
+                  : `rgba(0, 200, 5, ${glow * 0.35})`,
+                color: isPick ? "#111210" : "rgba(17,18,16,0.65)",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: "0.66rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow: isPick ? "0 0 18px rgba(0,200,5,0.4)" : "none",
+              }}
+            >
+              {h}–{a}
+            </button>
+          );
+        })}
+      </div>
+      <p
+        style={{
+          fontFamily: "'Clash Display', sans-serif",
+          fontSize: "0.75rem",
+          color: "rgba(17,18,16,0.45)",
+          textAlign: "center",
+          marginTop: 14,
+        }}
+      >
+        Tap a score — the glow is your payout, fading with distance.
+      </p>
     </div>
   );
 }
@@ -308,6 +402,10 @@ function Footer() {
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
+  const [howTab, setHowTab] = useState<"score" | "player">("score");
+  const steps = HOW_STEPS[howTab];
+  const accent = howTab === "score" ? "#00C805" : "#7B62F6";
+
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <Navbar />
@@ -373,7 +471,95 @@ export default function LandingPage() {
           </h2>
         </div>
         <div className="flex justify-center mt-12" style={{ position: "relative", zIndex: 1 }}>
-          <MarketToggle />
+          <MarketToggle active={howTab} onChange={setHowTab} />
+        </div>
+
+        {/* Steps + interactive proximity demo */}
+        <div
+          className="max-w-6xl mx-auto px-6 mt-16 grid md:grid-cols-2 gap-14 items-center"
+          style={{ position: "relative", zIndex: 1 }}
+        >
+          <div className="flex flex-col gap-2">
+            {steps.map((s, i) => (
+              <div
+                key={`${howTab}-${s.title}`}
+                className="card-diagonal-sm glass flex items-start gap-5 px-7 py-6"
+              >
+                <span
+                  style={{
+                    fontFamily: "'Fraunces', serif",
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    color: accent,
+                    minWidth: "2.2rem",
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <div>
+                  <h3
+                    style={{
+                      fontFamily: "'Fraunces', serif",
+                      fontSize: "1.15rem",
+                      fontWeight: 600,
+                      color: "#111210",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {s.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: "'Clash Display', sans-serif",
+                      fontSize: "0.9rem",
+                      lineHeight: 1.65,
+                      color: "rgba(17,18,16,0.55)",
+                    }}
+                  >
+                    {s.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col items-center gap-8">
+            {howTab === "score" ? (
+              <MiniProximityGrid />
+            ) : (
+              <div className="text-center px-6">
+                <p
+                  style={{
+                    fontFamily: "'Fraunces', serif",
+                    fontSize: "clamp(2.4rem, 5vw, 3.6rem)",
+                    fontWeight: 700,
+                    color: "#111210",
+                    lineHeight: 1.1,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  8.5 <span style={{ color: "#7B62F6" }}>pts?</span>
+                </p>
+                <p
+                  style={{
+                    fontFamily: "'Clash Display', sans-serif",
+                    fontSize: "0.9rem",
+                    color: "rgba(17,18,16,0.5)",
+                    marginTop: 12,
+                    maxWidth: 320,
+                    margin: "12px auto 0",
+                    lineHeight: 1.65,
+                  }}
+                >
+                  Call the line on any player&apos;s matchweek. Player cards drop with the season.
+                </p>
+              </div>
+            )}
+            <Button3D color={howTab === "score" ? "green" : "purple"} size="lg" onClick={() => (window.location.href = "/markets")}>
+              Enter the markets
+            </Button3D>
+          </div>
         </div>
       </section>
 

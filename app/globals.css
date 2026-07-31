@@ -1,0 +1,182 @@
+@import url("https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,400&display=swap");
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+
+  /* Brand primitives (instuctions.md) */
+  --color-kickoff-green: #00C805;
+  --color-kickoff-green-deep: #008C04;
+  --color-pitch-cream: #F7F5F0;
+  --color-ink-soft: #6B6F63;
+  --color-canvas: #EDEAE0;
+  --color-new-purple: #7B62F6;
+  --color-new-purple-deep: #4e3cb5;
+  --color-ink: #111210;
+
+  /* Light mode — brand purple goes with cream */
+  --background: #F7F5F0;
+  --foreground: #111210;
+  --card: #EDEAE0;
+  --card-foreground: #111210;
+  --popover: #F7F5F0;
+  --popover-foreground: #111210;
+  --primary: #00C805;
+  --primary-foreground: #111210;
+  --secondary: #EDEAE0;
+  --secondary-foreground: #111210;
+  --muted: #EDEAE0;
+  --muted-foreground: #6B6F63;
+  --accent: #7B62F6;
+  --accent-foreground: #ffffff;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(107, 111, 99, 0.2);
+  --input-background: #EDEAE0;
+  --ring: #00C805;
+  --radius: 0.5rem;
+
+  /* Glass (glassmorphism recipe — premium look per guidelines) */
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.22);
+}
+
+/* Dark mode — brand green goes with the ink */
+.dark {
+  --background: #111210;
+  --foreground: #F7F5F0;
+  --card: #1C1D1A;
+  --card-foreground: #F7F5F0;
+  --popover: #111210;
+  --popover-foreground: #F7F5F0;
+  --primary: #00C805;
+  --primary-foreground: #111210;
+  --secondary: #1C1D1A;
+  --secondary-foreground: #F7F5F0;
+  --muted: #1C1D1A;
+  --muted-foreground: #6B6F63;
+  --accent: #7B62F6;
+  --accent-foreground: #ffffff;
+  --destructive: #ff4d6d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(247, 245, 240, 0.1);
+  --input-background: #1C1D1A;
+  --ring: #00C805;
+
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-display: "Fraunces", serif;
+  --font-clash: "Clash Display", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: "Inter", sans-serif;
+  }
+
+  /* Fraunces owns large type (instuctions.md: "fraunce for large fonts") */
+  h1, h2, h3, h4 {
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  h1 { font-size: clamp(2.5rem, 6vw, 5rem); }
+  h2 { font-size: clamp(1.75rem, 3.5vw, 2.75rem); }
+  h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+
+  label, button {
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  input {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Score-market cards: rounded on one diagonal, sharp on the other (brand rule) */
+  .card-diagonal {
+    border-radius: 24px 4px 24px 4px;
+  }
+  .card-diagonal-sm {
+    border-radius: 16px 2px 16px 2px;
+  }
+
+  /* Glassmorphism card */
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(32px);
+    backdrop-filter: blur(32px);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 var(--glass-highlight),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  .font-display { font-family: "Fraunces", serif; }
+  .font-clash { font-family: "Clash Display", sans-serif; }
+}

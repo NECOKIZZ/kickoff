@@ -1,3 +1,5 @@
+import LandingPage from "@/ui/landing/LandingPage";
+
 export default function Home() {
-  return <main>Kickoff API — frontend coming soon.</main>;
+  return <LandingPage />;
 }

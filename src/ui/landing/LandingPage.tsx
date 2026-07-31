@@ -123,7 +123,6 @@ function formatPool(microUsdc: string | null): string {
 
 function AccumulatorPool() {
   const [balance, setBalance] = useState<string | null>(null);
-  const [contributions, setContributions] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -131,10 +130,7 @@ function AccumulatorPool() {
       fetch("/api/accumulator")
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
-          if (alive && d?.balance !== undefined) {
-            setBalance(d.balance);
-            setContributions(d.contributions ?? null);
-          }
+          if (alive && d?.balance !== undefined) setBalance(d.balance);
         })
         .catch(() => {});
     load();
@@ -145,25 +141,22 @@ function AccumulatorPool() {
     };
   }, []);
 
-  const stats = [
-    { value: "5%", label: "of every settled pool feeds it" },
-    { value: "Top 10", label: "on the season board split it" },
-    { value: contributions === null ? "—" : String(contributions), label: "contributions so far" },
-  ];
-
   return (
     <section
       style={{
         background: "#000",
-        minHeight: 560,
+        minHeight: 500,
         width: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        paddingTop: 160,
-        paddingBottom: 90,
+        // The rounded band above overlaps this section by 120px. Measured: with
+        // 62px bottom padding the $ figure's center lands on the exact midpoint
+        // of the full black area (band top → section bottom).
+        paddingTop: 0,
+        paddingBottom: 62,
         marginTop: -120,
         position: "relative",
         zIndex: 25,
@@ -171,7 +164,7 @@ function AccumulatorPool() {
       }}
     >
       {/* brand glow behind the figure */}
-      <div style={{ position: "absolute", top: "45%", left: "50%", transform: "translate(-50%,-50%)", width: 520, height: 520, borderRadius: "50%", background: "#00C805", filter: "blur(180px)", opacity: 0.1, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 520, height: 520, borderRadius: "50%", background: "#00C805", filter: "blur(180px)", opacity: 0.1, pointerEvents: "none" }} />
 
       <div className="max-w-4xl mx-auto px-6 w-full" style={{ position: "relative" }}>
         <p
@@ -211,28 +204,6 @@ function AccumulatorPool() {
         >
           in the accumulator pool
         </p>
-
-        {/* Stat tiles */}
-        <div className="grid sm:grid-cols-3 gap-3 mt-14">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              style={{
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "rgba(255,255,255,0.02)",
-                borderRadius: "20px 4px 20px 4px",
-                padding: "22px 18px",
-              }}
-            >
-              <p style={{ fontFamily: "'Fraunces', serif", fontSize: "1.7rem", fontWeight: 700, color: "var(--color-kickoff-green)", lineHeight: 1 }}>
-                {s.value}
-              </p>
-              <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.4)", marginTop: 8, lineHeight: 1.5 }}>
-                {s.label}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -520,12 +491,13 @@ export default function LandingPage() {
             pointerEvents: "none",
           }}
         />
-        {/* Rounded black band easing hero into the pool section */}
+        {/* Rounded black band easing hero into the pool section — kept short so
+            the accumulator figure owns the black area's visual midpoint */}
         <div
           className="rounded-t-[50px]"
           style={{
             background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,1) 30%)",
-            height: 300,
+            height: 180,
             width: "100%",
             marginTop: -100,
             position: "relative",

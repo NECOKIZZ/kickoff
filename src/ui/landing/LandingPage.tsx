@@ -155,15 +155,15 @@ function AccumulatorPool() {
     <section
       style={{
         background: "#000",
-        minHeight: 640,
+        minHeight: 560,
         width: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        paddingTop: 140,
-        paddingBottom: 100,
+        paddingTop: 160,
+        paddingBottom: 90,
         marginTop: -120,
         position: "relative",
         zIndex: 25,
@@ -171,7 +171,7 @@ function AccumulatorPool() {
       }}
     >
       {/* brand glow behind the figure */}
-      <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: 520, height: 520, borderRadius: "50%", background: "#00C805", filter: "blur(180px)", opacity: 0.1, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "45%", left: "50%", transform: "translate(-50%,-50%)", width: 520, height: 520, borderRadius: "50%", background: "#00C805", filter: "blur(180px)", opacity: 0.1, pointerEvents: "none" }} />
 
       <div className="max-w-4xl mx-auto px-6 w-full" style={{ position: "relative" }}>
         <p
@@ -212,23 +212,8 @@ function AccumulatorPool() {
           in the accumulator pool
         </p>
 
-        <p
-          style={{
-            fontFamily: "'Clash Display', sans-serif",
-            fontSize: "0.95rem",
-            lineHeight: 1.75,
-            color: "rgba(255,255,255,0.55)",
-            maxWidth: 520,
-            margin: "2.5rem auto 0",
-          }}
-        >
-          Every market on Kickoff skims a slice into one season-long pot. It grows with every
-          match, every stake, every settlement — and at the final whistle of the season, the ten
-          most precise traders carve it up by rank. Live on-chain, all season.
-        </p>
-
         {/* Stat tiles */}
-        <div className="grid sm:grid-cols-3 gap-3 mt-12">
+        <div className="grid sm:grid-cols-3 gap-3 mt-14">
           {stats.map((s) => (
             <div
               key={s.label}

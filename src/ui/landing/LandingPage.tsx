@@ -478,13 +478,15 @@ export default function LandingPage() {
       <Navbar />
       <div style={{ position: "relative" }}>
         <Hero />
-        {/* Players image centred at the hero/black boundary */}
+        {/* Players image centred at the hero/black boundary. bottom compensates
+            for the shortened band below so the heads stay halfway down the
+            purple hero — don't re-anchor without re-measuring. */}
         <img
           src="/brand/hero-players.webp"
           alt="Footballers mid-play"
           style={{
             position: "absolute",
-            bottom: 100,
+            bottom: -20,
             left: "50%",
             transform: "translateX(-55%)",
             height: 500,

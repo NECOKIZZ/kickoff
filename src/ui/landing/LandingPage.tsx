@@ -123,6 +123,7 @@ function formatPool(microUsdc: string | null): string {
 
 function AccumulatorPool() {
   const [balance, setBalance] = useState<string | null>(null);
+  const [contributions, setContributions] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -130,7 +131,10 @@ function AccumulatorPool() {
       fetch("/api/accumulator")
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
-          if (alive && d?.balance !== undefined) setBalance(d.balance);
+          if (alive && d?.balance !== undefined) {
+            setBalance(d.balance);
+            setContributions(d.contributions ?? null);
+          }
         })
         .catch(() => {});
     load();
@@ -141,52 +145,115 @@ function AccumulatorPool() {
     };
   }, []);
 
+  const stats = [
+    { value: "5%", label: "of every settled pool feeds it" },
+    { value: "Top 10", label: "on the season board split it" },
+    { value: contributions === null ? "—" : String(contributions), label: "contributions so far" },
+  ];
+
   return (
     <section
       style={{
         background: "#000",
-        minHeight: 400,
+        minHeight: 640,
         width: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        paddingTop: 0,
+        paddingTop: 140,
+        paddingBottom: 100,
         marginTop: -120,
         position: "relative",
         zIndex: 25,
+        overflow: "hidden",
       }}
     >
-      <p
-        style={{
-          fontFamily: "'Fraunces', serif",
-          fontSize: "clamp(4rem, 12vw, 9rem)",
-          fontWeight: 700,
-          color: "#fff",
-          lineHeight: 1,
-          letterSpacing: "-0.03em",
-        }}
-      >
-        {formatPool(balance)}
-      </p>
-      <p
-        style={{
-          fontFamily: "'Clash Display', sans-serif",
-          fontSize: "clamp(0.85rem, 1.6vw, 1.1rem)",
-          color: "rgba(255,255,255,0.45)",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          marginTop: "0.6em",
-        }}
-      >
-        in the accumulator pool
-      </p>
+      {/* brand glow behind the figure */}
+      <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: 520, height: 520, borderRadius: "50%", background: "#00C805", filter: "blur(180px)", opacity: 0.1, pointerEvents: "none" }} />
+
+      <div className="max-w-4xl mx-auto px-6 w-full" style={{ position: "relative" }}>
+        <p
+          style={{
+            fontFamily: "'Clash Display', sans-serif",
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "var(--color-kickoff-green)",
+            marginBottom: "1.4rem",
+          }}
+        >
+          Season 2026–27
+        </p>
+        <p
+          style={{
+            fontFamily: "'Fraunces', serif",
+            fontSize: "clamp(4rem, 12vw, 9rem)",
+            fontWeight: 700,
+            color: "#fff",
+            lineHeight: 1,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          {formatPool(balance)}
+        </p>
+        <p
+          style={{
+            fontFamily: "'Clash Display', sans-serif",
+            fontSize: "clamp(0.85rem, 1.6vw, 1.1rem)",
+            color: "rgba(255,255,255,0.45)",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            marginTop: "0.6em",
+          }}
+        >
+          in the accumulator pool
+        </p>
+
+        <p
+          style={{
+            fontFamily: "'Clash Display', sans-serif",
+            fontSize: "0.95rem",
+            lineHeight: 1.75,
+            color: "rgba(255,255,255,0.55)",
+            maxWidth: 520,
+            margin: "2.5rem auto 0",
+          }}
+        >
+          Every market on Kickoff skims a slice into one season-long pot. It grows with every
+          match, every stake, every settlement — and at the final whistle of the season, the ten
+          most precise traders carve it up by rank. Live on-chain, all season.
+        </p>
+
+        {/* Stat tiles */}
+        <div className="grid sm:grid-cols-3 gap-3 mt-12">
+          {stats.map((s) => (
+            <div
+              key={s.label}
+              style={{
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.02)",
+                borderRadius: "20px 4px 20px 4px",
+                padding: "22px 18px",
+              }}
+            >
+              <p style={{ fontFamily: "'Fraunces', serif", fontSize: "1.7rem", fontWeight: 700, color: "var(--color-kickoff-green)", lineHeight: 1 }}>
+                {s.value}
+              </p>
+              <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.78rem", color: "rgba(255,255,255,0.4)", marginTop: 8, lineHeight: 1.5 }}>
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
 
-// ── Score / Player toggle pill ─────────────────────────────────────────────────
+// ── Score / Player toggle — 3D per brand (buttons are strictly always 3D) ──────
 
 function MarketToggle({
   active,
@@ -195,61 +262,38 @@ function MarketToggle({
   active: "score" | "player";
   onChange: (t: "score" | "player") => void;
 }) {
-  const isScore = active === "score";
-  const accent = isScore ? "#00C805" : "#7B62F6";
-
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        background: "rgba(0,0,0,0.07)",
-        borderRadius: 999,
-        padding: 4,
-        position: "relative",
-        border: `1.5px solid ${accent}55`,
-        transition: "border-color 0.35s ease",
-      }}
-    >
-      {/* Sliding indicator */}
-      <div
-        style={{
-          position: "absolute",
-          top: 4,
-          bottom: 4,
-          left: isScore ? 4 : "50%",
-          width: "calc(50% - 4px)",
-          borderRadius: 999,
-          background: accent,
-          transition: "left 0.32s cubic-bezier(0.4,0,0.2,1), background 0.32s ease",
-          zIndex: 0,
-        }}
-      />
-
+    <div style={{ display: "inline-flex", gap: 12 }}>
       {(["score", "player"] as const).map((tab) => {
         const isActive = active === tab;
-        const isDark = tab === "score";
+        const isScoreTab = tab === "score";
+        const bg = isScoreTab ? "#00C805" : "#7B62F6";
+        const shadow = isScoreTab ? "#008C04" : "#4e3cb5";
+        const text = isScoreTab ? "#111210" : "#ffffff";
         return (
           <button
             key={tab}
             onClick={() => onChange(tab)}
+            aria-pressed={isActive}
             style={{
               fontFamily: "'Clash Display', sans-serif",
-              fontSize: "0.78rem",
+              fontSize: "0.82rem",
               fontWeight: 700,
-              padding: "9px 22px",
-              borderRadius: 999,
-              border: "none",
-              cursor: "pointer",
-              background: "transparent",
-              color: isActive ? (isDark ? "#000" : "#fff") : "rgba(0,0,0,0.38)",
-              transition: "color 0.32s ease",
+              padding: "11px 26px",
+              borderRadius: 14,
               letterSpacing: "0.03em",
               whiteSpace: "nowrap",
-              position: "relative",
-              zIndex: 1,
-              minWidth: 120,
-              textAlign: "center",
+              minWidth: 150,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              // Active = raised 3D in brand color; inactive = pressed flat + muted
+              background: isActive ? bg : "rgba(17,18,16,0.06)",
+              color: isActive ? text : "rgba(17,18,16,0.45)",
+              border: isActive ? `1px solid ${shadow}` : "1px solid rgba(17,18,16,0.14)",
+              boxShadow: isActive
+                ? `0 5px 0 ${shadow}, 0 6px 14px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.25)`
+                : "inset 0 2px 4px rgba(0,0,0,0.08)",
+              transform: isActive ? "translateY(0)" : "translateY(4px)",
             }}
           >
             {tab === "score" ? "Score Markets" : "Player Perps"}
@@ -343,6 +387,71 @@ function MiniProximityGrid() {
       >
         Tap a score — the glow is your payout, fading with distance.
       </p>
+    </div>
+  );
+}
+
+/** Placeholder player-card fan — interiors get replaced by the designed cards. */
+function PlayerCardFan() {
+  const cards = [
+    { pos: "ST", line: "8.5", rot: -8, x: -70, accent: "#00C805" },
+    { pos: "AM", line: "6.0", rot: 0, x: 0, accent: "#7B62F6" },
+    { pos: "RW", line: "7.5", rot: 8, x: 70, accent: "#00C805" },
+  ];
+  return (
+    <div style={{ position: "relative", height: 320, width: 320 }}>
+      {cards.map((c, i) => (
+        <div
+          key={i}
+          className="glass"
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            width: 180,
+            height: 250,
+            transform: `translate(calc(-50% + ${c.x}px), -50%) rotate(${c.rot}deg)`,
+            borderRadius: "26px 6px 26px 6px",
+            background: "rgba(255,255,255,0.5)",
+            border: `1px solid ${c.accent}33`,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            zIndex: i === 1 ? 2 : 1,
+            boxShadow: i === 1 ? `0 18px 44px rgba(0,0,0,0.14), 0 0 0 1px ${c.accent}22` : "0 10px 28px rgba(0,0,0,0.1)",
+          }}
+        >
+          {/* silhouette placeholder */}
+          <div
+            style={{
+              width: 74,
+              height: 74,
+              borderRadius: "50%",
+              background: `linear-gradient(135deg, ${c.accent}44, rgba(17,18,16,0.12))`,
+            }}
+          />
+          <div style={{ width: 90, height: 10, borderRadius: 99, background: "rgba(17,18,16,0.12)" }} />
+          <div style={{ width: 60, height: 8, borderRadius: 99, background: "rgba(17,18,16,0.08)" }} />
+          <div className="flex items-center gap-2 mt-1">
+            <span
+              style={{
+                fontFamily: "'Clash Display', sans-serif",
+                fontSize: "0.6rem",
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                color: "rgba(17,18,16,0.4)",
+              }}
+            >
+              {c.pos}
+            </span>
+            <span style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 700, color: c.accent }}>
+              {c.line}
+            </span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -528,31 +637,20 @@ export default function LandingPage() {
             {howTab === "score" ? (
               <MiniProximityGrid />
             ) : (
-              <div className="text-center px-6">
-                <p
-                  style={{
-                    fontFamily: "'Fraunces', serif",
-                    fontSize: "clamp(2.4rem, 5vw, 3.6rem)",
-                    fontWeight: 700,
-                    color: "#111210",
-                    lineHeight: 1.1,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  8.5 <span style={{ color: "#7B62F6" }}>pts?</span>
-                </p>
+              <div className="flex flex-col items-center">
+                <PlayerCardFan />
                 <p
                   style={{
                     fontFamily: "'Clash Display', sans-serif",
-                    fontSize: "0.9rem",
-                    color: "rgba(17,18,16,0.5)",
-                    marginTop: 12,
-                    maxWidth: 320,
-                    margin: "12px auto 0",
-                    lineHeight: 1.65,
+                    fontSize: "0.75rem",
+                    color: "rgba(17,18,16,0.45)",
+                    textAlign: "center",
+                    marginTop: 6,
+                    maxWidth: 300,
+                    lineHeight: 1.6,
                   }}
                 >
-                  Call the line on any player&apos;s matchweek. Player cards drop with the season.
+                  Every matchweek drops a fresh deck of player cards — pick yours, call the line.
                 </p>
               </div>
             )}

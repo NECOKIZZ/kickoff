@@ -1,27 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button3D } from "@/ui/Button3D";
 import { Logo } from "@/ui/Logo";
 import { NavUnderlineItem } from "@/ui/NavUnderline";
+import { Reveal, RevealWords } from "@/ui/landing/Reveal";
 
 const NAV_LINKS = [
   { label: "How it Works", href: "#how-it-works" },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Docs", href: "#docs" },
+  { label: "Markets", href: "/markets" },
+  { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Positions", href: "/positions" },
 ];
 
 // ── Navbar — floating glass pill, logo kept tight (brand: don't carry it wide) ──
 
 function Navbar() {
   const [active, setActive] = useState<string | null>(null);
+  const [hidden, setHidden] = useState(false);
   const router = useRouter();
 
+  // Stay fixed while the hero is on screen; slide away once the visitor has
+  // scrolled past it so the pill never blocks section content.
+  useEffect(() => {
+    const onScroll = () => setHidden(window.scrollY > window.innerHeight * 0.75);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="fixed top-5 left-0 right-0 z-50 flex justify-center px-4">
+    <div
+      className="fixed top-5 left-0 right-0 z-50 flex justify-center px-4"
+      style={{
+        transform: hidden ? "translateY(-120%)" : "translateY(0)",
+        opacity: hidden ? 0 : 1,
+        transition: "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease",
+        pointerEvents: hidden ? "none" : "auto",
+      }}
+    >
       <nav
         className="glass flex items-center justify-between w-full max-w-4xl px-4 py-3"
         style={{ borderRadius: 999, overflow: "visible" }}
@@ -76,22 +94,24 @@ function Hero() {
         className="relative w-full flex flex-col items-center text-center px-6"
         style={{ zIndex: 2, paddingTop: "6vh" }}
       >
-        <p
-          style={{
-            fontFamily: "'Fraunces', serif",
-            color: "rgba(255,255,255,0.85)",
-            fontSize: "clamp(1.1rem, 2.4vw, 1.9rem)",
-            fontWeight: 400,
-            fontStyle: "italic",
-            lineHeight: 1.2,
-            marginBottom: "0.35em",
-          }}
-        >
-          Beat the pack,{" "}
-          <span style={{ color: "var(--color-kickoff-green)", fontStyle: "normal", fontWeight: 600 }}>
-            Keep the stack.
-          </span>
-        </p>
+        <Reveal duration={1000}>
+          <p
+            style={{
+              fontFamily: "'Fraunces', serif",
+              color: "rgba(255,255,255,0.85)",
+              fontSize: "clamp(1.1rem, 2.4vw, 1.9rem)",
+              fontWeight: 400,
+              fontStyle: "italic",
+              lineHeight: 1.2,
+              marginBottom: "0.35em",
+            }}
+          >
+            Beat the pack,{" "}
+            <span style={{ color: "#ffffff", fontStyle: "normal", fontWeight: 600 }}>
+              Keep the stack.
+            </span>
+          </p>
+        </Reveal>
 
         <h1
           className="leading-none"
@@ -103,7 +123,7 @@ function Hero() {
             letterSpacing: "-0.025em",
           }}
         >
-          Proximity Markets.
+          <RevealWords text="Proximity Markets." delay={250} stagger={140} />
         </h1>
       </div>
     </section>
@@ -166,44 +186,52 @@ function AccumulatorPool() {
       {/* brand glow behind the figure */}
       <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 520, height: 520, borderRadius: "50%", background: "#00C805", filter: "blur(180px)", opacity: 0.1, pointerEvents: "none" }} />
 
+      {/* subtle purple gradient easing the section's bottom edge toward the cream band */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 220,
+          background: "linear-gradient(to top, rgba(123,98,246,0.22), transparent)",
+          pointerEvents: "none",
+        }}
+      />
+
       <div className="max-w-4xl mx-auto px-6 w-full" style={{ position: "relative" }}>
-        <p
-          style={{
-            fontFamily: "'Clash Display', sans-serif",
-            fontSize: "0.7rem",
-            fontWeight: 700,
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: "var(--color-kickoff-green)",
-            marginBottom: "1.4rem",
-          }}
-        >
-          Season 2026–27
-        </p>
-        <p
-          style={{
-            fontFamily: "'Fraunces', serif",
-            fontSize: "clamp(4rem, 12vw, 9rem)",
-            fontWeight: 700,
-            color: "#fff",
-            lineHeight: 1,
-            letterSpacing: "-0.03em",
-          }}
-        >
-          {formatPool(balance)}
-        </p>
-        <p
-          style={{
-            fontFamily: "'Clash Display', sans-serif",
-            fontSize: "clamp(0.85rem, 1.6vw, 1.1rem)",
-            color: "rgba(255,255,255,0.45)",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            marginTop: "0.6em",
-          }}
-        >
-          in the accumulator pool
-        </p>
+        <Reveal duration={1100}>
+          <p
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: "clamp(4rem, 12vw, 9rem)",
+              fontWeight: 700,
+              color: "#fff",
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            {formatPool(balance)}
+          </p>
+        </Reveal>
+        <Reveal delay={200}>
+          <p
+            style={{
+              fontFamily: "'Clash Display', sans-serif",
+              fontSize: "clamp(0.85rem, 1.6vw, 1.1rem)",
+              color: "rgba(255,255,255,0.55)",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              marginTop: "0.9em",
+              lineHeight: 1.8,
+            }}
+          >
+            in the accumulator pool —{" "}
+            <span style={{ color: "var(--color-kickoff-green)" }}>
+              shared among the season&rsquo;s top 20 players
+            </span>
+          </p>
+        </Reveal>
       </div>
     </section>
   );
@@ -215,9 +243,11 @@ function AccumulatorPool() {
 function MarketToggle({
   active,
   onChange,
+  dark = false,
 }: {
   active: "score" | "player";
   onChange: (t: "score" | "player") => void;
+  dark?: boolean;
 }) {
   return (
     <div style={{ display: "inline-flex", gap: 12 }}>
@@ -227,6 +257,11 @@ function MarketToggle({
         const bg = isScoreTab ? "#7B62F6" : "#00C805";
         const shadow = isScoreTab ? "#4e3cb5" : "#008C04";
         const text = isScoreTab ? "#ffffff" : "#111210";
+        // Inactive treatment flips with the section theme so it never sinks
+        // into the background (ink-on-ink on black was invisible).
+        const idleBg = dark ? "rgba(255,255,255,0.08)" : "rgba(17,18,16,0.06)";
+        const idleText = dark ? "rgba(255,255,255,0.55)" : "rgba(17,18,16,0.45)";
+        const idleBorder = dark ? "1px solid rgba(255,255,255,0.16)" : "1px solid rgba(17,18,16,0.14)";
         return (
           <button
             key={tab}
@@ -244,9 +279,9 @@ function MarketToggle({
               cursor: "pointer",
               transition: "all 0.15s ease",
               // Active = raised 3D in brand color; inactive = pressed flat + muted
-              background: isActive ? bg : "rgba(17,18,16,0.06)",
-              color: isActive ? text : "rgba(17,18,16,0.45)",
-              border: isActive ? `1px solid ${shadow}` : "1px solid rgba(17,18,16,0.14)",
+              background: isActive ? bg : idleBg,
+              color: isActive ? text : idleText,
+              border: isActive ? `1px solid ${shadow}` : idleBorder,
               boxShadow: isActive
                 ? `0 5px 0 ${shadow}, 0 6px 14px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.25)`
                 : "inset 0 2px 4px rgba(0,0,0,0.08)",
@@ -349,18 +384,20 @@ function MiniProximityGrid() {
 }
 
 /** Placeholder player-card fan — interiors get replaced by the designed cards. Green theme (player perps). */
-function PlayerCardFan() {
+function PlayerCardFan({ dark = false }: { dark?: boolean }) {
   const cards = [
     { pos: "ST", line: "8.5", rot: -8, x: -70, accent: "#00C805" },
     { pos: "AM", line: "6.0", rot: 0, x: 0, accent: "#00C805" },
     { pos: "RW", line: "7.5", rot: 8, x: 70, accent: "#00C805" },
   ];
+  const bone = dark ? "rgba(255,255,255,0.16)" : "rgba(17,18,16,0.12)";
+  const boneSoft = dark ? "rgba(255,255,255,0.1)" : "rgba(17,18,16,0.08)";
   return (
     <div style={{ position: "relative", height: 320, width: 320 }}>
       {cards.map((c, i) => (
         <div
           key={i}
-          className="glass"
+          className={dark ? "glass-dark" : "glass"}
           style={{
             position: "absolute",
             left: "50%",
@@ -369,7 +406,7 @@ function PlayerCardFan() {
             height: 250,
             transform: `translate(calc(-50% + ${c.x}px), -50%) rotate(${c.rot}deg)`,
             borderRadius: "26px 6px 26px 6px",
-            background: "rgba(255,255,255,0.5)",
+            background: dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.5)",
             border: `1px solid ${c.accent}33`,
             display: "flex",
             flexDirection: "column",
@@ -386,11 +423,11 @@ function PlayerCardFan() {
               width: 74,
               height: 74,
               borderRadius: "50%",
-              background: `linear-gradient(135deg, ${c.accent}44, rgba(17,18,16,0.12))`,
+              background: `linear-gradient(135deg, ${c.accent}44, ${bone})`,
             }}
           />
-          <div style={{ width: 90, height: 10, borderRadius: 99, background: "rgba(17,18,16,0.12)" }} />
-          <div style={{ width: 60, height: 8, borderRadius: 99, background: "rgba(17,18,16,0.08)" }} />
+          <div style={{ width: 90, height: 10, borderRadius: 99, background: bone }} />
+          <div style={{ width: 60, height: 8, borderRadius: 99, background: boneSoft }} />
           <div className="flex items-center gap-2 mt-1">
             <span
               style={{
@@ -398,7 +435,7 @@ function PlayerCardFan() {
                 fontSize: "0.6rem",
                 fontWeight: 700,
                 letterSpacing: "0.12em",
-                color: "rgba(17,18,16,0.4)",
+                color: dark ? "rgba(255,255,255,0.4)" : "rgba(17,18,16,0.4)",
               }}
             >
               {c.pos}
@@ -413,13 +450,211 @@ function PlayerCardFan() {
   );
 }
 
+// ── Proximity statement — one bold claim, big type, room to breathe ────────────
+
+function ProximityStatement() {
+  return (
+    <section
+      className="rounded-t-[50px]"
+      style={{
+        background: "#F7F5F0",
+        padding: "clamp(7rem, 16vh, 12rem) 1.5rem",
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden",
+        // Rounded lip over the how-it-works section — keeps the seam soft even
+        // when that section is in black player-perps mode.
+        marginTop: -50,
+        zIndex: 35,
+      }}
+    >
+      <div className="max-w-5xl mx-auto" style={{ position: "relative", zIndex: 1 }}>
+        <Reveal>
+          <p
+            style={{
+              fontFamily: "'Clash Display', sans-serif",
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              letterSpacing: "0.24em",
+              textTransform: "uppercase",
+              color: "#7B62F6",
+              marginBottom: "2.2rem",
+            }}
+          >
+            The first proximity market on Robinhood Chain
+          </p>
+        </Reveal>
+        <h2
+          style={{
+            fontFamily: "'Fraunces', serif",
+            fontSize: "clamp(2.6rem, 6.5vw, 5.5rem)",
+            fontWeight: 700,
+            color: "#111210",
+            letterSpacing: "-0.03em",
+            lineHeight: 1.05,
+          }}
+        >
+          <RevealWords text="Closeness matters." stagger={120} />
+          <br />
+          <span style={{ color: "rgba(17,18,16,0.35)" }}>
+            <RevealWords text="Not just yes or no." delay={400} stagger={100} />
+          </span>
+        </h2>
+        <Reveal delay={700}>
+          <p
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontStyle: "italic",
+              fontSize: "clamp(1.05rem, 2vw, 1.4rem)",
+              color: "rgba(17,18,16,0.55)",
+              marginTop: "2.6rem",
+              maxWidth: 560,
+              marginLeft: "auto",
+              marginRight: "auto",
+              lineHeight: 1.55,
+            }}
+          >
+            Call 2–1 and it ends 2–0? You still get paid. The nearer you land, the bigger your share.
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ── EPL club marquee — 20 crests on diagonal glass cards, before the footer ────
+
+const MARQUEE_CLUBS: Array<{ slug: string; name: string }> = [
+  { slug: "arsenal", name: "Arsenal" },
+  { slug: "aston-villa", name: "Aston Villa" },
+  { slug: "bournemouth", name: "Bournemouth" },
+  { slug: "brentford", name: "Brentford" },
+  { slug: "brighton", name: "Brighton" },
+  { slug: "burnley", name: "Burnley" },
+  { slug: "chelsea", name: "Chelsea" },
+  { slug: "crystal-palace", name: "Crystal Palace" },
+  { slug: "everton", name: "Everton" },
+  { slug: "fulham", name: "Fulham" },
+  { slug: "leeds", name: "Leeds" },
+  { slug: "liverpool", name: "Liverpool" },
+  { slug: "man-city", name: "Man City" },
+  { slug: "man-united", name: "Man United" },
+  { slug: "newcastle", name: "Newcastle" },
+  { slug: "nottingham-forest", name: "Forest" },
+  { slug: "sunderland", name: "Sunderland" },
+  { slug: "tottenham", name: "Tottenham" },
+  { slug: "west-ham", name: "West Ham" },
+  { slug: "wolves", name: "Wolves" },
+];
+
+function ClubMarquee() {
+  const row = (copy: number) => (
+    <div key={copy} aria-hidden={copy === 1} style={{ display: "flex", gap: 20, paddingRight: 20 }}>
+      {MARQUEE_CLUBS.map((club) => (
+        <div
+          key={`${copy}-${club.slug}`}
+          className="glass-dark card-diagonal-sm"
+          style={{
+            width: 104,
+            height: 104,
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+          }}
+        >
+          <img
+            src={`/brand/clubs/${club.slug}.webp`}
+            alt={copy === 0 ? club.name : ""}
+            loading="lazy"
+            style={{ width: 56, height: 56, objectFit: "contain" }}
+            onError={(e) => {
+              // Crest missing → show the club's initials instead of a broken image
+              const img = e.currentTarget;
+              img.style.display = "none";
+              const fallback = img.nextElementSibling as HTMLElement | null;
+              if (fallback) fallback.style.display = "flex";
+            }}
+          />
+          <span
+            style={{
+              display: "none",
+              position: "absolute",
+              inset: 0,
+              alignItems: "center",
+              justifyContent: "center",
+              fontFamily: "'Clash Display', sans-serif",
+              fontSize: "1.1rem",
+              fontWeight: 700,
+              color: "rgba(255,255,255,0.5)",
+              letterSpacing: "0.06em",
+            }}
+          >
+            {club.name.split(" ").map((w) => w[0]).join("")}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <section
+      className="rounded-t-[50px]"
+      style={{
+        background: "#000",
+        padding: "5.5rem 0 6.5rem",
+        overflow: "hidden",
+        position: "relative",
+        // Rounded lip overlapping the cream statement — same band language as
+        // the other section seams on this page.
+        marginTop: -50,
+        zIndex: 36,
+      }}
+    >
+      <Reveal>
+        <p
+          style={{
+            fontFamily: "'Clash Display', sans-serif",
+            fontSize: "0.72rem",
+            fontWeight: 700,
+            letterSpacing: "0.24em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.35)",
+            textAlign: "center",
+            marginBottom: "3rem",
+          }}
+        >
+          Every club. Every matchweek.
+        </p>
+      </Reveal>
+      <div style={{ position: "relative" }}>
+        {/* edge fades so the loop never shows a hard cut */}
+        <div style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 120, background: "linear-gradient(to right, #000, transparent)", zIndex: 2, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: 120, background: "linear-gradient(to left, #000, transparent)", zIndex: 2, pointerEvents: "none" }} />
+        <div className="marquee-track">{[0, 1].map(row)}</div>
+      </div>
+    </section>
+  );
+}
+
 // ── Footer ─────────────────────────────────────────────────────────────────────
 
 function Footer() {
-  const cols = [
-    { heading: "Product", links: ["Score Markets", "Player Perps", "Accumulator", "Leaderboard"] },
-    { heading: "Company", links: ["About", "Blog", "Careers", "Press", "Contact"] },
-    { heading: "Legal", links: ["Privacy Policy", "Terms of Service", "Cookie Policy", "Responsible Play"] },
+  // Product links go to real pages; Company/Legal pages don't exist yet, so
+  // those entries render as plain text instead of dead "#" links.
+  const cols: { heading: string; links: { label: string; href?: string }[] }[] = [
+    {
+      heading: "Product",
+      links: [
+        { label: "Score Markets", href: "/markets" },
+        { label: "Player Perps", href: "/markets" },
+        { label: "Accumulator", href: "/leaderboard" },
+        { label: "Leaderboard", href: "/leaderboard" },
+      ],
+    },
+    { heading: "Company", links: [{ label: "About" }, { label: "Blog" }, { label: "Careers" }, { label: "Press" }, { label: "Contact" }] },
+    { heading: "Legal", links: [{ label: "Privacy Policy" }, { label: "Terms of Service" }, { label: "Cookie Policy" }, { label: "Responsible Play" }] },
   ];
 
   return (
@@ -446,15 +681,24 @@ function Footer() {
             </p>
             <ul className="flex flex-col gap-3">
               {col.links.map((l) => (
-                <li key={l}>
-                  <a
-                    href="#"
-                    style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)", textDecoration: "none", transition: "color 0.15s" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
-                  >
-                    {l}
-                  </a>
+                <li key={l.label}>
+                  {l.href ? (
+                    <a
+                      href={l.href}
+                      style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)", textDecoration: "none", transition: "color 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+                    >
+                      {l.label}
+                    </a>
+                  ) : (
+                    <span
+                      style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.3)", cursor: "default" }}
+                      title="Coming soon"
+                    >
+                      {l.label}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -470,8 +714,11 @@ function Footer() {
 export default function LandingPage() {
   const [howTab, setHowTab] = useState<"score" | "player">("score");
   const steps = HOW_STEPS[howTab];
-  // Section theme follows the toggle: score = purple/white, player = green/black
-  const accent = howTab === "score" ? "#7B62F6" : "#00C805";
+  // Section theme follows the toggle: score = purple on cream, player = green on black
+  const isPlayer = howTab === "player";
+  const accent = isPlayer ? "#00C805" : "#7B62F6";
+  const sectionBg = isPlayer ? "#0A0A0A" : "#F7F5F0";
+  const themeSwap = "background 0.6s cubic-bezier(0.22, 1, 0.36, 1), color 0.6s ease";
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
@@ -512,19 +759,71 @@ export default function LandingPage() {
 
       <AccumulatorPool />
 
-      {/* Cream section — How it works + market toggle */}
+      {/* Rounded band into How-it-works — follows the section theme */}
       <div
         className="rounded-t-[50px]"
-        style={{ background: "#F7F5F0", height: 90, width: "100%", marginTop: -60, position: "relative", zIndex: 30 }}
+        style={{ background: sectionBg, height: 90, width: "100%", marginTop: -60, position: "relative", zIndex: 30, transition: themeSwap }}
       />
       <section
         id="how-it-works"
-        style={{ background: "#F7F5F0", minHeight: 600, width: "100%", position: "relative", overflow: "hidden", paddingTop: 28, paddingBottom: 80 }}
+        style={{
+          background: sectionBg,
+          minHeight: 600,
+          width: "100%",
+          position: "relative",
+          overflow: "hidden",
+          paddingTop: 28,
+          paddingBottom: 130, // +50 for the statement section's rounded lip overlap
+          transition: themeSwap,
+        }}
       >
         {/* Brand glow orbs — recolor with the active market theme */}
-        <div style={{ position: "absolute", top: "50%", left: "5%", width: 300, height: 300, borderRadius: "50%", background: accent, filter: "blur(120px)", opacity: 0.38, pointerEvents: "none", transition: "background 0.5s ease" }} />
-        <div style={{ position: "absolute", top: "55%", right: "5%", width: 280, height: 280, borderRadius: "50%", background: accent, filter: "blur(110px)", opacity: 0.32, pointerEvents: "none", transition: "background 0.5s ease" }} />
-        <div style={{ position: "absolute", bottom: "5%", left: "40%", width: 260, height: 260, borderRadius: "50%", background: accent, filter: "blur(100px)", opacity: 0.28, pointerEvents: "none", transition: "background 0.5s ease" }} />
+        <div style={{ position: "absolute", top: "50%", left: "5%", width: 300, height: 300, borderRadius: "50%", background: accent, filter: "blur(120px)", opacity: isPlayer ? 0.22 : 0.38, pointerEvents: "none", transition: "background 0.5s ease, opacity 0.5s ease" }} />
+        <div style={{ position: "absolute", top: "55%", right: "5%", width: 280, height: 280, borderRadius: "50%", background: accent, filter: "blur(110px)", opacity: isPlayer ? 0.18 : 0.32, pointerEvents: "none", transition: "background 0.5s ease, opacity 0.5s ease" }} />
+        <div style={{ position: "absolute", bottom: "5%", left: "40%", width: 260, height: 260, borderRadius: "50%", background: accent, filter: "blur(100px)", opacity: isPlayer ? 0.15 : 0.28, pointerEvents: "none", transition: "background 0.5s ease, opacity 0.5s ease" }} />
+
+        {/* Player-perps mode: two players slide halfway in from the section edges */}
+        <img
+          src="/brand/player-left.webp"
+          alt=""
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: 0,
+            bottom: 0,
+            height: 420,
+            width: "auto",
+            zIndex: 0,
+            pointerEvents: "none",
+            transform: isPlayer ? "translateX(-45%)" : "translateX(-105%)",
+            opacity: isPlayer ? 1 : 0,
+            transition: "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s, opacity 0.6s ease 0.15s",
+            filter: "drop-shadow(0 0 60px rgba(0,200,5,0.15))",
+            // fade the crop's hard inner edge into the section
+            WebkitMaskImage: "linear-gradient(to right, black 82%, transparent)",
+            maskImage: "linear-gradient(to right, black 82%, transparent)",
+          }}
+        />
+        <img
+          src="/brand/player-right.webp"
+          alt=""
+          aria-hidden
+          style={{
+            position: "absolute",
+            right: 0,
+            bottom: 0,
+            height: 420,
+            width: "auto",
+            zIndex: 0,
+            pointerEvents: "none",
+            transform: isPlayer ? "translateX(45%)" : "translateX(105%)",
+            opacity: isPlayer ? 1 : 0,
+            transition: "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.25s, opacity 0.6s ease 0.25s",
+            filter: "drop-shadow(0 0 60px rgba(0,200,5,0.15))",
+            WebkitMaskImage: "linear-gradient(to left, black 82%, transparent)",
+            maskImage: "linear-gradient(to left, black 82%, transparent)",
+          }}
+        />
 
         <div className="max-w-6xl mx-auto px-6 text-center" style={{ position: "relative", zIndex: 1 }}>
           <h2
@@ -532,17 +831,20 @@ export default function LandingPage() {
               fontFamily: "'Fraunces', serif",
               fontSize: "clamp(2.8rem, 6vw, 5rem)",
               fontWeight: 700,
-              color: "#0a0a0a",
+              color: isPlayer ? "#F7F5F0" : "#0a0a0a",
               letterSpacing: "-0.03em",
               lineHeight: 1.0,
+              transition: "color 0.6s ease",
             }}
           >
-            How it works.
+            <RevealWords text="How it works." />
           </h2>
         </div>
-        <div className="flex justify-center mt-12" style={{ position: "relative", zIndex: 1 }}>
-          <MarketToggle active={howTab} onChange={setHowTab} />
-        </div>
+        <Reveal delay={150}>
+          <div className="flex justify-center mt-12" style={{ position: "relative", zIndex: 1 }}>
+            <MarketToggle active={howTab} onChange={setHowTab} dark={isPlayer} />
+          </div>
+        </Reveal>
 
         {/* Steps + interactive proximity demo */}
         <div
@@ -551,69 +853,76 @@ export default function LandingPage() {
         >
           <div className="flex flex-col gap-2">
             {steps.map((s, i) => (
-              <div
-                key={`${howTab}-${s.title}`}
-                className="card-diagonal-sm glass flex items-start gap-5 px-7 py-6"
-              >
-                <span
-                  style={{
-                    fontFamily: "'Fraunces', serif",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    color: accent,
-                    minWidth: "2.2rem",
-                  }}
+              <Reveal key={`${howTab}-${s.title}`} delay={i * 120} from="left">
+                <div
+                  className={`card-diagonal-sm ${isPlayer ? "glass-dark step-veiled" : "glass"} flex items-start gap-5 px-7 py-6`}
                 >
-                  {i + 1}
-                </span>
-                <div>
-                  <h3
+                  <span
                     style={{
                       fontFamily: "'Fraunces', serif",
-                      fontSize: "1.15rem",
-                      fontWeight: 600,
-                      color: "#111210",
-                      marginBottom: 6,
+                      fontSize: "2rem",
+                      fontWeight: 700,
+                      lineHeight: 1,
+                      color: accent,
+                      minWidth: "2.2rem",
                     }}
                   >
-                    {s.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: "'Clash Display', sans-serif",
-                      fontSize: "0.9rem",
-                      lineHeight: 1.65,
-                      color: "rgba(17,18,16,0.55)",
-                    }}
-                  >
-                    {s.body}
-                  </p>
+                    {i + 1}
+                  </span>
+                  <div>
+                    <h3
+                      style={{
+                        fontFamily: "'Fraunces', serif",
+                        fontSize: "1.15rem",
+                        fontWeight: 600,
+                        color: isPlayer ? "#F7F5F0" : "#111210",
+                        marginBottom: 6,
+                        transition: "color 0.6s ease",
+                      }}
+                    >
+                      {s.title}
+                    </h3>
+                    <p
+                      style={{
+                        fontFamily: "'Clash Display', sans-serif",
+                        fontSize: "0.9rem",
+                        lineHeight: 1.65,
+                        color: isPlayer ? "rgba(247,245,240,0.6)" : "rgba(17,18,16,0.55)",
+                        transition: "color 0.6s ease",
+                      }}
+                    >
+                      {s.body}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
 
           <div className="flex flex-col items-center gap-8">
             {howTab === "score" ? (
-              <MiniProximityGrid />
+              <Reveal from="right">
+                <MiniProximityGrid />
+              </Reveal>
             ) : (
-              <div className="flex flex-col items-center">
-                <PlayerCardFan />
-                <p
-                  style={{
-                    fontFamily: "'Clash Display', sans-serif",
-                    fontSize: "0.75rem",
-                    color: "rgba(17,18,16,0.45)",
-                    textAlign: "center",
-                    marginTop: 6,
-                    maxWidth: 300,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  Every matchweek drops a fresh deck of player cards — pick yours, call the line.
-                </p>
-              </div>
+              <Reveal from="right">
+                <div className="flex flex-col items-center">
+                  <PlayerCardFan dark />
+                  <p
+                    style={{
+                      fontFamily: "'Clash Display', sans-serif",
+                      fontSize: "0.75rem",
+                      color: "rgba(247,245,240,0.5)",
+                      textAlign: "center",
+                      marginTop: 6,
+                      maxWidth: 300,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Every matchweek drops a fresh deck of player cards — pick yours, call the line.
+                  </p>
+                </div>
+              </Reveal>
             )}
             <Button3D color={howTab === "score" ? "purple" : "green"} size="lg" onClick={() => (window.location.href = "/markets")}>
               Enter the markets
@@ -622,6 +931,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <ProximityStatement />
+      <ClubMarquee />
       <Footer />
     </div>
   );

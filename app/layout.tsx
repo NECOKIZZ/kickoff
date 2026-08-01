@@ -32,6 +32,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,400&display=swap"
         />
+        {/* Above-the-fold hero image — preloaded so it never pops in late */}
+        <link rel="preload" as="image" href="/brand/hero-players.webp" type="image/webp" />
       </head>
       <body>{children}</body>
     </html>

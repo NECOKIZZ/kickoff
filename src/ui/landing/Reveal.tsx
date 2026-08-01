@@ -11,7 +11,11 @@ import {
 /**
  * Scroll-reveal primitives — no animation library, just IntersectionObserver
  * + CSS transitions (keeps the bundle lean; choppy loading was a complaint).
- * Everything respects prefers-reduced-motion by revealing instantly.
+ *
+ * Fail-open by design: the hidden state lives in the `reveal-pending` class,
+ * which globals.css only applies under `html.js` and force-reveals via a
+ * 3.5s CSS keyframe. No JS, blocked bundle, reduced motion — words always
+ * show up.
  */
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)"; // ease-out-quint — soft landing
@@ -44,7 +48,13 @@ function useInView<T extends HTMLElement>(threshold = 0.15) {
       { threshold, rootMargin: "0px 0px -8% 0px" }
     );
     io.observe(el);
-    return () => io.disconnect();
+    // JS-side failsafe (belt to the CSS keyframe's braces): reveal after 3s
+    // even if the observer never fires (odd zoom/viewport combinations).
+    const failsafe = setTimeout(() => setInView(true), 3000);
+    return () => {
+      io.disconnect();
+      clearTimeout(failsafe);
+    };
   }, [threshold]);
   return { ref, inView };
 }
@@ -79,12 +89,10 @@ export function Reveal({
   return (
     <div
       ref={ref}
-      className={className}
+      className={`${shown ? "" : "reveal-pending "}${className ?? ""}`}
       style={{
         ...style,
-        opacity: shown ? 1 : 0,
-        filter: shown ? "blur(0px)" : "blur(10px)",
-        transform: shown ? "none" : hiddenTransform,
+        ["--reveal-transform" as string]: hiddenTransform,
         transition: `opacity ${duration}ms ${EASE} ${delay}ms, filter ${duration}ms ${EASE} ${delay}ms, transform ${duration}ms ${EASE} ${delay}ms`,
         willChange: shown ? undefined : "opacity, filter, transform",
       }}
@@ -107,22 +115,23 @@ export function RevealWords({
   const { ref, inView } = useInView<HTMLSpanElement>(0.3);
   const reduced = usePrefersReducedMotion();
   const shown = inView || reduced;
+  const words = text.split(" ");
   return (
     <span ref={ref} style={{ display: "inline" }}>
-      {text.split(" ").map((word, i) => (
+      {words.map((word, i) => (
         <span
           key={i}
+          className={shown ? undefined : "reveal-pending"}
           style={{
             display: "inline-block",
             whiteSpace: "pre",
-            opacity: shown ? 1 : 0,
-            filter: shown ? "blur(0px)" : "blur(14px)",
-            transform: shown ? "none" : "translateY(0.35em)",
+            ["--reveal-blur" as string]: "14px",
+            ["--reveal-transform" as string]: "translateY(0.35em)",
             transition: `opacity 0.7s ${EASE} ${delay + i * stagger}ms, filter 0.7s ${EASE} ${delay + i * stagger}ms, transform 0.7s ${EASE} ${delay + i * stagger}ms`,
           }}
         >
           {word}
-          {i < text.split(" ").length - 1 ? " " : ""}
+          {i < words.length - 1 ? " " : ""}
         </span>
       ))}
     </span>

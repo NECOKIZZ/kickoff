@@ -217,6 +217,32 @@
     }
   }
 
+  /* Scroll-reveal hidden state. Gated on html.js so content is only ever
+     hidden when scripts run — a JS-less render shows every word. The keyframe
+     is a pure-CSS failsafe: even if hydration never happens (blocked bundle),
+     everything reveals itself 3.5s in. */
+  html.js .reveal-pending {
+    opacity: 0;
+    filter: blur(var(--reveal-blur, 10px));
+    transform: var(--reveal-transform, translateY(40px));
+    animation: reveal-failsafe 0.7s ease 3.5s forwards;
+  }
+  @keyframes reveal-failsafe {
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html.js .reveal-pending {
+      opacity: 1;
+      filter: none;
+      transform: none;
+      animation: none;
+    }
+  }
+
   .font-display { font-family: "Fraunces", serif; }
   .font-clash { font-family: "Clash Display", sans-serif; }
 }

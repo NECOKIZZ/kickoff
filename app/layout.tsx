@@ -7,7 +7,10 @@ export const metadata = {
 };
 
 // Apply persisted theme before paint to avoid a light-mode flash.
+// Also tag <html> with .js — scroll-reveal styles only hide content when
+// scripts actually run, so a JS-less render still shows every word.
 const themeScript = `
+document.documentElement.classList.add('js');
 try {
   var s = localStorage.getItem('kickoff-theme');
   var d = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;

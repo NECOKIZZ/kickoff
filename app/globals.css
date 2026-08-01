@@ -173,6 +173,50 @@
       inset 0 -1px 0 rgba(0, 0, 0, 0.04);
   }
 
+  /* Glass tuned for dark surfaces (how-it-works player mode, marquee on black) */
+  .glass-dark {
+    background: rgba(255, 255, 255, 0.055);
+    -webkit-backdrop-filter: blur(28px);
+    backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  /* Infinite marquee — track holds two copies of the row, slides one row-width */
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 42s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* Player-perps mode: steps stay blurred until the visitor leans in.
+     Touch screens have no hover — show them sharp. */
+  .step-veiled {
+    filter: blur(6px) saturate(0.8);
+    opacity: 0.55;
+    transition: filter 0.5s ease, opacity 0.5s ease, transform 0.5s ease;
+  }
+  .step-veiled:hover {
+    filter: blur(0) saturate(1);
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  @media (hover: none) {
+    .step-veiled {
+      filter: none;
+      opacity: 1;
+    }
+  }
+
   .font-display { font-family: "Fraunces", serif; }
   .font-clash { font-family: "Clash Display", sans-serif; }
 }

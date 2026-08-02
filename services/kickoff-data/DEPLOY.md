@@ -52,11 +52,18 @@ KICKOFF_DATA_DATABASE_URL=<same postgres URL>
 API_FOOTBALL_KEY=<real key>
 FOOTBALL_DATA_ORG_KEY=<real key>
 APIFY_TOKEN=<real token>
+KICKOFF_DATA_FPL_LIVE=1                # FPL is keyless; 1 = live, unset = mock
 KICKOFF_DATA_WEBHOOK_URL=https://<your-vercel-app>/api/data-hooks
 KICKOFF_DATA_WEBHOOK_SECRET=<openssl rand -hex 32>
 KICKOFF_DATA_S3_TRUSTED=false          # flip after burn-in (spec §6)
 KICKOFF_DATA_LOG_FORMAT=json
 ```
+
+FPL note: player perps settle on official FPL points — FPL is the standalone
+authority for that lane (documented exception to the no-single-source rule;
+scoreline settlement is unchanged). Watch for `settlement.player_points_ready`
+(freeze at FPL's `data_checked`) and `settlement.player_points_flagged`
+(S1 cross-check diff — informational, settlement proceeds regardless).
 
 ## 4. Markets app (Vercel) side
 

@@ -91,6 +91,7 @@ const TEAM_ALIASES: Record<string, string> = {
   "west-ham-united": "west-ham",
   "newcastle-united": "newcastle",
   "nottingham-forest": "nottm-forest",
+  "nott-m-forest": "nottm-forest", // FPL renders it "Nott'm Forest"
   "leeds-united": "leeds",
   "afc-bournemouth": "bournemouth",
 };

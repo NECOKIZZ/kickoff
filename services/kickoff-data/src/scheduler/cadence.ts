@@ -38,6 +38,21 @@ export const CADENCE = {
   // --- S4 Flashscore Extractor: 2×/day fixture window sync ---
   s4FixtureSync: envSeconds("S4_FIXTURE_SYNC", 12 * 3600),
 
+  // --- FPL (free, unauthenticated — cadences are politeness, not budget) ---
+  /** bootstrap-static: gameweeks + players. Also the ONLY place data_checked
+   *  lives, so it doubles as the finality watch (below). */
+  fplBootstrapSync: envSeconds("FPL_BOOTSTRAP_SYNC", 6 * 3600),
+  /** Tightened bootstrap cadence while any GW is finished-but-unchecked. */
+  fplFinalityWatch: envSeconds("FPL_FINALITY_WATCH", 30 * 60),
+  /** FPL fixture list per gameweek. */
+  fplFixtureSync: envSeconds("FPL_FIXTURE_SYNC", 12 * 3600),
+  /** /event/{gw}/live while fixtures are in play (~20 req/hr worst case —
+   *  one call covers every player in the league). */
+  fplLivePoll: envSeconds("FPL_LIVE_POLL", 3 * 60),
+  /** Post-match cadence until the provisional settlement is recorded
+   *  (bonus lands ~1h after the last FT). */
+  fplPostMatch: envSeconds("FPL_POST_MATCH", 15 * 60),
+
   // S5 FSFD: never scheduled — invoked on-demand by settlement quorum only.
 } as const;
 

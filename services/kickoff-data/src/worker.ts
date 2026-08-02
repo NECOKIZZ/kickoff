@@ -9,14 +9,17 @@
 // Run: pnpm worker   (tsx src/worker.ts)
 
 import { sql } from "drizzle-orm";
-import { plan, jobKey, type Job, type PlannerFixture } from "./scheduler/planner";
-import { runners } from "./jobs";
+import { plan, jobKey, type Job, type PlannerFixture, type PlannerGameweek } from "./scheduler/planner";
+import { runners, seasonFor } from "./jobs";
 import { installDbSink } from "./archive";
 import { installDbBudgetStore } from "./budget";
 import { budgetState, restoreBudget, isMockMode } from "./apiFootball";
+import { isMockMode as fplMockMode } from "./fpl";
 import { loadPlannerFixtures, loadSettledIds, installStatusChangeListener } from "./ingest";
+import { loadPlannerGameweeks } from "./fplIngest";
 import { deliver, webhookConfigFromEnv } from "./api/webhooks";
 import { freezeDue, needsTiebreak, escalateStalled, installSettlementEmitter, s3Trusted } from "./settlementLane";
+import { sweepPlayerPoints, installPlayerPointsEmitter } from "./fplSettlementLane";
 import { db, schema } from "./db";
 import { log } from "./log";
 
@@ -54,7 +57,18 @@ async function tick(): Promise<number> {
     // nearSettlement arrives from the markets app via the consumer API later.
   }));
 
-  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining });
+  const gameweeks: PlannerGameweek[] = (await loadPlannerGameweeks(seasonFor(now))).map((g) => ({
+    gw: g.gw,
+    isCurrent: g.isCurrent,
+    finished: g.finished,
+    dataChecked: g.dataChecked,
+    deadlineUtc: g.deadlineUtc,
+    anyFixtureActive: g.anyFixtureActive,
+    provisionalRecorded: g.provisionalRecorded,
+    settled: g.settled,
+  }));
+
+  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining, gameweeks });
   let jobsRun = 0;
 
   // s3.livePoll: ONE actor run returns every live match, so N due fixtures
@@ -99,6 +113,14 @@ async function tick(): Promise<number> {
     log.error("worker", "settlement sweep failed", { error: e as Error });
   }
 
+  // FPL player-points sweep — advances gameweeks through the two-stage
+  // finality ladder (provisional at bonus-in, frozen at data_checked).
+  try {
+    await sweepPlayerPoints(now);
+  } catch (e) {
+    log.error("worker", "player-points sweep failed", { error: e as Error });
+  }
+
   return jobsRun;
 }
 
@@ -117,11 +139,16 @@ async function main(): Promise<void> {
   installSettlementEmitter((event) => {
     void deliver(webhookConfig, event);
   });
+  // settlement.player_points_ready / _flagged — same contract, FPL lane.
+  installPlayerPointsEmitter((event) => {
+    void deliver(webhookConfig, event);
+  });
 
   log.info("worker", "up", {
     tickSeconds: TICK_SECONDS,
     s1: budgetState(),
     mock: isMockMode(),
+    fplMock: fplMockMode(),
     s3Trusted: s3Trusted(),
     webhooks: webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)",
   });

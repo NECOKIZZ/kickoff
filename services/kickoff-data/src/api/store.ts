@@ -5,11 +5,15 @@
 import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
 import type {
   Fixture,
+  Gameweek,
   MatchEvent,
   MatchEventType,
   MatchState,
   MatchStats,
+  PlayerGwPoints,
   PlayerMatchStats,
+  PlayerPointsSettlement,
+  PointsCrossCheckFlag,
   SettlementSnapshot,
   SettlementVote,
   SourceId,
@@ -18,7 +22,13 @@ import type {
 } from "@kickoff/schema";
 import { db, schema } from "../db";
 import { backtestFixture } from "../backtest";
-import type { ApiStore, FixtureFilter, SnapshotRow, Stamped } from "./routes";
+import type { ApiStore, FixtureFilter, PlayerPointsSnapshotRow, SnapshotRow, Stamped } from "./routes";
+
+/** EPL season = the year it starts in (Aug–May). Default for FPL queries. */
+function currentSeason(): number {
+  const now = new Date();
+  return now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
 
 type FixtureRow = typeof schema.fixtures.$inferSelect;
 
@@ -265,4 +275,208 @@ export const drizzleStore: ApiStore = {
   runBacktest(s1FixtureId) {
     return backtestFixture(s1FixtureId);
   },
+
+  // --- FPL lane ---
+
+  async listGameweeks(season) {
+    const s = season ?? currentSeason();
+    const rows = await db
+      .select()
+      .from(schema.fplGameweeks)
+      .where(eq(schema.fplGameweeks.season, s))
+      .orderBy(asc(schema.fplGameweeks.gw));
+    const newest = rows.reduce<Date | null>((m, r) => {
+      const t = new Date(r.updatedAt);
+      return m && m > t ? m : t;
+    }, null);
+    return {
+      data: rows.map(toGameweek),
+      source: "fpl",
+      fetchedAt: newest ?? new Date(0),
+    };
+  },
+
+  async getGameweek(gw, season) {
+    const s = season ?? currentSeason();
+    const rows = await db
+      .select()
+      .from(schema.fplGameweeks)
+      .where(and(eq(schema.fplGameweeks.season, s), eq(schema.fplGameweeks.gw, gw)))
+      .limit(1);
+    const r = rows[0];
+    return r ? { data: toGameweek(r), source: "fpl", fetchedAt: new Date(r.updatedAt) } : null;
+  },
+
+  async getGwPoints(gw, season) {
+    const s = season ?? currentSeason();
+    if (!(await this.getGameweek(gw, s))) return null;
+    const rows = await db
+      .select()
+      .from(schema.fplPlayerPoints)
+      .where(and(eq(schema.fplPlayerPoints.season, s), eq(schema.fplPlayerPoints.gw, gw)))
+      .orderBy(asc(schema.fplPlayerPoints.elementId));
+    const names = await fplIdentityMap(s);
+    const newest = rows.reduce<Date | null>((m, r) => {
+      const t = new Date(r.fetchedAt);
+      return m && m > t ? m : t;
+    }, null);
+    return {
+      data: rows.map((r) => toGwPoints(r, names)),
+      source: "fpl",
+      fetchedAt: newest ?? new Date(0),
+    };
+  },
+
+  async getPlayerGwPoints(elementId, gw, season) {
+    const s = season ?? currentSeason();
+    const rows = await db
+      .select()
+      .from(schema.fplPlayerPoints)
+      .where(
+        and(
+          eq(schema.fplPlayerPoints.season, s),
+          eq(schema.fplPlayerPoints.gw, gw),
+          eq(schema.fplPlayerPoints.elementId, elementId),
+        ),
+      )
+      .limit(1);
+    const r = rows[0];
+    if (!r) return null;
+    const names = await fplIdentityMap(s);
+    return { data: toGwPoints(r, names), source: "fpl", fetchedAt: new Date(r.fetchedAt) };
+  },
+
+  async getPlayerPointsSnapshot(gw, season) {
+    const s = season ?? currentSeason();
+    const gwRows = await db
+      .select({ dataChecked: schema.fplGameweeks.dataChecked })
+      .from(schema.fplGameweeks)
+      .where(and(eq(schema.fplGameweeks.season, s), eq(schema.fplGameweeks.gw, gw)))
+      .limit(1);
+    if (!gwRows[0]) return null;
+    const rows = await db
+      .select()
+      .from(schema.playerPointsSettlements)
+      .where(and(eq(schema.playerPointsSettlements.season, s), eq(schema.playerPointsSettlements.gw, gw)))
+      .orderBy(desc(schema.playerPointsSettlements.version))
+      .limit(1);
+    const r = rows[0];
+    if (!r) return { status: "pending", settlement: null, dataChecked: gwRows[0].dataChecked };
+    return {
+      status: r.status,
+      dataChecked: gwRows[0].dataChecked,
+      settlement: r.status === "frozen" ? toPlayerPointsSettlement(r) : null,
+    };
+  },
+
+  async insertPlayerPointsOverride(gw, points, reason, season) {
+    // Same immutability rule as insertAdminOverride: corrections INSERT
+    // version N+1 frozen, never touch N. The human is FPL's proxy here.
+    const s = season ?? currentSeason();
+    return db.transaction(async (tx) => {
+      const latest = await tx
+        .select({ version: schema.playerPointsSettlements.version })
+        .from(schema.playerPointsSettlements)
+        .where(and(eq(schema.playerPointsSettlements.season, s), eq(schema.playerPointsSettlements.gw, gw)))
+        .orderBy(desc(schema.playerPointsSettlements.version))
+        .limit(1);
+      const version = (latest[0]?.version ?? 0) + 1;
+      const now = new Date();
+      const names = await fplIdentityMap(s);
+      const outcome = [...points]
+        .sort((a, b) => a.element_id - b.element_id)
+        .map((p) => ({
+          element_id: p.element_id,
+          player_name: names.get(p.element_id)?.webName ?? `element-${p.element_id}`,
+          total_points: p.total_points,
+        }));
+      await tx.insert(schema.playerPointsSettlements).values({
+        season: s,
+        gw,
+        version,
+        status: "frozen",
+        points: outcome,
+        flags: [],
+        frozenAt: now,
+        supersedesReason: version > 1 ? reason : null,
+      });
+      const settlement: PlayerPointsSettlement = {
+        gw,
+        season: s,
+        version,
+        points: outcome,
+        raw_payload_ref: `admin-override:gw${gw}:v${version}`,
+        flags: [],
+        frozen_at: now.toISOString(),
+        ...(version > 1 ? { supersedes_reason: reason } : {}),
+      };
+      return settlement;
+    });
+  },
 };
+
+// --- FPL row → canonical mappers ---
+
+type GameweekRow = typeof schema.fplGameweeks.$inferSelect;
+type FplPointsRow = typeof schema.fplPlayerPoints.$inferSelect;
+type PlayerPointsSettlementRow = typeof schema.playerPointsSettlements.$inferSelect;
+
+function toGameweek(r: GameweekRow): Gameweek {
+  return {
+    id: r.gw,
+    season: r.season,
+    name: r.name,
+    deadline_utc: new Date(r.deadlineUtc).toISOString(),
+    is_current: r.isCurrent,
+    finished: r.finished,
+    data_checked: r.dataChecked,
+  };
+}
+
+async function fplIdentityMap(
+  season: number,
+): Promise<Map<number, { webName: string; teamSlug: string; position: string }>> {
+  const rows = await db
+    .select({
+      elementId: schema.fplPlayers.elementId,
+      webName: schema.fplPlayers.webName,
+      teamSlug: schema.fplPlayers.teamSlug,
+      position: schema.fplPlayers.position,
+    })
+    .from(schema.fplPlayers)
+    .where(eq(schema.fplPlayers.season, season));
+  return new Map(rows.map((r) => [r.elementId, r]));
+}
+
+function toGwPoints(
+  r: FplPointsRow,
+  names: Map<number, { webName: string; teamSlug: string; position: string }>,
+): PlayerGwPoints {
+  const p = names.get(r.elementId);
+  return {
+    gw: r.gw,
+    season: r.season,
+    element_id: r.elementId,
+    player_name: p?.webName ?? `element-${r.elementId}`,
+    team_slug: p?.teamSlug ?? "unknown",
+    position: (p?.position ?? "M") as PlayerGwPoints["position"],
+    total_points: r.totalPoints,
+    minutes: r.minutes,
+    bonus: r.bonus,
+    provisional: r.provisional,
+    stats: r.stats as Record<string, number>,
+  };
+}
+
+function toPlayerPointsSettlement(r: PlayerPointsSettlementRow): PlayerPointsSettlement {
+  return {
+    gw: r.gw,
+    season: r.season,
+    version: r.version,
+    points: r.points as PlayerPointsSettlement["points"],
+    raw_payload_ref: r.rawPayloadId !== null ? String(r.rawPayloadId) : "unarchived",
+    flags: (r.flags ?? []) as PointsCrossCheckFlag[],
+    frozen_at: new Date(r.frozenAt ?? r.createdAt).toISOString(),
+    ...(r.supersedesReason ? { supersedes_reason: r.supersedesReason } : {}),
+  };
+}

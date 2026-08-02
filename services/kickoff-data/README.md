@@ -29,20 +29,47 @@ mode**: recorded payloads from `fixtures/` drive the entire pipeline offline.
 | S3 | Flashscore Live (Apify) | PRIMARY live feed → charts lane | Unofficial scrape; settlement voter only after burn-in |
 | S4 | Flashscore Extractor (Apify) | Fixture-window redundancy | Same source as S3 → together ONE quorum vote |
 | S5 | Football Super Fast Data (Apify) | Settlement tie-breaker ONLY | Never scheduled, never charts/listing |
+| FPL | fantasy.premierleague.com (official) | **Standalone authority for player points** | Free, keyless; mock unless `KICKOFF_DATA_FPL_LIVE=1` |
+
+### FPL: the documented exception to "no single source settles alone"
+
+Player perps settle on **official FPL points** (decided 2026-08-01). The
+market is definitionally "the player's official FPL points" and the EPL
+itself operates FPL — so for THIS market the feed isn't a proxy for truth,
+it IS the truth, and quorum against other providers would be incoherent.
+Scoreline settlement is untouched: FPL never joins scoreline voting.
+
+Two-stage finality, driven by FPL's own flags:
+
+1. **provisional** — every fixture in the gameweek `finished` (bonus points
+   IN — `finished_provisional` is never a gate) AND the gameweek's own
+   `finished` flag. Working settlement row recorded; the S1 cross-check runs
+   (goals/assists/cards exact, minutes ±5) and any diff fires
+   `settlement.player_points_flagged` — **informational only, never blocks**.
+2. **frozen** — the gameweek's `data_checked=true` (FPL's immutability
+   flag). Settlement freezes, `settlement.player_points_ready` fires, and
+   corrections from here go through the admin override as version N+1.
+
+The custom scoring rubric (`scoring.ts`) and `player_match_stats` stay fully
+intact — deactivated as a settlement path, kept as data, the cross-check
+input, and the admin backtest tool.
 
 ## Architecture
 
 ```
-scheduler/planner.ts   PURE: (clock, fixtures, lastRun, budget) → due jobs
+scheduler/planner.ts   PURE: (clock, fixtures, gameweeks, lastRun, budget) → due jobs
 jobs.ts                side-effectful runners: fetch → archive → normalize → ingest
 ingest.ts              the only writer of listing/charts/Market-B rows
-settlement.ts          PURE: quorum + finality-delay state machine
+fplIngest.ts           the only writer of fpl_* rows (+ attach-only reconciliation)
+settlement.ts          PURE: quorum + finality-delay state machine (scoreline)
 settlementLane.ts      persistence for the engine + freeze sweep + webhooks
+fplSettlement.ts       PURE: two-stage gameweek finality + S1 cross-check
+fplSettlementLane.ts   persistence + freeze sweep + webhooks (player points)
 api/routes.ts          PURE: /v1 request handling (fake-store testable)
 api/store.ts           Drizzle-backed ApiStore
 api/server.ts          node:http shell — pnpm api
 api/webhooks.ts        HMAC-signed at-least-once delivery, bounded retry
-worker.ts              the tick loop: plan → run → freeze sweep
+worker.ts              the tick loop: plan → run → freeze sweeps
 ```
 
 Pattern: every lane splits into a **pure core** (tested exhaustively, no
@@ -63,6 +90,13 @@ GET  /v1/fixtures/:id/players                   PlayerMatchStats (Market B)
 GET  /v1/settlement/:fixtureId                  200 frozen snapshot | 409 {status: pending|provisional|disputed}
 POST /v1/admin/settlement/:fixtureId/override   {home, away, reason} → frozen version N+1
 POST /v1/admin/backtest/:s1FixtureId            replay pipeline (dashboard button)
+
+GET  /v1/gameweeks[?season=]                    FPL gameweeks (finality flags included)
+GET  /v1/gameweeks/:gw                          one gameweek
+GET  /v1/gameweeks/:gw/points                   every player's PlayerGwPoints (carries `provisional`)
+GET  /v1/gameweeks/:gw/settlement               200 frozen PlayerPointsSettlement | 409 {status, data_checked}
+GET  /v1/players/:elementId/points?gw=N         one player's gameweek points
+POST /v1/admin/gameweeks/:gw/points/override    {points: [{element_id, total_points}], reason} → frozen N+1
 ```
 
 Every 200 (except immutable snapshots) is wrapped `Sourced<T>`:
@@ -71,7 +105,8 @@ honestly. Markets-app client: `src/lib/dataService.ts` (repo root).
 
 ## Webhooks (service → app)
 
-`settlement.ready` · `settlement.disputed` · `fixture.status_changed`.
+`settlement.ready` · `settlement.disputed` · `fixture.status_changed` ·
+`settlement.player_points_ready` · `settlement.player_points_flagged`.
 POST to `KICKOFF_DATA_WEBHOOK_URL`, HMAC-SHA256 of the exact body in
 `x-kickoff-signature` (verify with `verifySignature` in api/webhooks.ts).
 At-least-once, retry ladder 1s/5s/30s then give up — the app dedupes on

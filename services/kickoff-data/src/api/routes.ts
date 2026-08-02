@@ -9,10 +9,14 @@
 
 import type {
   Fixture,
+  Gameweek,
   MatchEvent,
   MatchState,
   MatchStats,
+  PlayerGwPoints,
   PlayerMatchStats,
+  PlayerPointsPending,
+  PlayerPointsSettlement,
   SettlementPending,
   SettlementSnapshot,
   SourceId,
@@ -45,6 +49,13 @@ export interface SnapshotRow {
   freezesAt: Date | null;
 }
 
+/** Latest player-points settlement row for a gameweek, whatever its status. */
+export interface PlayerPointsSnapshotRow {
+  status: "pending" | "provisional" | "frozen" | "disputed";
+  settlement: PlayerPointsSettlement | null; // non-null iff status === "frozen"
+  dataChecked: boolean;
+}
+
 export interface ApiStore {
   listFixtures(filter: FixtureFilter): Promise<Array<Stamped<Fixture>>>;
   getFixture(id: string): Promise<Stamped<Fixture> | null>;
@@ -62,6 +73,24 @@ export interface ApiStore {
   /** Replay a completed fixture through the pipeline (admin dashboard button).
    *  Takes S1's numeric id — backtest is a source-level tool, pre-reconciliation. */
   runBacktest(s1FixtureId: number): Promise<unknown>;
+
+  // --- FPL lane (player perps settle on official FPL points) ---
+  listGameweeks(season?: number): Promise<Stamped<Gameweek[]>>;
+  getGameweek(gw: number, season?: number): Promise<Stamped<Gameweek> | null>;
+  /** All players' points for one gameweek; null = unknown gameweek. */
+  getGwPoints(gw: number, season?: number): Promise<Stamped<PlayerGwPoints[]> | null>;
+  /** One player's points for one gameweek; null = no row. */
+  getPlayerGwPoints(elementId: number, gw: number, season?: number): Promise<Stamped<PlayerGwPoints> | null>;
+  /** Latest player-points settlement; null = unknown gameweek. */
+  getPlayerPointsSnapshot(gw: number, season?: number): Promise<PlayerPointsSnapshotRow | null>;
+  /** Insert frozen version N+1 (the correction escape hatch — FPL rarely
+   *  revises past data_checked, but when it does the admin records it here). */
+  insertPlayerPointsOverride(
+    gw: number,
+    points: Array<{ element_id: number; total_points: number }>,
+    reason: string,
+    season?: number,
+  ): Promise<PlayerPointsSettlement>;
 }
 
 // ---------------------------------------------------------------------------
@@ -230,6 +259,104 @@ export async function handleRequest(
       reason.trim(),
     );
     return { status: 200, body: snapshot };
+  }
+
+  // GET /v1/gameweeks[?season=]
+  if (req.method === "GET" && segments[1] === "gameweeks" && segments.length === 2) {
+    const season = req.query.season ? Number(req.query.season) : undefined;
+    if (season !== undefined && !Number.isInteger(season)) return err(400, "invalid season");
+    const rows = await store.listGameweeks(season);
+    return { status: 200, body: sourced(rows, now) };
+  }
+
+  // GET /v1/gameweeks/:gw[/points|/settlement]
+  if (req.method === "GET" && segments[1] === "gameweeks" && segments.length >= 3) {
+    const gwNum = Number(segments[2]);
+    if (!Number.isInteger(gwNum) || gwNum < 1) return err(400, "invalid gameweek");
+    const season = req.query.season ? Number(req.query.season) : undefined;
+    if (season !== undefined && !Number.isInteger(season)) return err(400, "invalid season");
+    const sub = segments[3];
+
+    if (segments.length === 3) {
+      const row = await store.getGameweek(gwNum, season);
+      return row ? { status: 200, body: sourced(row, now) } : err(404, "gameweek not found");
+    }
+    if (segments.length > 4) return err(404, "not found");
+
+    if (sub === "points") {
+      const row = await store.getGwPoints(gwNum, season);
+      return row ? { status: 200, body: sourced(row, now) } : err(404, "gameweek not found");
+    }
+
+    // 200 frozen settlement | 409 pending/provisional — mirrors /v1/settlement.
+    if (sub === "settlement") {
+      const gwRow = await store.getGameweek(gwNum, season);
+      if (!gwRow) return err(404, "gameweek not found");
+      const snap = await store.getPlayerPointsSnapshot(gwNum, season);
+      if (snap?.status === "frozen" && snap.settlement) {
+        return { status: 200, body: snap.settlement };
+      }
+      const pending: PlayerPointsPending = {
+        status: snap?.status === "disputed" ? "disputed" : snap?.status === "provisional" ? "provisional" : "pending",
+        data_checked: snap?.dataChecked ?? gwRow.data.data_checked,
+      };
+      return { status: 409, body: pending };
+    }
+    return err(404, "not found");
+  }
+
+  // GET /v1/players/:elementId/points?gw=N[&season=]
+  if (
+    req.method === "GET" &&
+    segments[1] === "players" &&
+    segments[3] === "points" &&
+    segments.length === 4
+  ) {
+    const elementId = Number(segments[2]);
+    const gwNum = Number(req.query.gw);
+    if (!Number.isInteger(elementId) || elementId < 1) return err(400, "invalid element id");
+    if (!Number.isInteger(gwNum) || gwNum < 1) return err(400, "gw query param required");
+    const season = req.query.season ? Number(req.query.season) : undefined;
+    if (season !== undefined && !Number.isInteger(season)) return err(400, "invalid season");
+    const row = await store.getPlayerGwPoints(elementId, gwNum, season);
+    return row ? { status: 200, body: sourced(row, now) } : err(404, "no points for that player/gameweek");
+  }
+
+  // POST /v1/admin/gameweeks/:gw/points/override
+  if (
+    req.method === "POST" &&
+    segments[1] === "admin" &&
+    segments[2] === "gameweeks" &&
+    segments[4] === "points" &&
+    segments[5] === "override" &&
+    segments.length === 6
+  ) {
+    const gwNum = Number(segments[3]);
+    if (!Number.isInteger(gwNum) || gwNum < 1) return err(400, "invalid gameweek");
+    const body = req.body as { points?: unknown; reason?: unknown; season?: unknown } | undefined;
+    const points = body?.points;
+    const reason = body?.reason;
+    const season = body?.season;
+    const validPoints =
+      Array.isArray(points) &&
+      points.length > 0 &&
+      points.every(
+        (p: any) =>
+          Number.isInteger(p?.element_id) && p.element_id > 0 && Number.isInteger(p?.total_points),
+      );
+    if (!validPoints || typeof reason !== "string" || reason.trim().length === 0) {
+      return err(400, "body must be {points: [{element_id: int>0, total_points: int}, ...], reason: non-empty string}");
+    }
+    if (season !== undefined && !Number.isInteger(season)) return err(400, "invalid season");
+    const gwRow = await store.getGameweek(gwNum, season as number | undefined);
+    if (!gwRow) return err(404, "gameweek not found");
+    const settlement = await store.insertPlayerPointsOverride(
+      gwNum,
+      points as Array<{ element_id: number; total_points: number }>,
+      reason.trim(),
+      season as number | undefined,
+    );
+    return { status: 200, body: settlement };
   }
 
   // POST /v1/admin/backtest/:s1FixtureId

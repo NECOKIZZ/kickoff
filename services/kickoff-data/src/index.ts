@@ -39,3 +39,21 @@ export {
   normalizeFsExtractorMatch,
   s4Status,
 } from "./normalize/flashscore";
+export {
+  isMockMode as fplIsMockMode,
+  getBootstrap,
+  getEventLive,
+  getFplFixtures,
+  type FplBootstrap,
+  type FplLiveElement,
+  type FplFixture,
+} from "./fpl";
+export {
+  fplPosition,
+  fplTeamSlugs,
+  normalizeFplGameweeks,
+  normalizeFplPlayers,
+  normalizeFplFixtures,
+  normalizeFplLive,
+} from "./normalize/fpl";
+export { gwStage, crossCheckS1, buildOutcome, type GwStage } from "./fplSettlement";

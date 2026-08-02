@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Fixture, MatchState, SettlementSnapshot } from "@kickoff/schema";
+import type { Fixture, Gameweek, MatchState, PlayerGwPoints, SettlementSnapshot } from "@kickoff/schema";
 import {
   handleRequest,
   type ApiConfig,
@@ -44,6 +44,32 @@ function stamped<T>(data: T, secondsAgo = 30): Stamped<T> {
   return { data, source: "flashscore", fetchedAt: new Date(NOW.getTime() - secondsAgo * 1000) };
 }
 
+const GW: Gameweek = {
+  id: 1,
+  season: 2026,
+  name: "Gameweek 1",
+  deadline_utc: "2026-08-21T17:30:00.000Z",
+  is_current: true,
+  finished: false,
+  data_checked: false,
+};
+
+const GW_POINTS: PlayerGwPoints = {
+  gw: 1,
+  season: 2026,
+  element_id: 100,
+  player_name: "Saka",
+  team_slug: "arsenal",
+  position: "M",
+  total_points: 8,
+  minutes: 90,
+  bonus: 1,
+  provisional: true,
+  stats: { goals_scored: 1 },
+};
+
+const fplStamped = <T>(data: T): Stamped<T> => ({ ...stamped(data), source: "fpl" as const });
+
 /** Fake store: FX_ID exists; everything else 404s. */
 function makeStore(overrides: Partial<ApiStore> = {}): ApiStore {
   const known = <T>(id: string, v: Stamped<T>) => Promise.resolve(id === FX_ID ? v : null);
@@ -66,6 +92,25 @@ function makeStore(overrides: Partial<ApiStore> = {}): ApiStore {
         supersedes_reason: reason,
       }),
     runBacktest: (id) => Promise.resolve({ fixtureId: id, schemaChecks: [] }),
+    // FPL lane: gameweek 1 exists; everything else 404s.
+    listGameweeks: () => Promise.resolve(fplStamped([GW])),
+    getGameweek: (gw) => Promise.resolve(gw === 1 ? fplStamped(GW) : null),
+    getGwPoints: (gw) => Promise.resolve(gw === 1 ? fplStamped([GW_POINTS]) : null),
+    getPlayerGwPoints: (elementId, gw) =>
+      Promise.resolve(elementId === 100 && gw === 1 ? fplStamped(GW_POINTS) : null),
+    getPlayerPointsSnapshot: () =>
+      Promise.resolve({ status: "pending" as const, settlement: null, dataChecked: false }),
+    insertPlayerPointsOverride: (gw, points, reason) =>
+      Promise.resolve({
+        gw,
+        season: 2026,
+        version: 2,
+        points: points.map((p) => ({ ...p, player_name: "Saka" })),
+        raw_payload_ref: "admin-override:gw1:v2",
+        flags: [],
+        frozen_at: NOW.toISOString(),
+        supersedes_reason: reason,
+      }),
     ...overrides,
   };
 }
@@ -241,5 +286,118 @@ describe("consumer API: admin override", () => {
     expect((await bt("1399001")).status).toBe(200);
     expect((await bt("abc")).status).toBe(400);
     expect((await bt("1399001", "app-key")).status).toBe(401);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FPL lane routes
+// ---------------------------------------------------------------------------
+
+describe("consumer API: FPL gameweeks + points", () => {
+  it("GET /v1/gameweeks returns Sourced<Gameweek[]> from fpl", async () => {
+    const res = await call({ path: "/v1/gameweeks" });
+    expect(res.status).toBe(200);
+    const body = res.body as any;
+    expect(body.source).toBe("fpl");
+    expect(body.data[0].data_checked).toBe(false);
+  });
+
+  it("GET /v1/gameweeks/:gw 200 known, 404 unknown, 400 garbage", async () => {
+    expect((await call({ path: "/v1/gameweeks/1" })).status).toBe(200);
+    expect((await call({ path: "/v1/gameweeks/9" })).status).toBe(404);
+    expect((await call({ path: "/v1/gameweeks/abc" })).status).toBe(400);
+  });
+
+  it("GET /v1/gameweeks/:gw/points carries provisional rows", async () => {
+    const res = await call({ path: "/v1/gameweeks/1/points" });
+    expect(res.status).toBe(200);
+    const body = res.body as any;
+    expect(body.data[0].provisional).toBe(true);
+    expect(body.data[0].total_points).toBe(8);
+  });
+
+  it("GET /v1/players/:id/points?gw= 200 known, 404 unknown, 400 without gw", async () => {
+    expect((await call({ path: "/v1/players/100/points", query: { gw: "1" } })).status).toBe(200);
+    expect((await call({ path: "/v1/players/999/points", query: { gw: "1" } })).status).toBe(404);
+    expect((await call({ path: "/v1/players/100/points" })).status).toBe(400);
+  });
+});
+
+describe("consumer API: FPL settlement — two-stage finality over the wire", () => {
+  it("409 pending with data_checked=false before anything lands", async () => {
+    const res = await call({ path: "/v1/gameweeks/1/settlement" });
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ status: "pending", data_checked: false });
+  });
+
+  it("409 provisional while awaiting data_checked", async () => {
+    const store = makeStore({
+      getPlayerPointsSnapshot: () =>
+        Promise.resolve({ status: "provisional" as const, settlement: null, dataChecked: false }),
+    });
+    const res = await call({ path: "/v1/gameweeks/1/settlement" }, store);
+    expect(res.status).toBe(409);
+    expect((res.body as any).status).toBe("provisional");
+  });
+
+  it("200 with the frozen settlement once data_checked", async () => {
+    const settlement = {
+      gw: 1,
+      season: 2026,
+      version: 1,
+      points: [{ element_id: 100, player_name: "Saka", total_points: 8 }],
+      raw_payload_ref: "42",
+      flags: [],
+      frozen_at: NOW.toISOString(),
+    };
+    const store = makeStore({
+      getPlayerPointsSnapshot: () =>
+        Promise.resolve({ status: "frozen" as const, settlement, dataChecked: true }),
+    });
+    const res = await call({ path: "/v1/gameweeks/1/settlement" }, store);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(settlement);
+  });
+
+  it("404 for an unknown gameweek", async () => {
+    expect((await call({ path: "/v1/gameweeks/9/settlement" })).status).toBe(404);
+  });
+});
+
+describe("consumer API: FPL admin override", () => {
+  const admin = { authorization: "Bearer admin-key" };
+
+  it("valid override inserts version N+1", async () => {
+    const res = await call({
+      method: "POST",
+      path: "/v1/admin/gameweeks/1/points/override",
+      headers: admin,
+      body: { points: [{ element_id: 100, total_points: 9 }], reason: "fpl revised" },
+    });
+    expect(res.status).toBe(200);
+    expect((res.body as any).version).toBe(2);
+    expect((res.body as any).supersedes_reason).toBe("fpl revised");
+  });
+
+  it("400 on malformed points or empty reason", async () => {
+    const bad = [
+      { points: [], reason: "x" },
+      { points: [{ element_id: 0, total_points: 1 }], reason: "x" },
+      { points: [{ element_id: 100, total_points: 1.5 }], reason: "x" },
+      { points: [{ element_id: 100, total_points: 1 }], reason: "  " },
+    ];
+    for (const body of bad) {
+      const res = await call({ method: "POST", path: "/v1/admin/gameweeks/1/points/override", headers: admin, body });
+      expect(res.status).toBe(400);
+    }
+  });
+
+  it("requires the admin key, not the app key", async () => {
+    const res = await call({
+      method: "POST",
+      path: "/v1/admin/gameweeks/1/points/override",
+      body: { points: [{ element_id: 100, total_points: 9 }], reason: "x" },
+    });
+    expect(res.status).toBe(401);
   });
 });

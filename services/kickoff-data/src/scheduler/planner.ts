@@ -22,16 +22,23 @@ export type JobKind =
   | "s4.fixtureSync"
   // S5 FSFD — never scheduled on cadence; emitted ONLY when the settlement
   // lane reports the primaries disagree (tie-break, spec §5.3).
-  | "s5.tiebreak";
+  | "s5.tiebreak"
+  // FPL — standalone authority for player points (gameweek-scoped jobs).
+  | "fpl.bootstrapSync" // gameweeks + players; doubles as the finality watch
+  | "fpl.fixtureSync" // FPL fixture list (liveness/finality gates)
+  | "fpl.livePoll"; // /event/{gw}/live during play + post-match
 
 export interface Job {
   kind: JobKind;
   /** Canonical fixture id (absent for slate-wide syncs). */
   fixtureId?: string;
+  /** FPL gameweek (fpl.fixtureSync / fpl.livePoll). */
+  gw?: number;
 }
 
 export function jobKey(j: Job): string {
-  return j.fixtureId ? `${j.kind}:${j.fixtureId}` : j.kind;
+  const scope = j.fixtureId ?? (j.gw !== undefined ? `gw${j.gw}` : undefined);
+  return scope !== undefined ? `${j.kind}:${scope}` : j.kind;
 }
 
 export interface PlannerFixture {
@@ -54,6 +61,25 @@ export interface PlannerState {
   lastRun: Map<string, Date>;
   /** S1 requests remaining today (from the budget guard). */
   s1Remaining: number;
+  /** FPL gameweeks (absent until the first bootstrap sync lands). */
+  gameweeks?: PlannerGameweek[];
+}
+
+/** FPL gameweek context for job emission. */
+export interface PlannerGameweek {
+  gw: number;
+  isCurrent: boolean;
+  /** All fixtures finished AND bonus added (FPL's flag). */
+  finished: boolean;
+  /** FPL verified the data — final-settlement gate. */
+  dataChecked: boolean;
+  deadlineUtc: Date;
+  /** Any FPL fixture in this GW started && !finished. */
+  anyFixtureActive: boolean;
+  /** Provisional player-points settlement already recorded. */
+  provisionalRecorded: boolean;
+  /** Frozen player-points settlement exists — stop polling this GW. */
+  settled: boolean;
 }
 
 function due(state: PlannerState, job: Job, intervalSeconds: number): boolean {
@@ -136,6 +162,45 @@ export function plan(state: PlannerState): Job[] {
       const s5Job: Job = { kind: "s5.tiebreak", fixtureId: f.id };
       if (f.needsTiebreak && !ranEver(state, s5Job)) jobs.push(s5Job);
     }
+  }
+
+  // --- FPL lane (free API — no budget gate, cadences are politeness) ---
+  const gws = state.gameweeks ?? [];
+
+  // bootstrap-static is the only place data_checked lives: tighten its
+  // cadence while any GW is finished-but-unchecked — that IS the finality
+  // sweep. First run happens immediately (no lastRun key → due).
+  const finalityPending = gws.some((g) => g.finished && !g.dataChecked && !g.settled);
+  const bootstrapInterval = finalityPending ? CADENCE.fplFinalityWatch : CADENCE.fplBootstrapSync;
+  if (due(state, { kind: "fpl.bootstrapSync" }, bootstrapInterval)) {
+    jobs.push({ kind: "fpl.bootstrapSync" });
+  }
+
+  for (const g of gws) {
+    if (g.settled) continue;
+
+    // Fixture-list sync for the current GW (and the next one near deadline —
+    // its fixture list must exist before its first kickoff).
+    const nearDeadline = g.deadlineUtc.getTime() - now.getTime() <= 24 * 3600_000;
+    if (g.isCurrent || (!g.finished && nearDeadline)) {
+      const fxJob: Job = { kind: "fpl.fixtureSync", gw: g.gw };
+      if (due(state, fxJob, CADENCE.fplFixtureSync)) jobs.push(fxJob);
+    }
+
+    // Live poll: fast while fixtures are in play, slow post-match until the
+    // provisional settlement is recorded (bonus lands ~1h after last FT),
+    // then keep the slow cadence until frozen so the freeze-time payload is
+    // fresh. Stops entirely once settled (short-circuit above).
+    const liveJob: Job = { kind: "fpl.livePoll", gw: g.gw };
+    let liveInterval: number | null = null;
+    if (g.anyFixtureActive) {
+      liveInterval = CADENCE.fplLivePoll;
+    } else if (ranEver(state, liveJob) && (!g.finished || !g.provisionalRecorded || !g.dataChecked)) {
+      // ranEver gate: don't start polling a GW that never went live (past
+      // seasons, blank GWs) — only keep polling ones we saw activity in.
+      liveInterval = CADENCE.fplPostMatch;
+    }
+    if (liveInterval !== null && due(state, liveJob, liveInterval)) jobs.push(liveJob);
   }
 
   return jobs;

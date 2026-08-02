@@ -1,0 +1,1148 @@
+{
+ "elements": [
+  {
+   "id": 1,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 1,
+    "assists": 1,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 3,
+    "bonus": 2,
+    "bps": 112,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 14
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      },
+      {
+       "identifier": "goals_scored",
+       "points": 6,
+       "value": 1
+      },
+      {
+       "identifier": "assists",
+       "points": 3,
+       "value": 1
+      },
+      {
+       "identifier": "bonus",
+       "points": 2,
+       "value": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "stats": {
+    "minutes": 180,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 4,
+    "bonus": 0,
+    "bps": 40,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 2,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 5
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      }
+     ]
+    },
+    {
+     "fixture": 11,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      },
+      {
+       "identifier": "saves",
+       "points": 1,
+       "value": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 3,
+    "bonus": 0,
+    "bps": 24,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 3
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "stats": {
+    "minutes": 0,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 0,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 0,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 0
+   },
+   "explain": []
+  },
+  {
+   "id": 6,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 0,
+    "assists": 1,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 40,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 5
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      },
+      {
+       "identifier": "assists",
+       "points": 3,
+       "value": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 1,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 64,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 8
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      },
+      {
+       "identifier": "goals_scored",
+       "points": 6,
+       "value": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "stats": {
+    "minutes": 0,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 0,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 0,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 0
+   },
+   "explain": []
+  },
+  {
+   "id": 11,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 13,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 0,
+    "assists": 1,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 40,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 5
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      },
+      {
+       "identifier": "assists",
+       "points": 3,
+       "value": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 15,
+   "stats": {
+    "minutes": 0,
+    "goals_scored": 1,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 40,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 0,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 5
+   },
+   "explain": []
+  },
+  {
+   "id": 16,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 17,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 18,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 19,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 0,
+    "assists": 1,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 2,
+    "bps": 56,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 7
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      },
+      {
+       "identifier": "assists",
+       "points": 3,
+       "value": 1
+      },
+      {
+       "identifier": "bonus",
+       "points": 2,
+       "value": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 20,
+   "stats": {
+    "minutes": 0,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 0,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 0,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 0
+   },
+   "explain": []
+  },
+  {
+   "id": 21,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 22,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 1,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 56,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 7
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      },
+      {
+       "identifier": "goals_scored",
+       "points": 5,
+       "value": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 23,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 24,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 25,
+   "stats": {
+    "minutes": 0,
+    "goals_scored": 0,
+    "assists": 1,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 24,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 0,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 3
+   },
+   "explain": []
+  },
+  {
+   "id": 26,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 27,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 16,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 2
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 557,
+   "stats": {
+    "minutes": 90,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 2,
+    "bps": 32,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 4
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 90
+      },
+      {
+       "identifier": "bonus",
+       "points": 2,
+       "value": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 28,
+   "stats": {
+    "minutes": 67,
+    "goals_scored": 1,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 3,
+    "bonus": 0,
+    "bps": 72,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 1,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 9
+   },
+   "explain": [
+    {
+     "fixture": 1,
+     "stats": [
+      {
+       "identifier": "minutes",
+       "points": 2,
+       "value": 67
+      },
+      {
+       "identifier": "goals_scored",
+       "points": 6,
+       "value": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 29,
+   "stats": {
+    "minutes": 0,
+    "goals_scored": 0,
+    "assists": 0,
+    "clean_sheets": 0,
+    "goals_conceded": 0,
+    "own_goals": 0,
+    "penalties_saved": 0,
+    "penalties_missed": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "saves": 0,
+    "bonus": 0,
+    "bps": 0,
+    "influence": "0.0",
+    "creativity": "0.0",
+    "threat": "0.0",
+    "ict_index": "0.0",
+    "starts": 0,
+    "expected_goals": "0.00",
+    "expected_assists": "0.00",
+    "total_points": 0
+   },
+   "explain": []
+  }
+ ]
+}

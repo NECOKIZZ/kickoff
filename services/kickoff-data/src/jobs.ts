@@ -28,6 +28,22 @@ import {
 import { getLiveMatches, getFixtureWindow } from "./flashscore";
 import { fsStatus } from "./normalize/flashscore";
 import { getTiebreakScore } from "./fsfd";
+import { getBootstrap, getEventLive, getFplFixtures } from "./fpl";
+import {
+  fplTeamSlugs,
+  normalizeFplGameweeks,
+  normalizeFplPlayers,
+  normalizeFplFixtures,
+  normalizeFplLive,
+} from "./normalize/fpl";
+import {
+  upsertGameweeks,
+  upsertFplPlayers,
+  upsertFplFixtures,
+  upsertFplPoints,
+  mapS1Players,
+  loadFplPlayerMap,
+} from "./fplIngest";
 import { recordVote, markDisputed } from "./settlementLane";
 import {
   upsertFixture,
@@ -40,7 +56,7 @@ import { db, schema } from "./db";
 import { eq } from "drizzle-orm";
 import { log } from "./log";
 
-function seasonFor(now: Date): number {
+export function seasonFor(now: Date): number {
   // EPL season = the year it starts in (Aug–May).
   return now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
 }
@@ -202,5 +218,47 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
       return;
     }
     await recordVote(job.fixtureId!, "fsfd", score, now);
+  },
+
+  // --- FPL lane — standalone authority for player points ---
+
+  /** Gameweeks + players + teams from bootstrap-static. Doubles as the
+   *  finality watch: data_checked only lives here. */
+  "fpl.bootstrapSync": async (_job, now) => {
+    const b = await getBootstrap();
+    const season = seasonFor(now);
+    await upsertGameweeks(normalizeFplGameweeks(b, season));
+    await upsertFplPlayers(normalizeFplPlayers(b, season));
+    // FPL fixture lists need team-id→slug from bootstrap; sync the full list
+    // here (it's one request and covers gw reassignments/postponements).
+    const fx = await getFplFixtures();
+    await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
+    await mapS1Players(season); // refresh element→S1 map (cross-check input)
+  },
+
+  /** Per-gameweek fixture refresh — liveness/finality flags move fast on
+   *  matchdays; the full-list sync above is too slow for that. */
+  "fpl.fixtureSync": async (job, now) => {
+    const b = await getBootstrap();
+    const season = seasonFor(now);
+    const fx = await getFplFixtures(job.gw);
+    await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
+  },
+
+  /** Live points for one gameweek — a single call covers every player.
+   *  Also refreshes the GW's fixture flags so the planner/settlement lane
+   *  see started/finished move without waiting for fixtureSync. */
+  "fpl.livePoll": async (job, now) => {
+    if (job.gw === undefined) throw new Error("fpl.livePoll needs a gw");
+    const season = seasonFor(now);
+    const live = await getEventLive(job.gw);
+    const players = await loadFplPlayerMap(season);
+    await upsertFplPoints(normalizeFplLive(job.gw, season, live.elements, players), null, now);
+    const b = await getBootstrap();
+    const fx = await getFplFixtures(job.gw);
+    await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
+    // Keep the gameweek's finished/data_checked flags fresh too — the sweep
+    // reads them and bootstrapSync may be hours away.
+    await upsertGameweeks(normalizeFplGameweeks(b, season));
   },
 };

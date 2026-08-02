@@ -142,3 +142,103 @@ describe("planner: S5 tie-break gate", () => {
     expect(kinds(s)).not.toContain("s5.tiebreak");
   });
 });
+
+// ---------------------------------------------------------------------------
+// FPL lane
+// ---------------------------------------------------------------------------
+
+import type { PlannerGameweek } from "../src/scheduler/planner";
+import { CADENCE } from "../src/scheduler/cadence";
+
+function gw(overrides: Partial<PlannerGameweek> = {}): PlannerGameweek {
+  return {
+    gw: 3,
+    isCurrent: true,
+    finished: false,
+    dataChecked: false,
+    deadlineUtc: new Date("2026-08-14T17:30:00Z"), // in the past vs T0
+    anyFixtureActive: false,
+    provisionalRecorded: false,
+    settled: false,
+    ...overrides,
+  };
+}
+
+describe("planner: FPL bootstrap + finality watch", () => {
+  it("cold start emits fpl.bootstrapSync (with or without gameweeks)", () => {
+    expect(kinds(state())).toContain("fpl.bootstrapSync");
+    expect(kinds(state({ gameweeks: [gw()] }))).toContain("fpl.bootstrapSync");
+  });
+
+  it("normal cadence when nothing awaits data_checked", () => {
+    const s = state({
+      gameweeks: [gw()],
+      lastRun: new Map([["fpl.bootstrapSync", new Date(T0.getTime() - (CADENCE.fplBootstrapSync - 60) * 1000)]]),
+    });
+    expect(kinds(s)).not.toContain("fpl.bootstrapSync");
+  });
+
+  it("tightens to the finality watch while a GW is finished-but-unchecked", () => {
+    const lastRun = new Map([
+      ["fpl.bootstrapSync", new Date(T0.getTime() - (CADENCE.fplFinalityWatch + 60) * 1000)],
+    ]);
+    // Same lastRun: not due at normal cadence…
+    expect(kinds(state({ gameweeks: [gw()], lastRun: new Map(lastRun) }))).not.toContain("fpl.bootstrapSync");
+    // …but due at the tightened one when finality is pending.
+    const pending = state({ gameweeks: [gw({ finished: true, dataChecked: false })], lastRun: new Map(lastRun) });
+    expect(kinds(pending)).toContain("fpl.bootstrapSync");
+    // Settled GWs stop tightening it.
+    const done = state({ gameweeks: [gw({ finished: true, dataChecked: true, settled: true })], lastRun: new Map(lastRun) });
+    expect(kinds(done)).not.toContain("fpl.bootstrapSync");
+  });
+});
+
+describe("planner: FPL live poll", () => {
+  it("polls fast while fixtures are active, gw-scoped key", () => {
+    const s = state({ gameweeks: [gw({ anyFixtureActive: true })] });
+    const job = plan(s).find((j) => j.kind === "fpl.livePoll");
+    expect(job).toBeDefined();
+    expect(jobKey(job!)).toBe("fpl.livePoll:gw3");
+    // Within the live cadence → suppressed.
+    s.lastRun.set("fpl.livePoll:gw3", new Date(T0.getTime() - 60 * 1000));
+    expect(kinds(s)).not.toContain("fpl.livePoll");
+    // Past it → due again.
+    s.lastRun.set("fpl.livePoll:gw3", new Date(T0.getTime() - (CADENCE.fplLivePoll + 30) * 1000));
+    expect(kinds(s)).toContain("fpl.livePoll");
+  });
+
+  it("keeps a slow post-match cadence until data_checked, only for GWs it polled", () => {
+    // Was polled during play, matches over, provisional not yet recorded.
+    const polled = new Map([["fpl.livePoll:gw3", new Date(T0.getTime() - (CADENCE.fplPostMatch + 60) * 1000)]]);
+    const s = state({ gameweeks: [gw({ finished: true })], lastRun: polled });
+    expect(kinds(s)).toContain("fpl.livePoll");
+    // Never-polled GW (blank/past) does not start polling post-hoc.
+    const cold = state({ gameweeks: [gw({ finished: true })] });
+    expect(kinds(cold)).not.toContain("fpl.livePoll");
+  });
+
+  it("a settled GW never polls again", () => {
+    const polled = new Map([["fpl.livePoll:gw3", new Date(T0.getTime() - 24 * 3600_000)]]);
+    const s = state({ gameweeks: [gw({ finished: true, dataChecked: true, settled: true, anyFixtureActive: false })], lastRun: polled });
+    expect(kinds(s)).not.toContain("fpl.livePoll");
+  });
+});
+
+describe("planner: FPL fixture sync", () => {
+  it("current GW syncs; a far-future unfinished GW does not", () => {
+    const jobs = plan(state({ gameweeks: [
+      gw({ gw: 3, isCurrent: true }),
+      gw({ gw: 10, isCurrent: false, deadlineUtc: new Date("2026-10-01T17:30:00Z") }),
+    ] }));
+    const fxGws = jobs.filter((j) => j.kind === "fpl.fixtureSync").map((j) => j.gw);
+    expect(fxGws).toContain(3);
+    expect(fxGws).not.toContain(10);
+  });
+
+  it("next GW joins within 24h of its deadline", () => {
+    const jobs = plan(state({ gameweeks: [
+      gw({ gw: 4, isCurrent: false, deadlineUtc: new Date("2026-08-16T09:00:00Z") }), // <24h from T0
+    ] }));
+    expect(jobs.filter((j) => j.kind === "fpl.fixtureSync").map((j) => j.gw)).toContain(4);
+  });
+});

@@ -32,12 +32,15 @@ export const fixtureStatus = pgEnum("fixture_status", [
   "abandoned",
 ]);
 
-/** S3+S4 are both "flashscore" — same underlying source, ONE settlement vote. */
+/** S3+S4 are both "flashscore" — same underlying source, ONE settlement vote.
+ *  "fpl" = official Fantasy Premier League API, standalone authority for
+ *  player points (documented exception to the no-single-source rule). */
 export const sourceId = pgEnum("source_id", [
   "apiFootball",
   "fdorg",
   "flashscore",
   "fsfd",
+  "fpl",
   "admin",
 ]);
 
@@ -226,6 +229,121 @@ export const settlementSnapshots = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("snapshots_fixture_version_idx").on(t.fixtureId, t.version)],
+);
+
+// ---------------------------------------------------------------------------
+// FPL lane — official Fantasy Premier League points (player perps settle on
+// these). FPL element ids and gw numbers reset each season, so every table
+// carries `season`. The custom rubric's player_match_stats above stays fully
+// intact — deactivated as a settlement input, kept as data + cross-check.
+// ---------------------------------------------------------------------------
+
+export const fplGameweeks = pgTable(
+  "fpl_gameweeks",
+  {
+    id: serial("id").primaryKey(),
+    season: integer("season").notNull(),
+    gw: integer("gw").notNull(), // FPL event id, 1..38
+    name: text("name").notNull(),
+    deadlineUtc: timestamp("deadline_utc", { withTimezone: true }).notNull(),
+    isCurrent: boolean("is_current").notNull().default(false),
+    /** All fixtures finished AND bonus added. */
+    finished: boolean("finished").notNull().default(false),
+    /** FPL's immutability flag — the final-settlement gate. */
+    dataChecked: boolean("data_checked").notNull().default(false),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("fpl_gw_idx").on(t.season, t.gw)],
+);
+
+export const fplPlayers = pgTable(
+  "fpl_players",
+  {
+    id: serial("id").primaryKey(),
+    season: integer("season").notNull(),
+    elementId: integer("element_id").notNull(), // FPL's player id — the market key
+    webName: text("web_name").notNull(),
+    fullName: text("full_name").notNull(), // first_name + second_name
+    teamSlug: text("team_slug").notNull(),
+    position: text("position").notNull(), // G|D|M|F
+    /** Best-effort map to S1's player id; null = unmatched (cross-check skips). */
+    s1PlayerId: integer("s1_player_id"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("fpl_players_idx").on(t.season, t.elementId)],
+);
+
+/** FPL's own fixture list — exists to gate liveness/finality, attach-only
+ *  reconciled to canonical fixtures (never creates them; S1/S2 own listing). */
+export const fplFixtures = pgTable(
+  "fpl_fixtures",
+  {
+    id: serial("id").primaryKey(),
+    season: integer("season").notNull(),
+    fplId: integer("fpl_id").notNull(),
+    gw: integer("gw"), // null = unscheduled (postponed)
+    kickoffUtc: timestamp("kickoff_utc", { withTimezone: true }),
+    homeSlug: text("home_slug").notNull(),
+    awaySlug: text("away_slug").notNull(),
+    started: boolean("started").notNull().default(false),
+    /** Full-time reached, bonus NOT yet added. Never a settlement gate. */
+    finishedProvisional: boolean("finished_provisional").notNull().default(false),
+    /** Bonus added — the provisional-stage gate. */
+    finished: boolean("finished").notNull().default(false),
+    canonicalFixtureId: text("canonical_fixture_id").references(() => fixtures.id),
+    /** Couldn't reconcile to a canonical fixture — admin review, never guessed. */
+    needsReview: boolean("needs_review").notNull().default(false),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("fpl_fixtures_idx").on(t.season, t.fplId),
+    index("fpl_fixtures_gw_idx").on(t.season, t.gw),
+  ],
+);
+
+/** Mutable until the gameweek's data_checked — a re-poll is a full refresh. */
+export const fplPlayerPoints = pgTable(
+  "fpl_player_points",
+  {
+    id: serial("id").primaryKey(),
+    season: integer("season").notNull(),
+    gw: integer("gw").notNull(),
+    elementId: integer("element_id").notNull(),
+    totalPoints: integer("total_points").notNull(),
+    minutes: integer("minutes").notNull().default(0),
+    bonus: integer("bonus").notNull().default(0),
+    /** Full FPL stats block (goals_scored, assists, bps, ...). */
+    stats: jsonb("stats").notNull(),
+    /** Per-fixture breakdown — carries double gameweeks. */
+    explain: jsonb("explain").notNull().default([]),
+    provisional: boolean("provisional").notNull().default(true),
+    rawPayloadId: integer("raw_payload_id").references(() => rawPayloads.id),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [uniqueIndex("fpl_points_idx").on(t.season, t.gw, t.elementId)],
+);
+
+/** Player-points settlement — immutable, versioned, per gameweek. Standalone
+ *  FPL authority: no votes, no quorum. Same version-N+1 correction discipline
+ *  as settlement_snapshots; reuses the snapshot_status enum. */
+export const playerPointsSettlements = pgTable(
+  "player_points_settlements",
+  {
+    id: serial("id").primaryKey(),
+    season: integer("season").notNull(),
+    gw: integer("gw").notNull(),
+    version: integer("version").notNull(),
+    status: snapshotStatus("status").notNull(),
+    /** Array<{ element_id, player_name, total_points }> */
+    points: jsonb("points").notNull().default([]),
+    /** PointsCrossCheckFlag[] — S1 sanity diffs, informational ONLY. */
+    flags: jsonb("flags").notNull().default([]),
+    rawPayloadId: integer("raw_payload_id").references(() => rawPayloads.id),
+    frozenAt: timestamp("frozen_at", { withTimezone: true }),
+    supersedesReason: text("supersedes_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("pps_gw_version_idx").on(t.season, t.gw, t.version)],
 );
 
 // ---------------------------------------------------------------------------

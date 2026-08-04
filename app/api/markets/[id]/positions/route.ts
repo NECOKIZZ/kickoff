@@ -1,6 +1,7 @@
 import { db, schema } from "@/db";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyCaller } from "@/lib/auth";
+import { verifyInviteFromRequest } from "@/lib/inviteGate";
 import { validateGuess, validateStake } from "@/lib/markets";
 import { verifyStakeTx } from "@/lib/chain";
 import { eq, and } from "drizzle-orm";
@@ -15,6 +16,11 @@ import { eq, and } from "drizzle-orm";
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const caller = await verifyCaller(req);
   if (!caller) return jsonError("unauthorized", 401);
+
+  // Launch gate: staking requires a redeemed invite (the page redirect alone
+  // is bypassable by calling the API directly).
+  if ((await verifyInviteFromRequest(req)) === null)
+    return jsonError("invite required, join the waitlist at /waitlist", 403);
 
   const { id } = await ctx.params;
   const marketId = Number(id);

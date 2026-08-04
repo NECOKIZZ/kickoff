@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api, fmtUsdc, fmtPoints, fmtKickoff, getDevAddress } from "@/ui/clientApi";
+import { api, fmtUsdc, fmtPoints, fmtKickoff } from "@/ui/clientApi";
+import { useAuth } from "@/ui/auth/useAuth";
 
 interface UserPositionRow {
   position: {
@@ -22,18 +23,16 @@ interface UserPositionRow {
 }
 
 export default function PositionsView() {
-  const [addr, setAddr] = useState<string | null>(null);
+  const { address: addr } = useAuth();
   const [rows, setRows] = useState<UserPositionRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const a = getDevAddress();
-    setAddr(a);
-    if (!a) return;
-    api<{ positions: UserPositionRow[] }>(`/api/users/${a}/positions`)
+    if (!addr) return;
+    api<{ positions: UserPositionRow[] }>(`/api/users/${addr}/positions`)
       .then((d) => setRows(d.positions))
       .catch((e) => setError(e.message));
-  }, []);
+  }, [addr]);
 
   if (!addr) {
     return (
@@ -68,7 +67,7 @@ export default function PositionsView() {
             No positions yet.
           </p>
           <p style={{ fontSize: "0.85rem", color: "var(--muted-foreground)" }}>
-            <Link href="/markets" style={{ color: "var(--color-kickoff-green)", fontWeight: 600 }}>
+            <Link href="/markets" style={{ color: "var(--ui-accent)", fontWeight: 600 }}>
               Browse the markets
             </Link>{" "}
             and lock in your first scoreline.
@@ -98,7 +97,7 @@ export default function PositionsView() {
                   Pick
                 </p>
                 <p style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 700 }}>
-                  {r.marketKind === "scoreline" ? `${p.guessHome}–${p.guessAway}` : fmtPoints(p.guessPoints)}
+                  {r.marketKind === "scoreline" ? `${p.guessHome}-${p.guessAway}` : fmtPoints(p.guessPoints)}
                 </p>
               </div>
               <div className="text-center px-3">
@@ -110,7 +109,7 @@ export default function PositionsView() {
               <div className="text-right" style={{ minWidth: 80 }}>
                 {settled ? (
                   p.isWinner ? (
-                    <span style={{ color: "var(--color-kickoff-green)", fontWeight: 700 }}>{fmtUsdc(p.payout)}</span>
+                    <span style={{ color: "var(--ui-accent)", fontWeight: 700 }}>{fmtUsdc(p.payout)}</span>
                   ) : (
                     <span style={{ color: "var(--muted-foreground)", fontSize: "0.8rem" }}>No payout</span>
                   )

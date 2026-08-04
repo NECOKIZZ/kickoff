@@ -2,6 +2,7 @@ import { db, schema } from "@/db";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
+import { resolveGameweek } from "@/lib/gameweek";
 import { desc } from "drizzle-orm";
 
 /**
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
 
   // Knobs — validated here, frozen at /open.
   const gamma = b.gamma == null ? 3 : Number(b.gamma);
-  if (!Number.isInteger(gamma) || gamma < 1 || gamma > 12) return jsonError("gamma must be an integer 1–12", 400);
+  if (!Number.isInteger(gamma) || gamma < 1 || gamma > 12) return jsonError("gamma must be an integer 1-12", 400);
 
   const stakeMode = b.stakeMode == null ? "variable" : b.stakeMode;
   if (stakeMode !== "variable" && stakeMode !== "fixed")
@@ -50,13 +51,24 @@ export async function POST(req: Request) {
   const takeRateBps = b.takeRateBps == null ? 1000 : Number(b.takeRateBps);
   const accumulatorShareBps = b.accumulatorShareBps == null ? 5000 : Number(b.accumulatorShareBps);
   const capMultiple = b.capMultiple == null ? 100 : Number(b.capMultiple);
-  if (takeRateBps < 0 || takeRateBps > 3000) return jsonError("takeRateBps out of range (0–3000)", 400);
+  if (takeRateBps < 0 || takeRateBps > 3000) return jsonError("takeRateBps out of range (0-3000)", 400);
   if (accumulatorShareBps < 0 || accumulatorShareBps > 10000)
-    return jsonError("accumulatorShareBps out of range (0–10000)", 400);
-  if (capMultiple < 1 || capMultiple > 1000) return jsonError("capMultiple out of range (1–1000)", 400);
+    return jsonError("accumulatorShareBps out of range (0-10000)", 400);
+  if (capMultiple < 1 || capMultiple > 1000) return jsonError("capMultiple out of range (1-1000)", 400);
 
   if (b.kind === "player_points" && typeof b.playerName !== "string")
     return jsonError("playerName required for player_points markets", 400);
+
+  // Gameweek: explicit wins; otherwise best-effort resolve from kickoff-data.
+  // Resolution failure is never a creation failure — null just means "Other".
+  let gameweek: number | null = null;
+  if (b.gameweek != null) {
+    gameweek = Number(b.gameweek);
+    if (!Number.isInteger(gameweek) || gameweek < 1 || gameweek > 38)
+      return jsonError("gameweek must be an integer 1-38", 400);
+  } else if (b.kind === "scoreline") {
+    gameweek = await resolveGameweek(kickoffAt);
+  }
 
   const [row] = await db
     .insert(schema.markets)
@@ -65,6 +77,7 @@ export async function POST(req: Request) {
       status: "draft",
       title: b.title,
       fixtureId: b.fixtureId == null ? null : Number(b.fixtureId),
+      gameweek,
       homeTeam: typeof b.homeTeam === "string" ? b.homeTeam : null,
       awayTeam: typeof b.awayTeam === "string" ? b.awayTeam : null,
       playerId: b.playerId == null ? null : Number(b.playerId),

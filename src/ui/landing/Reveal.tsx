@@ -20,6 +20,14 @@ import {
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)"; // ease-out-quint — soft landing
 
+/** Stamp html.hydrated on first mount — disarms the CSS blocked-bundle
+ *  failsafe (globals.css) so it can't force-reveal a working page. */
+function useHydratedStamp() {
+  useEffect(() => {
+    document.documentElement.classList.add("hydrated");
+  }, []);
+}
+
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -48,13 +56,11 @@ function useInView<T extends HTMLElement>(threshold = 0.15) {
       { threshold, rootMargin: "0px 0px -8% 0px" }
     );
     io.observe(el);
-    // JS-side failsafe (belt to the CSS keyframe's braces): reveal after 3s
-    // even if the observer never fires (odd zoom/viewport combinations).
-    const failsafe = setTimeout(() => setInView(true), 3000);
-    return () => {
-      io.disconnect();
-      clearTimeout(failsafe);
-    };
+    return () => io.disconnect();
+    // NOTE: no timer failsafe here — a blanket "reveal after Ns" defeats the
+    // scroll choreography (everything below the fold plays out invisibly while
+    // the visitor is still reading the hero). The no-JS/blocked-bundle case is
+    // covered by the CSS keyframe in globals.css, which hydration disables.
   }, [threshold]);
   return { ref, inView };
 }
@@ -77,6 +83,7 @@ export function Reveal({
 }) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const reduced = usePrefersReducedMotion();
+  useHydratedStamp();
   const shown = inView || reduced;
   const hiddenTransform =
     from === "up"
@@ -114,6 +121,7 @@ export function RevealWords({
 }) {
   const { ref, inView } = useInView<HTMLSpanElement>(0.3);
   const reduced = usePrefersReducedMotion();
+  useHydratedStamp();
   const shown = inView || reduced;
   const words = text.split(" ");
   return (

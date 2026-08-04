@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button3D } from "@/ui/Button3D";
 import { Logo } from "@/ui/Logo";
 import { ThemeToggle, useDarkMode } from "@/ui/ThemeToggle";
 import { NavUnderlineItem } from "@/ui/NavUnderline";
-import { getDevAddress, setDevAddress, randomDevAddress, shortAddr } from "@/ui/clientApi";
+import { useAuth } from "@/ui/auth/useAuth";
+import { shortAddr } from "@/ui/clientApi";
 
 const APP_TABS = [
   { label: "Markets", href: "/markets" },
@@ -16,21 +17,19 @@ const APP_TABS = [
 ];
 
 /**
- * Dev-mode sign in: mints a throwaway address for the x-dev-address header
- * flow until Privy keys land. The 3D button is the brand-mandated shape.
+ * Sign in — Privy when configured (email or wallet, embedded wallet minted on
+ * first login), throwaway dev address otherwise. Same 3D button either way.
  */
 function SignInButton() {
-  const [addr, setAddr] = useState<string | null>(null);
-  useEffect(() => setAddr(getDevAddress()), []);
+  const { ready, address, signIn, signOut } = useAuth();
 
-  if (addr) {
+  if (!ready) return null;
+
+  if (address) {
     return (
       <button
-        onClick={() => {
-          setDevAddress(null);
-          setAddr(null);
-        }}
-        title="Signed in (dev wallet) — click to sign out"
+        onClick={signOut}
+        title="Signed in. Click to sign out"
         className="cursor-pointer"
         style={{
           fontFamily: "'Clash Display', sans-serif",
@@ -44,21 +43,13 @@ function SignInButton() {
           whiteSpace: "nowrap",
         }}
       >
-        {shortAddr(addr)}
+        {shortAddr(address)}
       </button>
     );
   }
 
   return (
-    <Button3D
-      size="sm"
-      color="green"
-      onClick={() => {
-        const a = randomDevAddress();
-        setDevAddress(a);
-        setAddr(a);
-      }}
-    >
+    <Button3D size="sm" color="accent" onClick={signIn}>
       Sign In
     </Button3D>
   );

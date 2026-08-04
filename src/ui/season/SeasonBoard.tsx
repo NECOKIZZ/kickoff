@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, fmtUsdc, shortAddr, getDevAddress, type LeaderboardRow } from "@/ui/clientApi";
+import { api, fmtUsdc, shortAddr, type LeaderboardRow } from "@/ui/clientApi";
+import { useAuth } from "@/ui/auth/useAuth";
 
 interface AccumulatorData {
   season: string;
@@ -45,7 +46,8 @@ export default function SeasonBoard() {
     };
   }, []);
 
-  const me = typeof window !== "undefined" ? getDevAddress()?.toLowerCase() : null;
+  const { address } = useAuth();
+  const me = address?.toLowerCase() ?? null;
 
   return (
     <div className="mx-auto px-6" style={{ maxWidth: 860, paddingTop: 36, paddingBottom: 80 }}>
@@ -55,8 +57,8 @@ export default function SeasonBoard() {
         style={{ position: "relative", overflow: "hidden" }}
       >
         {/* brand orbs */}
-        <div style={{ position: "absolute", top: "-30%", left: "10%", width: 220, height: 220, borderRadius: "50%", background: "var(--color-kickoff-green)", filter: "blur(90px)", opacity: 0.25, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-30%", right: "10%", width: 200, height: 200, borderRadius: "50%", background: "var(--color-new-purple)", filter: "blur(90px)", opacity: 0.3, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "-30%", left: "10%", width: 220, height: 220, borderRadius: "50%", background: "var(--ui-accent)", filter: "blur(90px)", opacity: 0.25, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-30%", right: "10%", width: 200, height: 200, borderRadius: "50%", background: "var(--ui-accent-2)", filter: "blur(90px)", opacity: 0.3, pointerEvents: "none" }} />
 
         <p
           style={{
@@ -81,7 +83,7 @@ export default function SeasonBoard() {
             position: "relative",
           }}
         >
-          {acc ? fmtUsdc(acc.balance, { compact: true }) : "—"}
+          {acc ? fmtUsdc(acc.balance, { compact: true }) : "-"}
         </p>
         <p style={{ fontSize: "0.78rem", color: "var(--muted-foreground)", marginTop: 12, position: "relative" }}>
           5% of every settled pool feeds the accumulator. Top {acc?.rankWeightsBps.length ?? 10} at season end split it
@@ -140,15 +142,15 @@ export default function SeasonBoard() {
                       key={r.address}
                       style={{
                         borderBottom: i < board.leaderboard.length - 1 ? "1px solid var(--border)" : "none",
-                        background: mine ? "color-mix(in srgb, var(--color-kickoff-green) 8%, transparent)" : "transparent",
+                        background: mine ? "color-mix(in srgb, var(--ui-accent) 8%, transparent)" : "transparent",
                       }}
                     >
-                      <td className="px-5 py-3.5" style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 700, color: top3 ? "var(--color-kickoff-green)" : "var(--muted-foreground)" }}>
+                      <td className="px-5 py-3.5" style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 700, color: top3 ? "var(--ui-accent)" : "var(--muted-foreground)" }}>
                         {r.rank}
                       </td>
                       <td className="px-5 py-3.5" style={{ fontWeight: mine ? 700 : 500 }}>
                         {shortAddr(r.address)}
-                        {mine && <span style={{ color: "var(--color-kickoff-green)", marginLeft: 6, fontSize: "0.68rem" }}>you</span>}
+                        {mine && <span style={{ color: "var(--ui-accent)", marginLeft: 6, fontSize: "0.68rem" }}>you</span>}
                       </td>
                       <td className="px-5 py-3.5">{r.settledMarkets}</td>
                       <td className="px-5 py-3.5">{fmtUsdc(r.volume, { compact: true })}</td>

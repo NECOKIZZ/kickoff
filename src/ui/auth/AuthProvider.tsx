@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         appearance: {
           theme: "light",
           accentColor: "#7B62F6",
-          logo: "/brand/logo-green.svg",
+          logo: "/brand/logo-black.svg",
         },
       }}
     >

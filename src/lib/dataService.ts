@@ -4,6 +4,7 @@
 
 import type {
   Fixture,
+  Gameweek,
   MatchEvent,
   MatchState,
   MatchStats,
@@ -52,6 +53,7 @@ export function listFixtures(params: { league?: string; from?: string; to?: stri
 }
 
 export const getFixture = (id: string) => get<Sourced<Fixture>>(`/v1/fixtures/${encodeURIComponent(id)}`);
+export const listGameweeks = () => get<Sourced<Gameweek[]>>(`/v1/gameweeks`);
 export const getMatchState = (id: string) => get<Sourced<MatchState>>(`/v1/fixtures/${encodeURIComponent(id)}/state`);
 export const getMatchEvents = (id: string) =>
   get<Sourced<MatchEvent[]>>(`/v1/fixtures/${encodeURIComponent(id)}/events`);

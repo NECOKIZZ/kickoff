@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 /**
  * Brand rule (instuctions.md): buttons are strictly always 3D.
  * Green pairs with ink text, purple pairs with white text.
+ * "accent" follows the theme: purple in light mode, green in dark.
  */
 export function Button3D({
   children,
@@ -16,7 +17,7 @@ export function Button3D({
   disabled = false,
 }: {
   children: ReactNode;
-  color?: "green" | "purple";
+  color?: "green" | "purple" | "accent";
   size?: "sm" | "md" | "lg";
   className?: string;
   onClick?: () => void;
@@ -24,9 +25,18 @@ export function Button3D({
   disabled?: boolean;
 }) {
   const [pressed, setPressed] = useState(false);
-  const bg = color === "green" ? "var(--color-kickoff-green)" : "var(--color-new-purple)";
-  const shadow = color === "green" ? "var(--color-kickoff-green-deep)" : "var(--color-new-purple-deep)";
-  const textColor = color === "green" ? "#111210" : "#ffffff";
+  const bg =
+    color === "green" ? "var(--color-kickoff-green)"
+    : color === "purple" ? "var(--color-new-purple)"
+    : "var(--ui-accent)";
+  const shadow =
+    color === "green" ? "var(--color-kickoff-green-deep)"
+    : color === "purple" ? "var(--color-new-purple-deep)"
+    : "var(--ui-accent-deep)";
+  const textColor =
+    color === "green" ? "#111210"
+    : color === "purple" ? "#ffffff"
+    : "var(--ui-accent-contrast)";
   const pad =
     size === "sm" ? "6px 14px" : size === "lg" ? "14px 32px" : "10px 20px";
   const fontSize = size === "sm" ? "0.78rem" : size === "lg" ? "0.95rem" : "0.875rem";

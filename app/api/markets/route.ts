@@ -37,6 +37,7 @@ export async function GET(req: Request) {
       kind: m.kind,
       status: m.status,
       title: m.title,
+      gameweek: m.gameweek,
       homeTeam: m.homeTeam,
       awayTeam: m.awayTeam,
       playerName: m.playerName,

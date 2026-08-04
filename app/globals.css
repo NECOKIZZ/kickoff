@@ -22,8 +22,8 @@
   --card-foreground: #111210;
   --popover: #F7F5F0;
   --popover-foreground: #111210;
-  --primary: #00C805;
-  --primary-foreground: #111210;
+  --primary: #7B62F6;
+  --primary-foreground: #ffffff;
   --secondary: #EDEAE0;
   --secondary-foreground: #111210;
   --muted: #EDEAE0;
@@ -34,13 +34,21 @@
   --destructive-foreground: #ffffff;
   --border: rgba(107, 111, 99, 0.2);
   --input-background: #EDEAE0;
-  --ring: #00C805;
+  --ring: #7B62F6;
   --radius: 0.5rem;
 
   /* Glass (glassmorphism recipe — premium look per guidelines) */
   --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.14);
   --glass-highlight: rgba(255, 255, 255, 0.22);
+
+  /* Theme accent — purple carries the light/cream theme, green carries dark.
+     UI chrome (arrows, CTAs, labels) reads these; club colors stay per-card.
+     accent-2 is the counterpart hue (charts: "the field" vs "your line"). */
+  --ui-accent: var(--color-new-purple);
+  --ui-accent-deep: var(--color-new-purple-deep);
+  --ui-accent-contrast: #ffffff;
+  --ui-accent-2: var(--color-kickoff-green);
 }
 
 /* Dark mode — brand green goes with the ink */
@@ -68,6 +76,11 @@
   --glass-bg: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-highlight: rgba(255, 255, 255, 0.12);
+
+  --ui-accent: var(--color-kickoff-green);
+  --ui-accent-deep: var(--color-kickoff-green-deep);
+  --ui-accent-contrast: #111210;
+  --ui-accent-2: var(--color-new-purple);
 }
 
 @theme inline {
@@ -161,6 +174,69 @@
     border-radius: 16px 2px 16px 2px;
   }
 
+  /* Score market detail — DOM order is the mobile stacking order
+     (spec → stake → chart → leaderboard); desktop moves spec+stake into a
+     360px right rail with the chart and leaderboard in the wide column. */
+  .score-detail-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-areas: "spec" "stake" "chart" "board";
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 980px) {
+    .score-detail-grid {
+      grid-template-areas:
+        "chart spec"
+        "chart stake"
+        "board stake";
+      grid-template-columns: minmax(0, 1fr) 360px;
+      grid-template-rows: auto auto 1fr;
+      align-items: start;
+    }
+  }
+
+  /* Player deck board — search rail LEFT of the stage on desktop, tucked
+     above it on small screens (never below the deck). Sized so deck + strip
+     fit one viewport. */
+  .deck-board {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .deck-rail {
+    max-height: 300px;
+  }
+  @media (min-width: 900px) {
+    .deck-board {
+      grid-template-columns: 250px minmax(0, 1fr);
+      align-items: stretch;
+    }
+    .deck-rail {
+      max-height: none;
+      height: 100%;
+      min-height: 480px;
+    }
+  }
+
+  /* Player perps detail — GW strip spans the top; right rail = bare card art
+     + staking + trimmed details, left column = chart with the leaderboard
+     stacked directly beneath it (no grid-row gap when the chart is short). */
+  .player-detail-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-areas: "gw" "rail" "main";
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 980px) {
+    .player-detail-grid {
+      grid-template-areas:
+        "gw gw"
+        "main rail";
+      grid-template-columns: minmax(0, 1fr) 360px;
+      align-items: start;
+    }
+  }
+
   /* Glassmorphism card */
   .glass {
     background: var(--glass-bg);
@@ -198,33 +274,24 @@
     to { transform: translateX(-50%); }
   }
 
-  /* Player-perps mode: steps stay blurred until the visitor leans in.
-     Touch screens have no hover — show them sharp. */
-  .step-veiled {
-    filter: blur(6px) saturate(0.8);
-    opacity: 0.55;
-    transition: filter 0.5s ease, opacity 0.5s ease, transform 0.5s ease;
-  }
-  .step-veiled:hover {
-    filter: blur(0) saturate(1);
-    opacity: 1;
-    transform: translateY(-2px);
-  }
-  @media (hover: none) {
-    .step-veiled {
-      filter: none;
-      opacity: 1;
+  /* How-it-works side faces need room — below 1100px they'd sit on the deck */
+  @media (max-width: 1100px) {
+    .side-face {
+      display: none;
     }
   }
 
   /* Scroll-reveal hidden state. Gated on html.js so content is only ever
      hidden when scripts run — a JS-less render shows every word. The keyframe
-     is a pure-CSS failsafe: even if hydration never happens (blocked bundle),
-     everything reveals itself 3.5s in. */
+     failsafe is for a BLOCKED bundle only: hydration stamps html.hydrated
+     (Reveal.tsx), which disarms it — otherwise it would force-reveal the whole
+     page ~3.5s after load and kill the scroll choreography. */
   html.js .reveal-pending {
     opacity: 0;
     filter: blur(var(--reveal-blur, 10px));
     transform: var(--reveal-transform, translateY(40px));
+  }
+  html.js:not(.hydrated) .reveal-pending {
     animation: reveal-failsafe 0.7s ease 3.5s forwards;
   }
   @keyframes reveal-failsafe {
@@ -241,6 +308,56 @@
       transform: none;
       animation: none;
     }
+  }
+
+  /* ── Player-card deck (PlayerCardCarousel) ─────────────────────────────── */
+
+  /* Focused card breathes — a slow idle float so the deck never feels static */
+  .ppc-float {
+    animation: ppc-float 5.5s ease-in-out infinite;
+  }
+  @keyframes ppc-float {
+    0%, 100% { margin-top: calc(-185px - 14px); }
+    50% { margin-top: calc(-185px - 24px); }
+  }
+
+  /* Shine sweep across a freshly-focused card */
+  .ppc-shine {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.28) 48%,
+      rgba(255, 255, 255, 0.08) 54%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    animation: ppc-shine 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards;
+  }
+  @keyframes ppc-shine {
+    to { transform: translateX(120%); }
+  }
+
+  /* Focused-market info panel crossfades when the deck turns */
+  .ppc-info {
+    animation: ppc-info-in 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes ppc-info-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Landing deck: cards rise + fan out as the section scrolls into view */
+  .deck-card {
+    transition:
+      transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.7s ease,
+      filter 0.7s ease;
+  }
+  .deck-card:hover {
+    filter: brightness(1.06);
   }
 
   .font-display { font-family: "Fraunces", serif; }

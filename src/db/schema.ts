@@ -58,6 +58,9 @@ export const markets = pgTable(
     // Fixture linkage (API-Football id is source of truth; fdOrg id for cross-check).
     fixtureId: integer("fixture_id"),
     fdOrgMatchId: integer("fd_org_match_id"),
+    // FPL gameweek (1–38) — batches score markets on the hub. Resolved from
+    // kickoff-data's /v1/gameweeks at creation; null when unresolvable.
+    gameweek: integer("gameweek"),
     homeTeam: text("home_team"),
     awayTeam: text("away_team"),
     // player_points markets only:
@@ -95,7 +98,11 @@ export const markets = pgTable(
     openedAt: timestamp("opened_at", { withTimezone: true }),
     settledAt: timestamp("settled_at", { withTimezone: true }),
   },
-  (t) => [index("markets_status_idx").on(t.status), index("markets_kickoff_idx").on(t.kickoffAt)],
+  (t) => [
+    index("markets_status_idx").on(t.status),
+    index("markets_kickoff_idx").on(t.kickoffAt),
+    index("markets_gameweek_idx").on(t.gameweek),
+  ],
 );
 
 export const positions = pgTable(
@@ -154,8 +161,34 @@ export const settlements = pgTable("settlements", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** Season accumulator ledger — one row per settlement contribution. */
-export const accumulatorEntries = pgTable("accumulator_entries", {
+/**
+ * In-match mark-to-model snapshots — the PnL/rank timeline on market detail.
+ * One row per (market, score-change or tick). Written by the live-tracking
+ * worker as the match state moves (and by admin backfill on testnet); each row
+ * stores the full estimate so the chart replays without re-running the engine.
+ */
+export const pnlSnapshots = pgTable(
+  "pnl_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    marketId: integer("market_id")
+      .notNull()
+      .references(() => markets.id),
+    // Match clock label ("12'", "45+2'", "HT", "FT") + running score at capture.
+    matchClock: text("match_clock").notNull(),
+    scoreHome: integer("score_home"),
+    scoreAway: integer("score_away"),
+    // fixed-point points for player_points markets
+    livePoints: bigint("live_points", { mode: "bigint" }),
+    // Per-position estimate at this instant:
+    // [{ positionId, isWinner, estimatedPayout, estimatedGain, rank }]
+    positions: jsonb("positions").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("pnl_snapshots_market_idx").on(t.marketId, t.createdAt)],
+);
+
+/** Season accumulator ledger — one row per settlement contribution. */export const accumulatorEntries = pgTable("accumulator_entries", {
   id: serial("id").primaryKey(),
   settlementId: integer("settlement_id")
     .notNull()
@@ -177,4 +210,42 @@ export const adminEvents = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("admin_events_market_idx").on(t.marketId)],
+);
+
+// ---------------------------------------------------------------------------
+// Launch gate — waitlist + single-use invite codes.
+//
+// Landing stays public; /markets, /leaderboard, /positions require a redeemed
+// invite (signed cookie now; the code row carries userId so redemptions bind
+// to Privy accounts the moment Privy lands).
+// ---------------------------------------------------------------------------
+
+export const waitlistSignups = pgTable(
+  "waitlist_signups",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull(), // stored lowercased
+    // Stamped when an admin mints a code against this signup — the funnel
+    // metric is signups vs invited vs redeemed.
+    invitedAt: timestamp("invited_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("waitlist_email_idx").on(t.email)],
+);
+
+export const inviteCodes = pgTable(
+  "invite_codes",
+  {
+    id: serial("id").primaryKey(),
+    code: text("code").notNull(), // KICK-XXXX-XXXX, strictly single-use
+    note: text("note"), // admin label: wave name, partner, etc.
+    // Set when minted for a specific waitlist signup (email-targeted invite).
+    waitlistId: integer("waitlist_id").references(() => waitlistSignups.id),
+    redeemedAt: timestamp("redeemed_at", { withTimezone: true }),
+    // Bound at redemption when the caller has an account (Privy later; dev
+    // wallet header today if present). Null for anonymous cookie redemptions.
+    redeemedByUserId: integer("redeemed_by_user_id").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("invite_codes_code_idx").on(t.code)],
 );

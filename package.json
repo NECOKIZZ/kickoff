@@ -16,6 +16,8 @@
   "dependencies": {
     "@kickoff/engine": "workspace:*",
     "@kickoff/schema": "workspace:*",
+    "@privy-io/react-auth": "^3.36.1",
+    "@privy-io/server-auth": "^1.32.5",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.27.0",
     "next": "^16.2.10",

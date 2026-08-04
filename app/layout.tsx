@@ -1,9 +1,10 @@
 import "./globals.css";
+import { AuthProvider } from "@/ui/auth/AuthProvider";
 
 export const metadata = {
-  title: "Kickoff — Proximity Markets",
+  title: "Kickoff | Proximity Markets",
   description:
-    "Beat the pack, keep the stack. Proximity markets for EPL fixtures — rewards for how close you land, not just yes/no.",
+    "Beat the pack, keep the stack. Proximity markets for EPL fixtures. Rewards for how close you land, not just yes/no.",
 };
 
 // Apply persisted theme before paint to avoid a light-mode flash.
@@ -38,7 +39,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Above-the-fold hero image — preloaded so it never pops in late */}
         <link rel="preload" as="image" href="/brand/hero-players.webp" type="image/webp" />
       </head>
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

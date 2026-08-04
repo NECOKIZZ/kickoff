@@ -19,7 +19,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const [m] = await db.select().from(schema.markets).where(eq(schema.markets.id, marketId)).limit(1);
   if (!m || m.status === "draft") return jsonError("market not found", 404);
   if (m.status === "settled" || m.status === "void")
-    return jsonError("market already settled — see /api/markets/:id", 409);
+    return jsonError("market already settled, see /api/markets/:id", 409);
 
   const url = new URL(req.url);
   let outcome: { home?: number; away?: number; points?: bigint };
@@ -39,7 +39,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 
   return json({
     estimate: true,
-    disclaimer: "Mark-to-model estimate — actual settlement can differ; pool and outcome are not final.",
+    disclaimer: "Mark-to-model estimate. Actual settlement can differ; pool and outcome are not final.",
     outcome,
     void: engine.void,
     medianD: engine.medianD,

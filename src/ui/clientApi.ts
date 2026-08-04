@@ -20,6 +20,7 @@ export interface MarketSummary {
   kind: "scoreline" | "player_points";
   status: "open" | "locked" | "settling" | "settled" | "void";
   title: string;
+  gameweek: number | null;
   homeTeam: string | null;
   awayTeam: string | null;
   playerName: string | null;
@@ -77,6 +78,12 @@ export function randomDevAddress(): string {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
+  if (process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
+    // Privy mode: attach the caller's access token (null when signed out).
+    const { getAccessToken } = await import("@privy-io/react-auth");
+    const token = await getAccessToken().catch(() => null);
+    if (token) headers.set("authorization", `Bearer ${token}`);
+  }
   const dev = getDevAddress();
   if (dev) headers.set("x-dev-address", dev);
   if (init?.body) headers.set("content-type", "application/json");

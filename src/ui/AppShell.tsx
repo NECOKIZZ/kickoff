@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button3D } from "@/ui/Button3D";
 import { Logo } from "@/ui/Logo";
-import { ThemeToggle, useDarkMode } from "@/ui/ThemeToggle";
+import { ThemeToggle } from "@/ui/ThemeToggle";
 import { NavUnderlineItem } from "@/ui/NavUnderline";
 import { useAuth } from "@/ui/auth/useAuth";
 import { shortAddr } from "@/ui/clientApi";
@@ -57,7 +57,6 @@ function SignInButton() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [dark] = useDarkMode();
   const router = useRouter();
 
   return (
@@ -74,35 +73,45 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <div
-          className="mx-auto px-6"
+          className="mx-auto px-4 sm:px-6 flex flex-wrap items-center sm:grid"
           style={{
             maxWidth: 1100,
-            height: 58,
-            display: "grid",
+            minHeight: 58,
             gridTemplateColumns: "1fr auto 1fr",
-            alignItems: "center",
           }}
         >
-          {/* Logo — adapts to environment: green on cream, white on ink */}
-          <Link href="/" aria-label="Home" style={{ justifySelf: "start", display: "flex", paddingLeft: 8 }}>
-            <Logo variant={dark ? "white" : "green"} size={26} />
+          {/* Logo — monochrome: black on cream, white on ink */}
+          <Link
+            href="/"
+            aria-label="Home"
+            className="order-1"
+            style={{ justifySelf: "start", display: "flex", paddingLeft: 8 }}
+          >
+            <Logo size={26} />
           </Link>
 
-          {/* Center tabs — green underline marks selection */}
-          <nav className="flex items-center gap-6 h-full">
+          {/* Center tabs — green underline marks selection. On phones the
+              tabs drop to their own row beneath logo/controls. */}
+          <nav
+            className="order-3 sm:order-2 basis-full sm:basis-auto flex items-center justify-center gap-5 sm:gap-6 overflow-x-auto"
+            style={{ minHeight: 40 }}
+          >
             {APP_TABS.map((t) => (
               <NavUnderlineItem
                 key={t.href}
                 active={pathname.startsWith(t.href)}
                 onClick={() => router.push(t.href)}
-                className="text-[0.84rem] h-full flex items-end pb-[9px]"
+                className="text-[0.8rem] sm:text-[0.84rem] whitespace-nowrap h-full flex items-end pb-[9px]"
               >
                 {t.label}
               </NavUnderlineItem>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2.5" style={{ justifySelf: "end" }}>
+          <div
+            className="order-2 sm:order-3 ml-auto sm:ml-0 flex items-center gap-2.5 py-2 sm:py-0"
+            style={{ justifySelf: "end" }}
+          >
             <ThemeToggle />
             <SignInButton />
           </div>

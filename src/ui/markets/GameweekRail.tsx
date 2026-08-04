@@ -24,10 +24,10 @@ function ScoreMarketCard({ market }: { market: MarketSummary }) {
   return (
     <Link
       href={`/markets/${market.id}`}
-      className="card-diagonal glass flex items-center gap-3 px-6 py-[18px] transition-transform duration-150 hover:-translate-y-0.5"
+      className="card-diagonal glass flex flex-wrap items-center gap-x-2 gap-y-2 px-4 sm:px-6 py-[18px] transition-transform duration-150 hover:-translate-y-0.5"
       style={{ textDecoration: "none", color: "inherit" }}
     >
-      <div style={{ minWidth: 86, display: "flex", justifyContent: "center" }}>
+      <div className="w-full sm:w-auto flex justify-start sm:justify-center" style={{ minWidth: 0 }}>
         <StateBadge status={market.status} locksAt={market.locksAt} size="sm" />
       </div>
 
@@ -63,7 +63,7 @@ function ScoreMarketCard({ market }: { market: MarketSummary }) {
       </div>
 
       {/* Pool + entries */}
-      <div className="flex flex-col items-end gap-0.5" style={{ minWidth: 90 }}>
+      <div className="flex flex-col items-end gap-0.5 shrink-0" style={{ minWidth: 72 }}>
         <span
           style={{
             fontFamily: "'Fraunces', serif",

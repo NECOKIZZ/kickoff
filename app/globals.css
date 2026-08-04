@@ -49,6 +49,9 @@
   --ui-accent-deep: var(--color-new-purple-deep);
   --ui-accent-contrast: #ffffff;
   --ui-accent-2: var(--color-kickoff-green);
+
+  /* Logo is monochrome: pure black on light, pure white on dark. */
+  --logo-mono: #000000;
 }
 
 /* Dark mode — brand green goes with the ink */
@@ -81,6 +84,8 @@
   --ui-accent-deep: var(--color-kickoff-green-deep);
   --ui-accent-contrast: #111210;
   --ui-accent-2: var(--color-new-purple);
+
+  --logo-mono: #ffffff;
 }
 
 @theme inline {

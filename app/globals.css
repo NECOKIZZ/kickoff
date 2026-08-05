@@ -286,6 +286,19 @@
     }
   }
 
+  /* Tall-narrow hero: full-viewport height leaves a dead purple gap between
+     the headline and the players. Size the hero to the image's rendered
+     height (min(500px, 115vw), mirroring the img's cap) + a 250px rider,
+     which pins the image top ~330px from the top: right under the headline.
+     min() with 100svh so the hero never exceeds the actual viewport.
+     Desktop (>900px) keeps the original min-h-screen. */
+  @media (max-width: 900px) {
+    .hero-landing {
+      min-height: min(100vh, calc(min(500px, 115vw) + 250px));
+      min-height: min(100svh, calc(min(500px, 115vw) + 250px));
+    }
+  }
+
   /* Scroll-reveal hidden state. Gated on html.js so content is only ever
      hidden when scripts run — a JS-less render shows every word. The keyframe
      failsafe is for a BLOCKED bundle only: hydration stamps html.hydrated

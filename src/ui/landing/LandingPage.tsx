@@ -85,7 +85,7 @@ function Navbar() {
 function Hero() {
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-start overflow-hidden pt-[80px] pb-[192px]"
+      className="hero-landing relative min-h-screen flex flex-col justify-start overflow-hidden pt-[80px] pb-[192px]"
       style={{ background: "#7b62f6b3" }}
     >
       {/* Background grid texture */}
@@ -1004,11 +1004,15 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <Navbar />
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", overflowX: "clip" }}>
         <Hero />
         {/* Players image centred at the hero/black boundary. bottom compensates
             for the shortened band below so the heads stay halfway down the
-            purple hero — don't re-anchor without re-measuring. */}
+            purple hero — don't re-anchor without re-measuring. Height is capped
+            by viewport width (115vw keeps the natural 1.855 ratio at roughly
+            full-bleed) and maxWidth:none defeats preflight's img max-width:100%,
+            which was squishing the picture on narrow screens. The wrapper's
+            overflow-x clip swallows the side bleed. */}
         <img
           src="/brand/hero-players.webp"
           alt="Footballers mid-play"
@@ -1017,8 +1021,9 @@ export default function LandingPage() {
             bottom: 0,
             left: "50%",
             transform: "translateX(-55%)",
-            height: 500,
+            height: "min(500px, 115vw)",
             width: "auto",
+            maxWidth: "none",
             zIndex: 15,
             pointerEvents: "none",
           }}

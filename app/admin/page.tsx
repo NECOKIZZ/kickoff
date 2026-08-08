@@ -40,6 +40,13 @@ interface AdminMarket {
   playerName: string | null;
   kickoffAt: string;
   locksAt: string;
+  gamma: number;
+  stakeMode: "variable" | "fixed";
+  minStake: string;
+  maxStake: string;
+  fixedStake: string | null;
+  takeRateBps: number;
+  capMultiple: number;
 }
 
 interface AdminEvent {
@@ -320,7 +327,7 @@ function MarketsTab() {
         <SectionTitle>All markets ({data.markets.length})</SectionTitle>
         <div className="flex flex-col gap-2">
           {data.markets.map((m) => (
-            <MarketRow key={m.id} m={m} busy={busy === m.id} onAct={act} />
+            <MarketRow key={m.id} m={m} busy={busy === m.id} onAct={act} onPatched={reload} />
           ))}
         </div>
       </section>
@@ -332,14 +339,33 @@ function MarketRow({
   m,
   busy,
   onAct,
+  onPatched,
 }: {
   m: AdminMarket;
   busy: boolean;
   onAct: (id: number, action: "open" | "settle" | "void", body?: object) => void;
+  onPatched: () => void;
 }) {
   const [home, setHome] = useState("");
   const [away, setAway] = useState("");
   const [points, setPoints] = useState("");
+  const [showEdit, setShowEdit] = useState(false);
+
+  // Edit knob state — seeded from current market values
+  const baseToUsdc = (v: string | bigint | null) => v == null ? "" : String(Number(v) / 1_000_000);
+  const usdcToBase = (v: string) => String(Math.round(Number(v) * 1_000_000));
+
+  const [gamma, setGamma] = useState(String(m.gamma));
+  const [stakeMode, setStakeMode] = useState<"variable" | "fixed">(m.stakeMode);
+  const [minStake, setMinStake] = useState(baseToUsdc(m.minStake));
+  const [maxStake, setMaxStake] = useState(baseToUsdc(m.maxStake));
+  const [fixedStake, setFixedStake] = useState(baseToUsdc(m.fixedStake));
+  const [takeRateBps, setTakeRateBps] = useState(String(m.takeRateBps));
+  const [capMultiple, setCapMultiple] = useState(String(m.capMultiple));
+  const [patchErr, setPatchErr] = useState<string | null>(null);
+  const [patching, setPatching] = useState(false);
+
+  const canEdit = m.status === "draft" || m.status === "open";
 
   const statusColor =
     m.status === "open" || m.status === "locked" ? "var(--ui-accent)"
@@ -347,63 +373,177 @@ function MarketRow({
     : m.status === "void" ? "var(--destructive)"
     : "var(--foreground)";
 
-  return (
-    <div className="glass card-diagonal-sm px-4 py-3 flex flex-wrap items-center gap-3">
-      <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, minWidth: 34 }}>#{m.id}</span>
-      <span
-        style={{
-          fontSize: "0.62rem",
-          fontWeight: 700,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: statusColor,
-          minWidth: 62,
-        }}
-      >
-        {m.status}
-      </span>
-      <span className="flex-1" style={{ fontSize: "0.85rem", fontWeight: 600, minWidth: 200 }}>
-        {m.title}
-        <span style={{ color: "var(--muted-foreground)", fontWeight: 400, marginLeft: 8, fontSize: "0.72rem" }}>
-          {m.kind === "player_points" ? "player" : `GW${m.gameweek ?? "?"}`} · {fmtKickoff(m.kickoffAt)}
-        </span>
-      </span>
+  async function saveKnobs() {
+    if (patching) return;
+    setPatchErr(null);
+    setPatching(true);
+    try {
+      const body: Record<string, unknown> = {
+        gamma: Number(gamma),
+        stakeMode,
+        minStake: usdcToBase(minStake),
+        maxStake: usdcToBase(maxStake),
+        takeRateBps: Number(takeRateBps),
+        capMultiple: Number(capMultiple),
+      };
+      if (stakeMode === "fixed") body.fixedStake = usdcToBase(fixedStake);
+      else body.fixedStake = null;
+      await adminApi(`/api/admin/markets/${m.id}`, { method: "PATCH", body: JSON.stringify(body) });
+      setShowEdit(false);
+      onPatched();
+    } catch (e) {
+      setPatchErr((e as Error).message);
+    } finally {
+      setPatching(false);
+    }
+  }
 
-      {m.status === "draft" && (
-        <ActionBtn disabled={busy} onClick={() => onAct(m.id, "open")}>
-          Open
-        </ActionBtn>
-      )}
-      {(m.status === "open" || m.status === "locked") && (
-        <>
-          {m.kind === "scoreline" ? (
-            <span className="flex items-center gap-1">
-              <MiniInput value={home} onChange={setHome} placeholder="H" width={40} />
-              <MiniInput value={away} onChange={setAway} placeholder="A" width={40} />
-              <ActionBtn
-                disabled={busy || home === "" || away === ""}
-                onClick={() => onAct(m.id, "settle", { home: Number(home), away: Number(away) })}
-              >
-                Settle
-              </ActionBtn>
-            </span>
-          ) : (
-            <span className="flex items-center gap-1">
-              <MiniInput value={points} onChange={setPoints} placeholder="pts" width={56} />
-              <ActionBtn
-                disabled={busy || points === ""}
-                onClick={() => onAct(m.id, "settle", { points: String(Math.round(Number(points) * 1e6)) })}
-              >
-                Settle
-              </ActionBtn>
-            </span>
-          )}
-          <ActionBtn danger disabled={busy} onClick={() => onAct(m.id, "void", { reason: "admin void via dashboard" })}>
-            Void
+  return (
+    <div className="glass card-diagonal-sm px-4 py-3 flex flex-col gap-3">
+      {/* Main row */}
+      <div className="flex flex-wrap items-center gap-3">
+        <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, minWidth: 34 }}>#{m.id}</span>
+        <span style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: statusColor, minWidth: 62 }}>
+          {m.status}
+        </span>
+        <span className="flex-1" style={{ fontSize: "0.85rem", fontWeight: 600, minWidth: 200 }}>
+          {m.title}
+          <span style={{ color: "var(--muted-foreground)", fontWeight: 400, marginLeft: 8, fontSize: "0.72rem" }}>
+            {m.kind === "player_points" ? "player" : `GW${m.gameweek ?? "?"}`} · {fmtKickoff(m.kickoffAt)}
+          </span>
+          <span style={{ color: "var(--muted-foreground)", fontWeight: 400, marginLeft: 8, fontSize: "0.68rem" }}>
+            γ{m.gamma} · {m.stakeMode === "fixed" ? `$${baseToUsdc(m.fixedStake)} fixed` : `$${baseToUsdc(m.minStake)}-$${baseToUsdc(m.maxStake)}`} · {m.takeRateBps / 100}% take
+          </span>
+        </span>
+
+        {canEdit && (
+          <ActionBtn disabled={busy} onClick={() => setShowEdit((v) => !v)}>
+            {showEdit ? "Cancel edit" : "Edit knobs"}
           </ActionBtn>
-        </>
+        )}
+        {m.status === "draft" && (
+          <ActionBtn disabled={busy} onClick={() => onAct(m.id, "open")}>
+            Open
+          </ActionBtn>
+        )}
+        {(m.status === "open" || m.status === "locked") && (
+          <>
+            {m.kind === "scoreline" ? (
+              <span className="flex items-center gap-1">
+                <MiniInput value={home} onChange={setHome} placeholder="H" width={40} />
+                <MiniInput value={away} onChange={setAway} placeholder="A" width={40} />
+                <ActionBtn
+                  disabled={busy || home === "" || away === ""}
+                  onClick={() => onAct(m.id, "settle", { home: Number(home), away: Number(away) })}
+                >
+                  Settle
+                </ActionBtn>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <MiniInput value={points} onChange={setPoints} placeholder="pts" width={56} />
+                <ActionBtn
+                  disabled={busy || points === ""}
+                  onClick={() => onAct(m.id, "settle", { points: String(Math.round(Number(points) * 1e6)) })}
+                >
+                  Settle
+                </ActionBtn>
+              </span>
+            )}
+            <ActionBtn danger disabled={busy} onClick={() => onAct(m.id, "void", { reason: "admin void via dashboard" })}>
+              Void
+            </ActionBtn>
+          </>
+        )}
+      </div>
+
+      {/* Inline knob editor */}
+      {showEdit && canEdit && (
+        <div className="flex flex-col gap-3 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+          <KnobFields
+            gamma={gamma} setGamma={setGamma}
+            stakeMode={stakeMode} setStakeMode={setStakeMode}
+            minStake={minStake} setMinStake={setMinStake}
+            maxStake={maxStake} setMaxStake={setMaxStake}
+            fixedStake={fixedStake} setFixedStake={setFixedStake}
+            takeRateBps={takeRateBps} setTakeRateBps={setTakeRateBps}
+            capMultiple={capMultiple} setCapMultiple={setCapMultiple}
+          />
+          {patchErr && <p style={{ color: "var(--destructive)", fontSize: "0.78rem" }}>{patchErr}</p>}
+          <div>
+            <ActionBtn disabled={patching} onClick={saveKnobs}>
+              {patching ? "Saving…" : "Save knobs"}
+            </ActionBtn>
+          </div>
+        </div>
       )}
     </div>
+  );
+}
+
+function KnobFields({
+  gamma, setGamma,
+  stakeMode, setStakeMode,
+  minStake, setMinStake,
+  maxStake, setMaxStake,
+  fixedStake, setFixedStake,
+  takeRateBps, setTakeRateBps,
+  capMultiple, setCapMultiple,
+}: {
+  gamma: string; setGamma: (v: string) => void;
+  stakeMode: "variable" | "fixed"; setStakeMode: (v: "variable" | "fixed") => void;
+  minStake: string; setMinStake: (v: string) => void;
+  maxStake: string; setMaxStake: (v: string) => void;
+  fixedStake: string; setFixedStake: (v: string) => void;
+  takeRateBps: string; setTakeRateBps: (v: string) => void;
+  capMultiple: string; setCapMultiple: (v: string) => void;
+}) {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        <FormInput label="Gamma (1-12)" value={gamma} onChange={setGamma} placeholder="3" />
+        <FormInput label="Take rate (bps)" value={takeRateBps} onChange={setTakeRateBps} placeholder="1000" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+          Stake mode
+        </span>
+        <div className="flex gap-2">
+          {(["variable", "fixed"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setStakeMode(m)}
+              className="cursor-pointer"
+              style={{
+                fontFamily: "'Clash Display', sans-serif",
+                fontSize: "0.72rem",
+                fontWeight: 600,
+                padding: "5px 14px",
+                borderRadius: 8,
+                border: "1px solid var(--border)",
+                background: stakeMode === m ? "var(--ui-accent)" : "transparent",
+                color: stakeMode === m ? "var(--ui-accent-contrast)" : "var(--muted-foreground)",
+              }}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+      {stakeMode === "variable" ? (
+        <div className="grid grid-cols-3 gap-2">
+          <FormInput label="Min stake (USDC)" value={minStake} onChange={setMinStake} placeholder="1" />
+          <FormInput label="Max stake (USDC)" value={maxStake} onChange={setMaxStake} placeholder="500" />
+          <FormInput label="Cap multiple" value={capMultiple} onChange={setCapMultiple} placeholder="100" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <FormInput label="Fixed stake (USDC)" value={fixedStake} onChange={setFixedStake} placeholder="10" />
+          <FormInput label="Cap multiple" value={capMultiple} onChange={setCapMultiple} placeholder="100" />
+        </div>
+      )}
+    </>
   );
 }
 
@@ -416,8 +556,19 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
   const [playerName, setPlayerName] = useState("");
   const [kickoffAt, setKickoffAt] = useState("");
   const [gameweek, setGameweek] = useState("");
+  // Knobs
+  const [gamma, setGamma] = useState("3");
+  const [stakeMode, setStakeMode] = useState<"variable" | "fixed">("variable");
+  const [minStake, setMinStake] = useState("1");
+  const [maxStake, setMaxStake] = useState("500");
+  const [fixedStake, setFixedStake] = useState("10");
+  const [takeRateBps, setTakeRateBps] = useState("1000");
+  const [capMultiple, setCapMultiple] = useState("100");
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Convert human-readable USDC to base units (6 decimals)
+  const usdcToBase = (v: string) => String(Math.round(Number(v) * 1_000_000));
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -425,7 +576,17 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
     setErr(null);
     setSaving(true);
     try {
-      const body: Record<string, unknown> = { kind, title, kickoffAt: new Date(kickoffAt).toISOString() };
+      const body: Record<string, unknown> = {
+        kind, title,
+        kickoffAt: new Date(kickoffAt).toISOString(),
+        gamma: Number(gamma),
+        stakeMode,
+        minStake: usdcToBase(minStake),
+        maxStake: usdcToBase(maxStake),
+        takeRateBps: Number(takeRateBps),
+        capMultiple: Number(capMultiple),
+      };
+      if (stakeMode === "fixed") body.fixedStake = usdcToBase(fixedStake);
       if (kind === "scoreline") {
         if (homeTeam) body.homeTeam = homeTeam;
         if (awayTeam) body.awayTeam = awayTeam;
@@ -453,7 +614,7 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
   }
 
   return (
-    <form onSubmit={submit} className="glass card-diagonal px-5 py-5 flex flex-col gap-3" style={{ maxWidth: 560 }}>
+    <form onSubmit={submit} className="glass card-diagonal px-5 py-5 flex flex-col gap-3" style={{ maxWidth: 600 }}>
       <div className="flex items-center gap-2">
         {(["scoreline", "player_points"] as const).map((k) => (
           <button
@@ -487,6 +648,18 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
         <FormInput label="Player name" value={playerName} onChange={setPlayerName} placeholder="Erling Haaland" required />
       )}
       <FormInput label="Kickoff (local)" value={kickoffAt} onChange={setKickoffAt} type="datetime-local" required />
+      <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted-foreground)", marginTop: 4 }}>
+        Market knobs
+      </p>
+      <KnobFields
+        gamma={gamma} setGamma={setGamma}
+        stakeMode={stakeMode} setStakeMode={setStakeMode}
+        minStake={minStake} setMinStake={setMinStake}
+        maxStake={maxStake} setMaxStake={setMaxStake}
+        fixedStake={fixedStake} setFixedStake={setFixedStake}
+        takeRateBps={takeRateBps} setTakeRateBps={setTakeRateBps}
+        capMultiple={capMultiple} setCapMultiple={setCapMultiple}
+      />
       {err && <p style={{ color: "var(--destructive)", fontSize: "0.78rem" }}>{err}</p>}
       <div className="flex items-center gap-3">
         <Button3D color="accent" size="sm" type="submit" disabled={saving}>
@@ -496,9 +669,6 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
           Cancel
         </button>
       </div>
-      <p style={{ fontSize: "0.7rem", color: "var(--muted-foreground)" }}>
-        Created as draft with default knobs (γ3 · variable $1 to $500 · 10% take). Open it from the list when ready.
-      </p>
     </form>
   );
 }

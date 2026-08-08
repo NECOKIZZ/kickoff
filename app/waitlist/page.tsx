@@ -65,7 +65,7 @@ export default function WaitlistPage() {
         setCodeErr(b?.error ?? "code invalid or already used");
         return;
       }
-      router.push("/markets");
+      window.location.href = "/markets";
     } catch {
       setCodeErr("network error, try again");
     } finally {

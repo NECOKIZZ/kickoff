@@ -924,7 +924,7 @@ function ClubMarquee() {
 function Footer() {
   // Product links go to real pages; Company/Legal pages don't exist yet, so
   // those entries render as plain text instead of dead "#" links.
-  const cols: { heading: string; links: { label: string; href?: string }[] }[] = [
+  const cols: { heading: string; links: { label: string; href?: string; download?: boolean }[] }[] = [
     {
       heading: "Product",
       links: [
@@ -934,7 +934,7 @@ function Footer() {
         { label: "Leaderboard", href: "/leaderboard" },
       ],
     },
-    { heading: "Company", links: [{ label: "About" }, { label: "Blog" }, { label: "Careers" }, { label: "Press" }, { label: "Contact" }] },
+    { heading: "Company", links: [{ label: "About" }, { label: "Blog" }, { label: "Careers" }, { label: "Press" }, { label: "Brand Book", href: "/kickoff_brand_book.pdf", download: true }, { label: "Contact" }] },
     { heading: "Legal", links: [{ label: "Privacy Policy" }, { label: "Terms of Service" }, { label: "Cookie Policy" }, { label: "Responsible Play" }] },
   ];
 
@@ -966,6 +966,7 @@ function Footer() {
                   {l.href ? (
                     <a
                       href={l.href}
+                      {...(l.download ? { download: true } : {})}
                       style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)", textDecoration: "none", transition: "color 0.15s" }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}

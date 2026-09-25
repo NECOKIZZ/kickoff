@@ -51,6 +51,7 @@ interface AdminMarket {
   positionCount: number;
   distinctGuesses: number;
   voidReason: string | null;
+  dataFixtureId: string | null;
   escrowAddress: string | null;
   onChainMarketId: string | null;
 }
@@ -408,6 +409,29 @@ function MarketsTab() {
   const { data, error, reload } = useAdminData<{ markets: AdminMarket[] }>("/api/admin/markets");
   const [busy, setBusy] = useState<number | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [listing, setListing] = useState(false);
+
+  // Same run the daily cron does: lists + opens every upcoming fixture that
+  // has no market, voids markets whose fixture was postponed/moved earlier.
+  async function runListing() {
+    setListing(true);
+    setNote(null);
+    try {
+      const r = await adminApi<{ listed: unknown[]; voided: unknown[]; deletedDrafts: unknown[]; skipped: number; errors: { fixtureId: string; error: string }[] }>(
+        "/api/admin/listing/run",
+        { method: "POST" },
+      );
+      setNote(
+        `listing agent: ${r.listed.length} listed, ${r.voided.length} voided, ${r.deletedDrafts.length} drafts removed, ${r.skipped} already listed/out of window` +
+          (r.errors.length ? `, ${r.errors.length} error(s): ${r.errors.map((e) => `${e.fixtureId}: ${e.error}`).join("; ")}` : ""),
+      );
+      reload();
+    } catch (e) {
+      setNote(`listing agent failed: ${(e as Error).message}`);
+    } finally {
+      setListing(false);
+    }
+  }
 
   const act = useCallback(
     async (id: number, action: "open" | "settle" | "void" | "delete", body?: object) => {
@@ -456,7 +480,15 @@ function MarketsTab() {
 
   return (
     <div className="flex flex-col gap-8">
-      <CreateMarketForm onCreated={reload} />
+      <div className="flex flex-wrap items-start gap-3">
+        <CreateMarketForm
+          onCreated={reload}
+          listed={new Set(data.markets.filter((m) => m.status !== "void" && m.dataFixtureId).map((m) => m.dataFixtureId!))}
+        />
+        <ActionBtn disabled={listing} onClick={runListing}>
+          {listing ? "Listing…" : "Run listing agent now"}
+        </ActionBtn>
+      </div>
 
       {note && <p style={{ fontSize: "0.8rem", color: "var(--ui-accent)" }}>{note}</p>}
 
@@ -706,18 +738,28 @@ function KnobFields({
   );
 }
 
-function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
+interface UpcomingFixture {
+  fixtureId: string;
+  kickoffAt: string;
+  status: string;
+  homeTeam: string;
+  awayTeam: string;
+}
+
+function CreateMarketForm({ onCreated, listed }: { onCreated: () => void; listed: Set<string> }) {
   const [openForm, setOpenForm] = useState(false);
   const [kind, setKind] = useState<"scoreline" | "player_points">("scoreline");
+  // Score markets are picked from kickoff-data's fixture list, never typed:
+  // the server fills teams/kickoff/gameweek and refuses a second live market.
+  const [fixtures, setFixtures] = useState<UpcomingFixture[] | null>(null);
+  const [fixtureErr, setFixtureErr] = useState<string | null>(null);
+  const [fixtureId, setFixtureId] = useState("");
   const [title, setTitle] = useState("");
-  const [homeTeam, setHomeTeam] = useState("");
-  const [awayTeam, setAwayTeam] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [kickoffAt, setKickoffAt] = useState("");
-  const [gameweek, setGameweek] = useState("");
   // Knobs
   const [gamma, setGamma] = useState("3");
-  const [stakeMode, setStakeMode] = useState<"variable" | "fixed">("variable");
+  const [stakeMode, setStakeMode] = useState<"variable" | "fixed">("fixed");
   const [minStake, setMinStake] = useState("1");
   const [maxStake, setMaxStake] = useState("500");
   const [fixedStake, setFixedStake] = useState("10");
@@ -729,6 +771,21 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
   // Convert human-readable USDC to base units (6 decimals)
   const usdcToBase = (v: string) => String(Math.round(Number(v) * 1_000_000));
 
+  useEffect(() => {
+    if (!openForm || kind !== "scoreline" || fixtures !== null) return;
+    const from = new Date().toISOString().slice(0, 10);
+    const to = new Date(Date.now() + 21 * 24 * 3600_000).toISOString().slice(0, 10);
+    fetch(`/api/fixtures?from=${from}&to=${to}`)
+      .then((r) => r.json())
+      .then((d: { fixtures?: UpcomingFixture[]; error?: string }) => {
+        if (d.error) throw new Error(d.error);
+        setFixtures((d.fixtures ?? []).filter((f) => f.status === "scheduled" && Date.parse(f.kickoffAt) > Date.now()));
+      })
+      .catch((e) => setFixtureErr((e as Error).message));
+  }, [openForm, kind, fixtures]);
+
+  const available = (fixtures ?? []).filter((f) => !listed.has(f.fixtureId));
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (saving) return;
@@ -736,8 +793,7 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
     setSaving(true);
     try {
       const body: Record<string, unknown> = {
-        kind, title,
-        kickoffAt: new Date(kickoffAt).toISOString(),
+        kind,
         gamma: Number(gamma),
         stakeMode,
         minStake: usdcToBase(minStake),
@@ -747,14 +803,14 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
       };
       if (stakeMode === "fixed") body.fixedStake = usdcToBase(fixedStake);
       if (kind === "scoreline") {
-        if (homeTeam) body.homeTeam = homeTeam;
-        if (awayTeam) body.awayTeam = awayTeam;
-        if (gameweek) body.gameweek = Number(gameweek);
+        body.dataFixtureId = fixtureId;
       } else {
+        body.title = title;
+        body.kickoffAt = new Date(kickoffAt).toISOString();
         body.playerName = playerName;
       }
       await adminApi("/api/admin/markets", { method: "POST", body: JSON.stringify(body) });
-      setTitle(""); setHomeTeam(""); setAwayTeam(""); setPlayerName(""); setKickoffAt(""); setGameweek("");
+      setTitle(""); setPlayerName(""); setKickoffAt(""); setFixtureId(""); setFixtures(null);
       setOpenForm(false);
       onCreated();
     } catch (e2) {
@@ -796,17 +852,37 @@ function CreateMarketForm({ onCreated }: { onCreated: () => void }) {
           </button>
         ))}
       </div>
-      <FormInput label="Title" value={title} onChange={setTitle} placeholder="Arsenal vs Chelsea final score" required />
       {kind === "scoreline" ? (
-        <div className="grid grid-cols-3 gap-2">
-          <FormInput label="Home team" value={homeTeam} onChange={setHomeTeam} placeholder="Arsenal" />
-          <FormInput label="Away team" value={awayTeam} onChange={setAwayTeam} placeholder="Chelsea" />
-          <FormInput label="Gameweek" value={gameweek} onChange={setGameweek} placeholder="auto" />
-        </div>
+        <label className="flex flex-col gap-1">
+          <span style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+            Fixture (EPL, from kickoff-data)
+          </span>
+          <select
+            value={fixtureId}
+            onChange={(e) => setFixtureId(e.target.value)}
+            required
+            style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--foreground)", fontSize: "0.85rem" }}
+          >
+            <option value="">
+              {fixtureErr ? `Couldn't load fixtures: ${fixtureErr}` : fixtures === null ? "Loading fixtures…" : available.length ? "Pick a fixture" : "Every upcoming fixture is already listed"}
+            </option>
+            {available.map((f) => (
+              <option key={f.fixtureId} value={f.fixtureId}>
+                {fmtKickoff(f.kickoffAt)} · {f.homeTeam} vs {f.awayTeam}
+              </option>
+            ))}
+          </select>
+          <span style={{ fontSize: "0.7rem", color: "var(--muted-foreground)" }}>
+            Teams, kickoff and gameweek come from the fixture. Already-listed fixtures are hidden.
+          </span>
+        </label>
       ) : (
-        <FormInput label="Player name" value={playerName} onChange={setPlayerName} placeholder="Erling Haaland" required />
+        <>
+          <FormInput label="Title" value={title} onChange={setTitle} placeholder="Erling Haaland points" required />
+          <FormInput label="Player name" value={playerName} onChange={setPlayerName} placeholder="Erling Haaland" required />
+          <FormInput label="Kickoff (local)" value={kickoffAt} onChange={setKickoffAt} type="datetime-local" required />
+        </>
       )}
-      <FormInput label="Kickoff (local)" value={kickoffAt} onChange={setKickoffAt} type="datetime-local" required />
       <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted-foreground)", marginTop: 4 }}>
         Market knobs
       </p>

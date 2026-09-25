@@ -26,14 +26,27 @@ worker that polls every 30s).
 is switched off instead of serving recorded payloads, so test data can never
 reach this database. The worker's startup log lists `disabledSources`.
 
-**Source roles** (`src/sources.ts`), set in the Blueprint: FPL is the only
-source for now. `KICKOFF_DATA_LISTING_SOURCES=fpl` lets FPL create fixtures
-(and follow reschedules/status); `KICKOFF_DATA_SETTLEMENT_VOTERS=fpl` +
-`KICKOFF_DATA_SETTLEMENT_QUORUM=1` settles on FPL's full-time score after the
-15-min finality window. To add a cross-check source: set its key, then e.g.
-`VOTERS=fpl,fdorg`, `QUORUM=2`. A roster that can never reach quorum fails
-at boot. Only matches kicked off in the last 48h get a settlement vote, so
-the season backfill doesn't open snapshots for old results.
+**Source roles** (`src/sources.ts`, set in the Blueprint). Today FPL is the
+only source: `KICKOFF_DATA_LISTING_SOURCES=fpl` lets it create fixtures (and
+follow reschedules/status); `KICKOFF_DATA_SETTLEMENT_VOTERS=fpl` +
+`KICKOFF_DATA_SETTLEMENT_QUORUM=1` settles on its full-time score.
+`KICKOFF_DATA_FINALITY_DELAY_SECONDS=0`: a result freezes the moment quorum
+is reached. With one voter that means a wrong full-time score is final, so
+before real money add a second fast source and set `QUORUM=2`: agreement,
+not waiting, is the safety net (disagreement waits for a tie-break/admin).
+Adding a source = its key + the roster vars. A roster that can never reach
+quorum fails at boot. Only matches kicked off in the last 48h get a vote.
+
+**Rate limits.** Every source client backs off on HTTP 429 (retried next
+tick), and every polling cadence is an env var
+`KICKOFF_DATA_CADENCE_<NAME>_SECONDS` (names in `src/scheduler/cadence.ts`).
+
+| Source | Limit | Knobs |
+|---|---|---|
+| FPL | none published, be polite | `FPL_LIVE_POLL` (60s in the Blueprint), `FPL_POST_MATCH`, `FPL_BOOTSTRAP_SYNC` |
+| API-Football | 100/day free (paid plans more) | `KICKOFF_DATA_S1_DAILY_LIMIT` = your plan's cap; S1 cadences; 15 requests always reserved for settlement |
+| football-data.org | 10/min free, scores delayed (live = paid tier) | `S2_FIXTURE_SYNC`, `S2_SETTLEMENT_DELAY` |
+| Flashscore (Apify) | pay per run | `S3_*` cadences |
 
 Free-tier limits: one service's worth of instance hours (don't add a second
 free service), ~1 min down per deploy/restart (the loop resumes from the DB).

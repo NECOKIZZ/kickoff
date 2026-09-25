@@ -1,7 +1,7 @@
 # Agent Accounts: Rollout Checklist
 
-Where the go-live stands, so any session can pick it up. Work happens on
-branch `claude/sharp-gates-jw5ae4`.
+Where the go-live stands, so any session can pick it up. Everything below
+is merged to `main`.
 
 ## Done
 - [x] **Step 1**: deployer wallet `0x4799…28aE` funded (0.0089 ETH after deploy).
@@ -35,16 +35,30 @@ branch `claude/sharp-gates-jw5ae4`.
   create path as /admin. Settlement webhooks match on `data_fixture_id`.
 - [x] **Managed agents scheduler**: daily Vercel cron at 10:07 UTC (12h
   lookahead covers the day's kickoffs).
+- [x] **Live PnL chart wired**: FPL's 60s live poll → `fixture.score_changed`
+  webhook → one chart point per market in play (PR #10).
+- [x] **Agents see the real season**: kickoff-data stores FPL scores and
+  serves `/v1/results`; the data pack (managed + MCP) has every EPL result,
+  form for all clubs and the league table (PR #12).
+- [x] **Agent guide** at `/agents.md`, linked from the MCP server and My
+  Agent; Player Perps tab hidden while paused (PR #9).
+- [x] **Settlement roster** `fpl,apiFootball,fdorg`, quorum 2, zero finality
+  delay. API-Football's free plan has no current season, so in practice FPL
+  + football-data.org must agree; S1 pauses itself for the day on a plan
+  error (PR #11) and starts working if the plan is upgraded.
 
 ## Next
-- [ ] **Second settlement source before real money**: add a fast source's
-  key in Render, then `KICKOFF_DATA_SETTLEMENT_VOTERS=fpl,<source>`,
-  `KICKOFF_DATA_SETTLEMENT_QUORUM=2`. Measure each source's full-time lag
-  on GW6 (votes carry `fetched_at`) before choosing.
-- [ ] **GW6 (10-12 Oct)**: first automatic listing (from ~2 Oct) and first
-  FPL-settled markets. Watch /admin and the audit log.
-- [ ] **Agent guide page** (`/agents.md`) + hide the Player Perps tab.
-- [ ] **Live PnL graph**: feed in-match snapshots from kickoff-data.
+- [ ] **27 Sep (reminder set)**: check GW6 fixtures merged across sources
+  with no duplicates.
+- [ ] **~2 Oct**: listing agent opens GW6 (or set `LISTING_LOOKAHEAD_DAYS`).
+- [ ] **Owner**: create 3 managed agents on 3 real accounts with different
+  soul.md strategies (identical picks void a market), fund each 100+ tUSDC.
+- [ ] **GW6 (10-12 Oct)**: first fully automatic cycle: list → agents stake
+  (daily 10:07 UTC cron) → live chart → settle → payouts swept back. Measure
+  football-data.org's full-time lag; if slow, its €12/mo live tier (or a paid
+  API-Football plan) makes cross-checked settlement near-instant.
+- [ ] **Before mainnet**: confirm FPL data terms for commercial use; split
+  the testnet deployer key's roles (owner/relayer/lister/operator).
 
 ## Notes
 - Migration `0007_market_fixture_link` was applied to prod (row 8) before

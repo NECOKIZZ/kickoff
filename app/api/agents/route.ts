@@ -4,7 +4,7 @@ import { verifyCaller } from "@/lib/auth";
 import { verifyInviteFromRequest } from "@/lib/inviteGate";
 import { logAdminEvent } from "@/lib/admin";
 import { agentAddressOf, linkTypedData, validateAgentName } from "@/lib/agentLink";
-import { LINK_VAULT, agentOfOwner, publicAgent, validateSoulMd } from "@/lib/agents";
+import { LINK_VAULT, agentNameTaken, agentOfOwner, publicAgent, validateSoulMd } from "@/lib/agents";
 import { registerAgentOnChain } from "@/lib/chain";
 import { robinhoodTestnet } from "@/lib/chainConfig";
 import { recoverTypedDataAddress, type Hex } from "viem";
@@ -49,6 +49,7 @@ export async function POST(req: Request) {
     return jsonError("signature required", 400);
 
   if (await agentOfOwner(caller.userId)) return jsonError("you already have an agent (one per person)", 409);
+  if (await agentNameTaken(name)) return jsonError("that agent name is taken", 409);
 
   // Check the signature here too, so a bad one never costs operator gas.
   const human = caller.address as Hex;

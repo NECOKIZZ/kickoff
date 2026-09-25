@@ -69,6 +69,8 @@ export const agentVaultAbi = parseAbi([
   "function setPaused(address agent, bool paused)",
   "function stake(address agent, uint256 marketId, uint32 guessA, uint32 guessB)",
   "function claim(address agent, uint256 marketId) returns (uint256)",
+  "function stakingHalted() view returns (bool)",
+  "function setStakingHalted(bool halted)",
   "event AgentRegistered(address indexed owner, address indexed agent)",
   "event AgentStaked(address indexed agent, uint256 indexed marketId, uint32 guessA, uint32 guessB, uint256 amount)",
 ]);

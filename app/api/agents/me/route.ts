@@ -3,7 +3,7 @@ import { json, jsonError } from "@/lib/http";
 import { verifyCaller } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
 import { agentAddressOf, linkTypedData, validateAgentName } from "@/lib/agentLink";
-import { LINK_VAULT, agentOfOwner, publicAgent, validateSoulMd } from "@/lib/agents";
+import { LINK_VAULT, agentNameTaken, agentOfOwner, publicAgent, validateSoulMd } from "@/lib/agents";
 import { AGENTS_ON_CHAIN, agentVaultState } from "@/lib/chain";
 import { robinhoodTestnet } from "@/lib/chainConfig";
 import { eq } from "drizzle-orm";
@@ -56,6 +56,7 @@ export async function PATCH(req: Request) {
     const e = validateAgentName(b.name);
     if (e) return jsonError(e, 400);
     patch.name = (b.name as string).trim();
+    if (await agentNameTaken(patch.name, agent.id)) return jsonError("that agent name is taken", 409);
   }
   if (b.mode !== undefined) {
     if (b.mode !== "byok" && b.mode !== "managed") return jsonError("mode must be 'byok' or 'managed'", 400);

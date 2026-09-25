@@ -27,6 +27,15 @@ import { log } from "./log";
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
 
 const lastRun = new Map<string, Date>();
+// Failed jobs wait this long before retrying (per job key). Without it a vote
+// job whose source isn't at FT yet retries every tick, and on API-Football
+// every retry spends the daily budget. 0 = retry every tick (old behavior).
+const RETRY_BACKOFF_MS = Number(process.env.KICKOFF_DATA_RETRY_BACKOFF_SECONDS ?? 0) * 1000;
+const failedAt = new Map<string, Date>();
+const backingOff = (key: string, now: Date) => {
+  const at = failedAt.get(key);
+  return at !== undefined && now.getTime() - at.getTime() < RETRY_BACKOFF_MS;
+};
 const startedAt = new Date();
 
 async function heartbeat(now: Date, jobsRun: number): Promise<void> {
@@ -71,8 +80,8 @@ async function tick(): Promise<number> {
 
   // Sources switched off by KICKOFF_DATA_NO_MOCKS never run (and never count
   // as failures); lastRun stays unset so they start the moment a key lands.
-  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining, gameweeks }).filter((j) =>
-    jobEnabled(j.kind),
+  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining, gameweeks }).filter(
+    (j) => jobEnabled(j.kind) && !backingOff(jobKey(j), now),
   );
   let jobsRun = 0;
 
@@ -100,8 +109,10 @@ async function tick(): Promise<number> {
       await runner(job, now);
       lastRun.set(key, now);
       jobsRun++;
+      failedAt.delete(key);
       log.info("worker", "job ok", { job: key });
     } catch (e) {
+      failedAt.set(key, now);
       log.error("worker", "job failed", { job: key, error: e as Error });
     }
   }

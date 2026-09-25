@@ -36,7 +36,8 @@ export async function upsertFixture(
 ): Promise<string> {
   const kickoff = new Date(fixture.kickoff_utc);
 
-  // Candidate rows for reconciliation: same teams, kickoff within tolerance.
+  // Candidate rows for reconciliation: same league, kickoff within tolerance
+  // (a handful of rows); resolveFixtureId decides whether the clubs match.
   const windowStart = new Date(kickoff.getTime() - KICKOFF_TOLERANCE_MS);
   const windowEnd = new Date(kickoff.getTime() + KICKOFF_TOLERANCE_MS);
   const candidates = await db
@@ -51,8 +52,6 @@ export async function upsertFixture(
     .where(
       and(
         eq(schema.fixtures.league, fixture.league),
-        eq(schema.fixtures.homeSlug, fixture.home.slug),
-        eq(schema.fixtures.awaySlug, fixture.away.slug),
         gte(schema.fixtures.kickoffUtc, windowStart),
         lte(schema.fixtures.kickoffUtc, windowEnd),
       ),
@@ -67,6 +66,15 @@ export async function upsertFixture(
   );
 
   const id = resolved ?? fixture.id;
+  const match = resolved ? candidates.find((c) => c.id === resolved) : undefined;
+  if (match && (match.homeSlug !== fixture.home.slug || match.awaySlug !== fixture.away.slug)) {
+    // Matched on a Town/City-style naming variant: fine, but add the alias.
+    log.warn("ingest", "fixture matched across club-name variants, add an alias", {
+      fixtureId: resolved,
+      known: `${match.homeSlug} v ${match.awaySlug}`,
+      incoming: `${fixture.home.slug} v ${fixture.away.slug}`,
+    });
+  }
   const needsReview = opts.statusUnknown === true;
 
   // Old status for the status_changed hook — one cheap PK read per upsert.

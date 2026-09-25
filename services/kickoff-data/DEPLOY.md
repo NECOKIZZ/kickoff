@@ -26,6 +26,15 @@ worker that polls every 30s).
 is switched off instead of serving recorded payloads, so test data can never
 reach this database. The worker's startup log lists `disabledSources`.
 
+**Source roles** (`src/sources.ts`), set in the Blueprint: FPL is the only
+source for now. `KICKOFF_DATA_LISTING_SOURCES=fpl` lets FPL create fixtures
+(and follow reschedules/status); `KICKOFF_DATA_SETTLEMENT_VOTERS=fpl` +
+`KICKOFF_DATA_SETTLEMENT_QUORUM=1` settles on FPL's full-time score after the
+15-min finality window. To add a cross-check source: set its key, then e.g.
+`VOTERS=fpl,fdorg`, `QUORUM=2`. A roster that can never reach quorum fails
+at boot. Only matches kicked off in the last 48h get a settlement vote, so
+the season backfill doesn't open snapshots for old results.
+
 Free-tier limits: one service's worth of instance hours (don't add a second
 free service), ~1 min down per deploy/restart (the loop resumes from the DB).
 Upgrade path: Render Starter, no code change.

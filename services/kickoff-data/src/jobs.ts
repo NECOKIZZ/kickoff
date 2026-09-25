@@ -43,6 +43,7 @@ import {
   upsertFplPoints,
   mapS1Players,
   loadFplPlayerMap,
+  applyFplRoles,
 } from "./fplIngest";
 import { recordVote, markDisputed } from "./settlementLane";
 import {
@@ -233,6 +234,7 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
     // here (it's one request and covers gw reassignments/postponements).
     const fx = await getFplFixtures();
     await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
+    await applyFplRoles(fx, b, season, now);
     await mapS1Players(season); // refresh element→S1 map (cross-check input)
   },
 
@@ -243,6 +245,7 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
     const season = seasonFor(now);
     const fx = await getFplFixtures(job.gw);
     await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
+    await applyFplRoles(fx, b, season, now);
   },
 
   /** Live points for one gameweek — a single call covers every player.
@@ -257,6 +260,7 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
     const b = await getBootstrap();
     const fx = await getFplFixtures(job.gw);
     await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
+    await applyFplRoles(fx, b, season, now);
     // Keep the gameweek's finished/data_checked flags fresh too — the sweep
     // reads them and bootstrapSync may be hours away.
     await upsertGameweeks(normalizeFplGameweeks(b, season));

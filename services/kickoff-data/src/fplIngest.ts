@@ -1,17 +1,23 @@
 // FPL ingest — writes normalized FPL entities into the fpl_* tables. Kept
 // separate from ingest.ts so the scoreline/Market-B lanes stay untouched.
 //
-// Fixture reconciliation is ATTACH-ONLY: an FPL fixture that matches a
-// canonical fixture (league EPL, kickoff ±5min, team slugs) gets
+// Fixture reconciliation is ATTACH-ONLY by default: an FPL fixture that
+// matches a canonical fixture (league EPL, kickoff ±5min, team slugs) gets
 // canonical_fixture_id set and {fpl: id} merged into fixtures.source_refs.
-// No match → needs_review, never guessed — and NEVER a new canonical fixture
-// (S1/S2 own listing; FPL fixtures exist to gate liveness and finality).
+// No match → needs_review, never guessed. When FPL is configured as a
+// listing source and/or settlement voter (sources.ts), applyFplRoles() below
+// additionally creates canonical fixtures and casts FPL's settlement vote.
 
-import { and, eq, gte, isNull, lte, sql } from "drizzle-orm";
-import type { Gameweek, PlayerGwPoints } from "@kickoff/schema";
+import { and, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
+import type { FixtureStatus, Gameweek, PlayerGwPoints } from "@kickoff/schema";
+import type { FplBootstrap, FplFixture } from "./fpl";
 import type { FplPlayerRow, FplFixtureRow } from "./normalize/fpl";
 import { db, schema } from "./db";
-import { KICKOFF_TOLERANCE_MS } from "./identity";
+import { KICKOFF_TOLERANCE_MS, canonicalFixtureId } from "./identity";
+import { teamSlug } from "./footballDataOrg";
+import { upsertFixture, followSourceState } from "./ingest";
+import { recordVote } from "./settlementLane";
+import { listsFixtures, votesInSettlement } from "./sources";
 import { log } from "./log";
 
 export async function upsertGameweeks(rows: Gameweek[]): Promise<void> {
@@ -133,6 +139,73 @@ export async function upsertFplFixtures(rows: FplFixtureRow[]): Promise<void> {
         home: f.homeSlug,
         away: f.awaySlug,
       });
+    }
+  }
+}
+
+/** FPL has no half-time or abandonment flags: scheduled → live → ft. */
+function fplStatus(f: FplFixture): FixtureStatus {
+  if (!f.kickoff_time) return "postponed"; // FPL clears kickoff (and gw) when a match is postponed
+  if (f.finished_provisional) return "ft";
+  if (f.started) return "live";
+  return "scheduled";
+}
+
+/** Only matches this recent get a settlement vote: a season backfill must not
+ *  open snapshots (and settlement webhooks) for long-finished fixtures. */
+const VOTE_WINDOW_MS = 48 * 3600_000;
+
+/**
+ * FPL's optional roles, run after upsertFplFixtures (so attachment is known):
+ *  - listing (KICKOFF_DATA_LISTING_SOURCES has "fpl"): fixtures no other
+ *    source listed become canonical fixtures; ones FPL is attached to follow
+ *    its kickoff and status.
+ *  - settlement (KICKOFF_DATA_SETTLEMENT_VOTERS has "fpl"): the score at
+ *    finished_provisional (full time) is FPL's vote.
+ */
+export async function applyFplRoles(fx: FplFixture[], b: FplBootstrap, season: number, now: Date): Promise<void> {
+  const lists = listsFixtures("fpl");
+  const votes = votesInSettlement("fpl");
+  if ((!lists && !votes) || fx.length === 0) return;
+
+  const names = new Map(b.teams.map((t) => [t.id, t.name]));
+  const rows = await db
+    .select({ fplId: schema.fplFixtures.fplId, canonicalId: schema.fplFixtures.canonicalFixtureId })
+    .from(schema.fplFixtures)
+    .where(and(eq(schema.fplFixtures.season, season), inArray(schema.fplFixtures.fplId, fx.map((f) => f.id))));
+  const attached = new Map(rows.map((r) => [r.fplId, r.canonicalId]));
+
+  for (const f of fx) {
+    let id = attached.get(f.id) ?? null;
+    const status = fplStatus(f);
+
+    if (lists) {
+      if (id === null && f.kickoff_time) {
+        const home = names.get(f.team_h);
+        const away = names.get(f.team_a);
+        if (!home || !away) continue;
+        id = await upsertFixture({
+          id: canonicalFixtureId("EPL", new Date(f.kickoff_time), home, away),
+          league: "EPL",
+          season,
+          kickoff_utc: f.kickoff_time,
+          home: { slug: teamSlug(home), name: home },
+          away: { slug: teamSlug(away), name: away },
+          status,
+          source_refs: { fpl: f.id },
+        });
+        await db
+          .update(schema.fplFixtures)
+          .set({ canonicalFixtureId: id, needsReview: false, updatedAt: sql`now()` })
+          .where(and(eq(schema.fplFixtures.season, season), eq(schema.fplFixtures.fplId, f.id)));
+      } else if (id !== null) {
+        await followSourceState(id, { status, kickoffUtc: f.kickoff_time ? new Date(f.kickoff_time) : null });
+      }
+    }
+
+    const recent = f.kickoff_time !== null && now.getTime() - Date.parse(f.kickoff_time) <= VOTE_WINDOW_MS;
+    if (votes && id !== null && recent && f.finished_provisional && f.team_h_score !== null && f.team_a_score !== null) {
+      await recordVote(id, "fpl", { home: f.team_h_score, away: f.team_a_score }, now, { skipIfUnchanged: true });
     }
   }
 }

@@ -35,3 +35,40 @@ describe("KICKOFF_DATA_NO_MOCKS guard", () => {
     expect(() => fixturesDir()).toThrow(/mock payloads are disabled/);
   });
 });
+
+describe("source roles config", () => {
+  it("defaults: S1/S2 list and vote, FPL does neither, engine default roster", async () => {
+    const { listsFixtures, votesInSettlement, settlementRoster } = await import("../src/sources");
+    vi.stubEnv("KICKOFF_DATA_LISTING_SOURCES", "");
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_VOTERS", "");
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_QUORUM", "");
+    expect(listsFixtures("fdorg")).toBe(true);
+    expect(listsFixtures("fpl")).toBe(false);
+    expect(votesInSettlement("apiFootball")).toBe(true);
+    expect(votesInSettlement("fpl")).toBe(false);
+    expect(settlementRoster()).toEqual({});
+  });
+
+  it("FPL as the one source", async () => {
+    const { listsFixtures, votesInSettlement, settlementRoster } = await import("../src/sources");
+    vi.stubEnv("KICKOFF_DATA_LISTING_SOURCES", "fpl");
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_VOTERS", "fpl");
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_QUORUM", "1");
+    expect(listsFixtures("fpl")).toBe(true);
+    expect(votesInSettlement("fpl")).toBe(true);
+    expect(votesInSettlement("apiFootball")).toBe(false);
+    expect(settlementRoster()).toEqual({ voters: ["fpl"], quorum: 1 });
+  });
+
+  it("refuses configs that could never settle or name unknown sources", async () => {
+    const { settlementRoster } = await import("../src/sources");
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_VOTERS", "fpl");
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_QUORUM", "");
+    expect(() => settlementRoster()).toThrow(/QUORUM=1/);
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_QUORUM", "2");
+    expect(() => settlementRoster()).toThrow(/exceeds/);
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_VOTERS", "fpl,espn");
+    vi.stubEnv("KICKOFF_DATA_SETTLEMENT_QUORUM", "1");
+    expect(() => settlementRoster()).toThrow(/unknown source "espn"/);
+  });
+});

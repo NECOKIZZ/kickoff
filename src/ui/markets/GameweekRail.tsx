@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { fmtUsdc, fmtKickoff, type MarketSummary } from "@/ui/clientApi";
 import { StateBadge, StateDot, stateOf, type MarketStateKey } from "@/ui/markets/StateBadge";
+import { crestUrl } from "@/ui/markets/clubs";
 
 /**
  * Gameweek batching for score markets — FPL-style. A horizontal rail of GW
@@ -19,6 +20,27 @@ function gwState(markets: MarketSummary[]): MarketStateKey {
   return "finished";
 }
 
+function TeamCell({ name }: { name: string }) {
+  const crest = crestUrl(name);
+  return (
+    <div className="flex-1 flex flex-col items-center gap-1" style={{ minWidth: 0 }}>
+      {crest && (
+        <img
+          src={crest}
+          alt=""
+          width={32}
+          height={32}
+          style={{ objectFit: "contain" }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      )}
+      <span style={{ fontSize: "0.82rem", fontWeight: 600, textAlign: "center" }}>{name}</span>
+    </div>
+  );
+}
+
 function ScoreMarketCard({ market }: { market: MarketSummary }) {
   const settled = market.status === "settled" && market.actual;
   return (
@@ -31,12 +53,7 @@ function ScoreMarketCard({ market }: { market: MarketSummary }) {
         <StateBadge status={market.status} locksAt={market.locksAt} size="sm" />
       </div>
 
-      {/* Home */}
-      <div className="flex-1 flex flex-col items-center gap-1">
-        <span style={{ fontSize: "0.82rem", fontWeight: 600, textAlign: "center" }}>
-          {market.homeTeam ?? "Home"}
-        </span>
-      </div>
+      <TeamCell name={market.homeTeam ?? "Home"} />
 
       {/* Score / vs */}
       <div className="flex items-center gap-2.5 px-2">
@@ -55,12 +72,7 @@ function ScoreMarketCard({ market }: { market: MarketSummary }) {
         )}
       </div>
 
-      {/* Away */}
-      <div className="flex-1 flex flex-col items-center gap-1">
-        <span style={{ fontSize: "0.82rem", fontWeight: 600, textAlign: "center" }}>
-          {market.awayTeam ?? "Away"}
-        </span>
-      </div>
+      <TeamCell name={market.awayTeam ?? "Away"} />
 
       {/* Pool + entries */}
       <div className="flex flex-col items-end gap-0.5 shrink-0" style={{ minWidth: 72 }}>

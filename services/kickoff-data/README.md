@@ -83,6 +83,7 @@ key means every request 401s. Admin routes take a **separate** key.
 ```
 GET  /v1/fixtures?league=EPL&from=&to=          listing lane
 GET  /v1/fixtures/:id                           single fixture
+GET  /v1/results?league=EPL&from=&to=           finished matches + final scores (agents' data pack)
 GET  /v1/fixtures/:id/state                     live MatchState (charts)
 GET  /v1/fixtures/:id/events                    event timeline
 GET  /v1/fixtures/:id/stats                     xG / possession / shots

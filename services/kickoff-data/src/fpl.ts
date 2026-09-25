@@ -136,6 +136,8 @@ export interface FplFixture {
   /** Running score while live; the final score once finished_provisional. */
   team_h_score: number | null;
   team_a_score: number | null;
+  /** Minutes played so far (0 before kickoff, ~90 at full time). */
+  minutes: number;
 }
 
 // ---------------------------------------------------------------------------

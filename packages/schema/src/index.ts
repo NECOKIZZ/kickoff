@@ -285,6 +285,16 @@ export type WebhookEvent =
       to: FixtureStatus;
     }
   | {
+      /** A live match's score or status moved (kickoff, goal, full time):
+       *  the doorbell for the in-match PnL chart. minute = minutes played. */
+      type: "fixture.score_changed";
+      fixture_id: string;
+      home: number;
+      away: number;
+      minute: number | null;
+      status: FixtureStatus;
+    }
+  | {
       type: "settlement.player_points_ready";
       gw: number;
       season: number;

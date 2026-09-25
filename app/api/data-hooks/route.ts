@@ -5,12 +5,15 @@ import { logAdminEvent } from "@/lib/admin";
 import { getFixture, getSettlement } from "@/lib/dataService";
 import { executeSettlement } from "@/lib/settleExecution";
 import { voidMarket } from "@/lib/marketLifecycle";
-import { and, eq, inArray, or } from "drizzle-orm";
+import { recordPnlSnapshot } from "@/lib/pnlSnapshot";
+import { lockDueMarkets } from "@/lib/markets";
+import { and, desc, eq, inArray, or } from "drizzle-orm";
 
 /**
  * POST /api/data-hooks — kickoff-data webhook receiver.
  *
- * Events: settlement.ready | settlement.disputed | fixture.status_changed.
+ * Events: settlement.ready | settlement.disputed | fixture.status_changed |
+ * fixture.score_changed (live PnL chart points).
  * Auth: HMAC-SHA256 of the EXACT body bytes in x-kickoff-signature
  * (KICKOFF_DATA_WEBHOOK_SECRET — same env both processes read).
  *
@@ -67,6 +70,9 @@ export async function POST(req: Request) {
         return voidLinkedMarkets(event.fixture_id, `fixture ${event.to}`);
       }
       return json({ ok: true, action: "noted" });
+
+    case "fixture.score_changed":
+      return recordLiveScore(event.fixture_id, event as unknown as ScoreChanged);
 
     default:
       return json({ ok: true, action: "ignored-unknown-type" });
@@ -132,4 +138,40 @@ async function voidLinkedMarkets(fixtureId: string, reason: string) {
     if (!r.ok) console.error(`[data-hooks] void market ${m.id} failed: ${r.error}`);
   }
   return json({ ok: true, action: markets.length ? "voided" : "noted", results });
+}
+
+interface ScoreChanged {
+  home: number;
+  away: number;
+  minute: number | null;
+  status: string;
+}
+
+/**
+ * Live score moved → one PnL chart point per linked market in play. The
+ * market page polls /timeline every 30s, so the chart follows the match.
+ * Deduped against the market's latest point (at-least-once delivery, and a
+ * restarted data service re-announces current scores).
+ */
+async function recordLiveScore(fixtureId: string, e: ScoreChanged) {
+  if (!Number.isInteger(e.home) || !Number.isInteger(e.away)) return jsonError("home/away must be integers", 400);
+  await lockDueMarkets(); // kickoff reached → locked, so the first point lands
+  // The FT point may land just after settlement.ready already settled the market.
+  const markets = await linkedMarkets(fixtureId, e.status === "ft" ? ["locked", "settling", "settled"] : ["locked", "settling"]);
+  const clock = e.status === "ft" ? "FT" : e.minute !== null ? `${e.minute}'` : "LIVE";
+
+  const recorded: number[] = [];
+  for (const m of markets) {
+    const [last] = await db
+      .select({ h: schema.pnlSnapshots.scoreHome, a: schema.pnlSnapshots.scoreAway, clock: schema.pnlSnapshots.matchClock })
+      .from(schema.pnlSnapshots)
+      .where(eq(schema.pnlSnapshots.marketId, m.id))
+      .orderBy(desc(schema.pnlSnapshots.createdAt))
+      .limit(1);
+    const sameScore = last && last.h === e.home && last.a === e.away;
+    if (sameScore && (last.clock === "FT") === (clock === "FT")) continue;
+    await recordPnlSnapshot(m, clock, { home: e.home, away: e.away });
+    recorded.push(m.id);
+  }
+  return json({ ok: true, action: recorded.length ? "charted" : "noted", markets: recorded });
 }

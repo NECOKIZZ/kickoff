@@ -25,6 +25,30 @@ export function installStatusChangeListener(fn: StatusChangeListener): void {
   onStatusChange = fn;
 }
 
+// Live-score hook — same pattern: the worker installs a webhook sender so the
+// markets app can chart in-match PnL. Fires when a live fixture's score or
+// status changes, never on a mere clock tick. Last-seen state is in memory:
+// after a restart the first poll re-announces current scores, which the app
+// dedupes against its latest snapshot.
+type ScoreListener = (e: { fixtureId: string; home: number; away: number; minute: number | null; status: FixtureStatus }) => void;
+let onScoreChange: ScoreListener | null = null;
+const lastScore = new Map<string, string>();
+
+export function installScoreChangeListener(fn: ScoreListener): void {
+  onScoreChange = fn;
+}
+
+export function noteLiveScore(fixtureId: string, home: number, away: number, minute: number | null, status: FixtureStatus): void {
+  const key = `${home}-${away}-${status}`;
+  if (lastScore.get(fixtureId) === key) return;
+  lastScore.set(fixtureId, key);
+  try {
+    onScoreChange?.({ fixtureId, home, away, minute, status });
+  } catch (e) {
+    log.error("ingest", "score listener threw", { error: e as Error });
+  }
+}
+
 /**
  * Upsert one normalized fixture. Returns the canonical id it landed under
  * (which may differ from fixture.id when it reconciled to an existing row

@@ -6,6 +6,7 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 /**
  * GET /api/markets?status=open|live|settled|all
  * Public market list. "live" = locked or settling (match in progress).
+ * "all" leaves out void markets; "settled" still includes them.
  * Draft markets are admin-only and never appear here.
  */
 export async function GET(req: Request) {
@@ -20,7 +21,9 @@ export async function GET(req: Request) {
         ? inArray(schema.markets.status, ["locked", "settling"] as const)
         : status === "settled"
           ? inArray(schema.markets.status, ["settled", "void"] as const)
-          : inArray(schema.markets.status, ["open", "locked", "settling", "settled", "void"] as const);
+          : // Voided markets are cancelled listings, not results: kept off the
+            // public board. Stakers still find their refund on /positions.
+            inArray(schema.markets.status, ["open", "locked", "settling", "settled"] as const);
 
   const rows = await db
     .select({

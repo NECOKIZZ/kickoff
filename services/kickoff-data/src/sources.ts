@@ -5,7 +5,7 @@
 
 import type { SourceId } from "@kickoff/schema";
 import type { JobKind } from "./scheduler/planner";
-import { isMockMode as s1Mock } from "./apiFootball";
+import { isMockMode as s1Mock, planBlocked as s1PlanBlocked } from "./apiFootball";
 import { isMockMode as s2Mock } from "./footballDataOrg";
 import { isMockMode as apifyMock } from "./apify";
 import { isMockMode as fplMock } from "./fpl";
@@ -40,6 +40,8 @@ function disabledJobs(): Set<string> {
 /** False when the job is switched off, or mocks are off and its source has no key. */
 export function jobEnabled(kind: JobKind): boolean {
   if (disabledJobs().has(kind)) return false;
+  // S1 hit its plan wall today: skip quietly rather than fail every tick.
+  if (kind.startsWith("s1.") && s1PlanBlocked()) return false;
   return mocksAllowed() || !mockOf[sourceOf(kind)]();
 }
 

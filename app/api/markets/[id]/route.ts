@@ -1,9 +1,11 @@
 import { db, schema } from "@/db";
+import { lockDueMarkets } from "@/lib/markets";
 import { json, jsonError } from "@/lib/http";
 import { eq } from "drizzle-orm";
 
 /** GET /api/markets/:id — full market detail incl. settlement if settled. */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  await lockDueMarkets();
   const { id } = await ctx.params;
   const marketId = Number(id);
   if (!Number.isInteger(marketId)) return jsonError("invalid market id", 400);

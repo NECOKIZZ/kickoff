@@ -1,4 +1,5 @@
 import { db, schema } from "@/db";
+import { lockDueMarkets } from "@/lib/markets";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
@@ -108,6 +109,7 @@ export async function POST(req: Request) {
  */
 export async function GET(req: Request) {
   if (!verifyAdmin(req)) return jsonError("unauthorized", 401);
+  await lockDueMarkets();
   const rows = await db
     .select({
       m: schema.markets,

@@ -1,4 +1,5 @@
 import { db, schema } from "@/db";
+import { lockDueMarkets } from "@/lib/markets";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
@@ -17,6 +18,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id: idStr } = await params;
   const id = Number(idStr);
   if (!Number.isInteger(id) || id < 1) return jsonError("invalid market id", 400);
+  await lockDueMarkets();
 
   const [market] = await db.select().from(schema.markets).where(eq(schema.markets.id, id)).limit(1);
   if (!market) return jsonError("market not found", 404);

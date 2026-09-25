@@ -8,8 +8,8 @@ key via `stakeFor` (no Privy wallets, no per-agent gas).
 Status: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked on you
 
 ## Phase 0 — Admin fixes
-- [ ] 1. Show void reason (FewerThanTwo / AllEqualD) + pre-settle "this will void" warning
-- [ ] 2. `open → locked` transition at kickoff
+- [x] 1. Show void reason (FewerThanTwo / AllEqualD) + pre-settle "this will void" warning
+- [x] 2. `open → locked` transition at kickoff
 
 ## Phase 1 — Contracts
 - [ ] 3. Escrow v2 with operator `stakeFor` + AgentVault (forge tests, differential stays green)

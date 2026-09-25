@@ -21,6 +21,7 @@ import { deliver, webhookConfigFromEnv } from "./api/webhooks";
 import { freezeDue, needsTiebreak, escalateStalled, installSettlementEmitter, s3Trusted } from "./settlementLane";
 import { sweepPlayerPoints, installPlayerPointsEmitter } from "./fplSettlementLane";
 import { db, schema } from "./db";
+import { jobEnabled, disabledSources } from "./sources";
 import { log } from "./log";
 
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
@@ -68,7 +69,11 @@ async function tick(): Promise<number> {
     settled: g.settled,
   }));
 
-  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining, gameweeks });
+  // Sources switched off by KICKOFF_DATA_NO_MOCKS never run (and never count
+  // as failures); lastRun stays unset so they start the moment a key lands.
+  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining, gameweeks }).filter((j) =>
+    jobEnabled(j.kind),
+  );
   let jobsRun = 0;
 
   // s3.livePoll: ONE actor run returns every live match, so N due fixtures
@@ -150,6 +155,7 @@ async function main(): Promise<void> {
     mock: isMockMode(),
     fplMock: fplMockMode(),
     s3Trusted: s3Trusted(),
+    disabledSources: disabledSources(),
     webhooks: webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)",
   });
 

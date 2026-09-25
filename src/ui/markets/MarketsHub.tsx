@@ -41,6 +41,10 @@ function SectionLabel({ children, live }: { children: React.ReactNode; live?: bo
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
+/** Player Perps are paused while score markets are perfected; set
+ *  NEXT_PUBLIC_PLAYER_PERPS=1 (and redeploy) to bring the tab back. */
+const PLAYER_PERPS_ENABLED = process.env.NEXT_PUBLIC_PLAYER_PERPS === "1";
+
 export default function MarketsHub() {
   const [tab, setTab] = useState<"score" | "player">("score");
   const [markets, setMarkets] = useState<MarketSummary[] | null>(null);
@@ -66,7 +70,7 @@ export default function MarketsHub() {
     <div className="mx-auto px-6" style={{ maxWidth: tab === "player" ? 1180 : 860, paddingTop: 28, paddingBottom: 60 }}>
       {/* Tab switcher — accent underline per brand (purple light / green dark) */}
       <div className="flex items-center gap-1 mb-6 border-b" style={{ borderColor: "var(--border)" }}>
-        {(["score", "player"] as const).map((t) => {
+        {(PLAYER_PERPS_ENABLED ? (["score", "player"] as const) : (["score"] as const)).map((t) => {
           const isActive = tab === t;
           return (
             <button

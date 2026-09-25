@@ -293,3 +293,22 @@ export async function agentVaultState(agent: Hex): Promise<{ owner: Hex; paused:
   });
   return { owner, paused, balance };
 }
+
+/** Platform kill switch: halt/resume ALL agent staking on-chain (vault owner). */
+export async function setAgentStakingHalted(halted: boolean): Promise<Hex | null> {
+  if (!AGENTS_ON_CHAIN) return null;
+  const hash = await relayerClient().writeContract({
+    address: AGENT_VAULT_ADDRESS!,
+    abi: agentVaultAbi,
+    functionName: "setStakingHalted",
+    args: [halted],
+  });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== "success") throw new Error(`setStakingHalted reverted (${hash})`);
+  return hash;
+}
+
+export async function agentStakingHalted(): Promise<boolean | null> {
+  if (!AGENT_VAULT_ADDRESS) return null;
+  return publicClient.readContract({ address: AGENT_VAULT_ADDRESS, abi: agentVaultAbi, functionName: "stakingHalted" });
+}

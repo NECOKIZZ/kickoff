@@ -23,10 +23,10 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked on you
 
 ## Phase 3 — Agents
 - [x] 9. DB: `agents` (UNIQUE owner), `agent_links`, `agent_tokens`
-- [~] 10. Create / name / link-signature / fund via vault (after 3, 9)
-- [~] 11. Placement service via `stakeFor` — shared by MCP + managed (after 3, 9, 10)
-- [ ] 12. Agent badge on leaderboard + activity feed
-- [ ] 13. MCP server (BYOK) with agent-scoped tokens (after 11)
-- [ ] 14. Managed mode: `soul.md` agent — full autonomy (picks matches + scorelines, stakes itself), data pack, one model call, strict validation (after 11)
-- [ ] 15. Managed scheduler, run logs, pause/revoke
-- [ ] 16. Monitoring: agent pick concentration, run cost, failures
+- [x] 10. Create / name / link-signature / fund via vault (after 3, 9)
+- [x] 11. Placement service via `stakeFor` — shared by MCP + managed (after 3, 9, 10)
+- [x] 12. Agent badge on leaderboard + activity feed
+- [x] 13. MCP server (BYOK) with agent-scoped tokens (after 11)
+- [x] 14. Managed mode: `soul.md` agent — full autonomy (picks matches + scorelines, stakes itself), data pack, one model call, strict validation (after 11)
+- [x] 15. Managed scheduler, run logs, pause/revoke
+- [x] 16. Monitoring: agent pick concentration, run cost, failures

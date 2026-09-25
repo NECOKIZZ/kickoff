@@ -323,3 +323,33 @@ export const agentTokens = pgTable(
   },
   (t) => [uniqueIndex("agent_tokens_hash_idx").on(t.tokenHash), index("agent_tokens_agent_idx").on(t.agentId)],
 );
+
+/**
+ * Managed-agent runs: one row per soul.md run (one model call → picks).
+ * The audit trail for what the model returned, what was placed, what was
+ * rejected and what it cost.
+ */
+export const agentRunStatus = pgEnum("agent_run_status", ["ok", "error", "refused"]);
+
+export const agentRuns = pgTable(
+  "agent_runs",
+  {
+    id: serial("id").primaryKey(),
+    agentId: integer("agent_id")
+      .notNull()
+      .references(() => agents.id),
+    status: agentRunStatus("status").notNull(),
+    trigger: text("trigger").notNull(), // "cron" | "admin" | "owner"
+    model: text("model"),
+    // Markets offered to the model this run (so the scheduler doesn't re-ask).
+    marketIds: integer("market_ids").array().notNull().default(sql`ARRAY[]::integer[]`),
+    // [{marketId, home, away, placed: bool, error?}]
+    picks: jsonb("picks").notNull().default(sql`'[]'::jsonb`),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    cacheReadTokens: integer("cache_read_tokens"),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("agent_runs_agent_idx").on(t.agentId, t.createdAt)],
+);

@@ -1,5 +1,5 @@
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { zeroAddress, type Hex } from "viem";
 import { AGENT_VAULT_ADDRESS } from "@/lib/chainConfig";
 
@@ -34,4 +34,15 @@ export function validateSoulMd(v: unknown): string | null {
   if (typeof v !== "string") return "soulMd must be text";
   if (new TextEncoder().encode(v).length > SOUL_MD_MAX_BYTES) return `soulMd must be under ${SOUL_MD_MAX_BYTES / 1024} KB`;
   return null;
+}
+
+/** Agent names are unique (case-insensitive) so nobody can pose as another agent. */
+export async function agentNameTaken(name: string, exceptAgentId?: number): Promise<boolean> {
+  const cond = sql`lower(${schema.agents.name}) = ${name.trim().toLowerCase()}`;
+  const [hit] = await db
+    .select({ id: schema.agents.id })
+    .from(schema.agents)
+    .where(exceptAgentId == null ? cond : and(cond, ne(schema.agents.id, exceptAgentId)))
+    .limit(1);
+  return !!hit;
 }

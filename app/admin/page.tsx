@@ -169,7 +169,7 @@ function KeyGate({ onUnlock }: { onUnlock: () => void }) {
 
 // ── Dashboard shell ───────────────────────────────────────────────────────────
 
-const TABS = ["Overview", "Markets", "Invites"] as const;
+const TABS = ["Overview", "Markets", "Agents", "Invites"] as const;
 type Tab = (typeof TABS)[number];
 
 function Dashboard({ onLock }: { onLock: () => void }) {
@@ -220,6 +220,7 @@ function Dashboard({ onLock }: { onLock: () => void }) {
       <main className="mx-auto px-6 py-8" style={{ maxWidth: 1080 }}>
         {tab === "Overview" && <OverviewTab />}
         {tab === "Markets" && <MarketsTab />}
+        {tab === "Agents" && <AgentsTab />}
         {tab === "Invites" && <InvitesTab />}
       </main>
     </div>
@@ -298,6 +299,103 @@ function OverviewTab() {
             e.action,
             e.marketId ?? "-",
           ])}
+        />
+      </section>
+    </div>
+  );
+}
+
+// ── Agents ────────────────────────────────────────────────────────────────────
+
+interface AgentsData {
+  managedEnabled: boolean;
+  model: string;
+  stakingHalted: boolean | null;
+  agents: { id: number; name: string; mode: string; status: string; owner: string; positions: number }[];
+  runs7d: { runs: number; errors: number; refused: number; input_tokens: string; output_tokens: string; estCostUsd: number };
+  herding: { market_id: number; title: string; positions: number; agent_positions: number; top_agent_pick_count: number | null }[];
+  recentErrors: { id: number; agentId: number; status: string; error: string | null; createdAt: string }[];
+}
+
+function AgentsTab() {
+  const { data, error, reload } = useAdminData<AgentsData>("/api/admin/agents");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  async function act(path: string, body: object, label: string) {
+    setBusy(true);
+    setNote(null);
+    try {
+      const r = await adminApi<Record<string, unknown>>(path, { method: "POST", body: JSON.stringify(body) });
+      setNote(`${label}: ${JSON.stringify(r).slice(0, 240)}`);
+      reload();
+    } catch (e) {
+      setNote(`${label} failed: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (error) return <ErrorNote text={error} />;
+  if (!data) return <Loading />;
+  const r = data.runs7d;
+
+  return (
+    <div className="flex flex-col gap-8">
+      <section>
+        <SectionTitle>Managed runs, last 7 days ({data.model})</SectionTitle>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <StatTile label="Agents" value={data.agents.length} />
+          <StatTile label="Runs" value={r.runs} />
+          <StatTile label="Errors / refused" value={`${r.errors} / ${r.refused}`} />
+          <StatTile label="Tokens in / out" value={`${Number(r.input_tokens).toLocaleString()} / ${Number(r.output_tokens).toLocaleString()}`} />
+          <StatTile label="Est. cost" value={`$${r.estCostUsd}`} />
+        </div>
+        <div className="flex flex-wrap items-center gap-2" style={{ marginTop: 12 }}>
+          <ActionBtn disabled={busy || !data.managedEnabled} onClick={() => act("/api/admin/agents/run", {}, "run")}>
+            Run managed agents now
+          </ActionBtn>
+          <ActionBtn danger={!data.stakingHalted} disabled={busy || data.stakingHalted == null} onClick={() => act("/api/admin/agents/halt", { halted: !data.stakingHalted }, data.stakingHalted ? "resume" : "halt")}>
+            {data.stakingHalted ? "Resume all agent staking" : "Halt all agent staking"}
+          </ActionBtn>
+          {!data.managedEnabled && <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>Set ANTHROPIC_API_KEY to enable managed agents.</span>}
+        </div>
+        {note && <p style={{ fontSize: "0.78rem", color: "var(--ui-accent)", marginTop: 8, overflowWrap: "anywhere" }}>{note}</p>}
+      </section>
+
+      <section>
+        <SectionTitle>Herding on open markets</SectionTitle>
+        <SimpleTable
+          head={["Market", "Positions", "Agents", "Top agent pick"]}
+          rows={data.herding.map((h) => {
+            // Risk = 2+ agents on one scoreline AND that's half the pool or more.
+            const top = h.top_agent_pick_count ?? 0;
+            const share = top >= 2 ? top / h.positions : 0;
+            return [
+              `#${h.market_id} ${h.title}`,
+              h.positions,
+              h.agent_positions,
+              <span key="t" style={{ color: share >= 0.5 ? "var(--destructive)" : undefined, fontWeight: share >= 0.5 ? 700 : 400 }}>
+                {h.top_agent_pick_count ? `${h.top_agent_pick_count} on one scoreline${share >= 0.5 ? " · coalition/void risk" : ""}` : "-"}
+              </span>,
+            ];
+          })}
+        />
+      </section>
+
+      <section>
+        <SectionTitle>Agents</SectionTitle>
+        <SimpleTable
+          head={["Name", "Mode", "Status", "Owner", "Positions"]}
+          rows={data.agents.map((a) => [a.name, a.mode, a.status, shortAddr(a.owner), a.positions])}
+        />
+      </section>
+
+      <section>
+        <SectionTitle>Failed runs</SectionTitle>
+        <SimpleTable
+          head={["When", "Agent", "Status", "Error"]}
+          rows={data.recentErrors.map((e) => [new Date(e.createdAt).toLocaleString("en-GB"), e.agentId, e.status, e.error ?? ""])}
         />
       </section>
     </div>

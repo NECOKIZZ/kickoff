@@ -31,8 +31,15 @@ const mockOf: Record<Source, () => boolean> = {
   fpl: fplMock,
 };
 
-/** False when mocks are off and this job's source has no key. */
+/** Jobs switched off by KICKOFF_DATA_DISABLED_JOBS, e.g. "s1.lineups,s1.postMatch"
+ *  while player markets are paused (they only feed those, and spend S1 budget). */
+function disabledJobs(): Set<string> {
+  return new Set((process.env.KICKOFF_DATA_DISABLED_JOBS ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+}
+
+/** False when the job is switched off, or mocks are off and its source has no key. */
 export function jobEnabled(kind: JobKind): boolean {
+  if (disabledJobs().has(kind)) return false;
   return mocksAllowed() || !mockOf[sourceOf(kind)]();
 }
 

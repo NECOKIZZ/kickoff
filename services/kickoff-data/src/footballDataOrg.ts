@@ -94,6 +94,10 @@ const TEAM_ALIASES: Record<string, string> = {
   "nott-m-forest": "nottm-forest", // FPL renders it "Nott'm Forest"
   "leeds-united": "leeds",
   "afc-bournemouth": "bournemouth",
+  // Promoted 2026-27: FPL and fdorg use the long names, API-Football the short.
+  "coventry": "coventry-city",
+  "hull": "hull-city",
+  "ipswich": "ipswich-town",
 };
 
 /** Normalize a team name from either provider to a canonical slug. */

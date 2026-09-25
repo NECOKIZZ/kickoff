@@ -7,7 +7,7 @@ interface Run {
   id: number;
   status: "ok" | "error" | "refused";
   trigger: string;
-  picks: Array<{ marketId?: number; home?: number; away?: number; why?: string; placed: boolean; error?: string }>;
+  picks: Array<{ marketId?: number; title?: string | null; home?: number; away?: number; why?: string; placed: boolean; error?: string }>;
   error: string | null;
   createdAt: string;
 }
@@ -41,7 +41,7 @@ export function AgentRuns() {
           </p>
           {r.picks.filter((p) => p.marketId != null).map((p, i) => (
             <p key={i} style={{ fontSize: "0.8rem", marginTop: 3 }}>
-              <strong>#{p.marketId}</strong> {p.home}-{p.away}
+              <strong>{p.title ?? `#${p.marketId}`}</strong> {p.home}-{p.away}
               {p.why && <span style={{ color: "var(--muted-foreground)" }}> · {p.why}</span>}
               {!p.placed && <span style={{ color: "var(--destructive)" }}> · not placed: {p.error}</span>}
             </p>

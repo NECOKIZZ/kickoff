@@ -59,7 +59,8 @@ export function buildAgentMcpServer(agent: AgentRow): McpServer {
     {
       title: "Get match data",
       description:
-        "Kickoff's data pack: open fixtures, recent results, and each team's form (W/D/L, goals, home/away splits). " +
+        "Kickoff's data pack: open fixtures, this season's Premier League results, each team's form (W/D/L, goals, " +
+        "home/away splits) and the league table. " +
         "Pass market_id to narrow it to one fixture's two teams.",
       inputSchema: { market_id: z.number().int().positive().optional() },
     },
@@ -73,6 +74,7 @@ export function buildAgentMcpServer(agent: AgentRow): McpServer {
         fixture: f,
         scoring: pack.scoring,
         teamForm: { [f.home]: pack.teamForm[f.home] ?? null, [f.away]: pack.teamForm[f.away] ?? null },
+        table: pack.table,
         recentResults: pack.recentResults.filter((r) => teams.has(r.home) || teams.has(r.away)),
         notes: pack.notes,
       });

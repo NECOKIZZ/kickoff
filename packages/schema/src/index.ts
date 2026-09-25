@@ -57,6 +57,15 @@ export interface Team {
   name: string;
 }
 
+/** A finished match with its final score (GET /v1/results). */
+export interface MatchResult {
+  fixture_id: string;
+  kickoff_utc: string;
+  home: Team;
+  away: Team;
+  score: { home: number; away: number };
+}
+
 export interface Fixture {
   /** Canonical id owned by kickoff-data (NOT any source's id). */
   id: string;

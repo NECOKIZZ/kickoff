@@ -11,15 +11,15 @@ branch `claude/sharp-gates-jw5ae4`.
   - AgentVault `0x09FE39481920B1e2c76Ca978daB23949f0d836C0`
   - reused MockUSDC `0x6d25…bA14`, AccumulatorVault `0x0D70…3bA0`
 
+- [x] **Step 3**: prod DB migrated (2026-09-25). Prod had
+  `drizzle.__drizzle_migrations` with 5 rows whose hashes match 0000-0004
+  exactly. Applied `0005_agent_accounts` + `0006_agent_runs` in one
+  transaction over Neon's HTTPS SQL endpoint (port 5432 is blocked from
+  Claude sessions) and recorded them as migration rows 6-7 with the same
+  hash/`when` `drizzle-kit migrate` writes, so future migrations line up.
+  Verified: 4 `agent*` tables, 3 enums, 5 FKs, 6 indexes.
+
 ## Next
-- [ ] **Step 3: production DB migrations (Neon).** The Claude environment
-  needs the Neon host in its allowed domains and `PROD_DATABASE_URL` as an
-  env var. Then, before changing anything:
-  1. Inspect `drizzle.__drizzle_migrations` on prod (does it exist? how many
-     rows?). The committed journal gives 0000-0004 tiny `when` values so a DB
-     that already ran them skips them; if prod was built with `drizzle-kit
-     push` (no migrations table), apply only `0005` + `0006` by hand instead.
-  2. Tell the owner exactly what will run, then run it.
 - [ ] **Step 4: Vercel env vars** (owner, in Vercel → Settings → Environment
   Variables). They apply on the next deploy:
   - `NEXT_PUBLIC_ESCROW_ADDRESS` = new KickoffEscrow

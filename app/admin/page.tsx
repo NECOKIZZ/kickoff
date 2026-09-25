@@ -410,10 +410,17 @@ function MarketsTab() {
   const [note, setNote] = useState<string | null>(null);
 
   const act = useCallback(
-    async (id: number, action: "open" | "settle" | "void", body?: object) => {
+    async (id: number, action: "open" | "settle" | "void" | "delete", body?: object) => {
       setBusy(id);
       setNote(null);
       try {
+        if (action === "delete") {
+          if (!window.confirm(`Delete market ${id}? This removes it and its positions from the app for good.`)) return;
+          await adminApi(`/api/admin/markets/${id}`, { method: "DELETE" });
+          setNote(`market ${id}: deleted ✓`);
+          reload();
+          return;
+        }
         // Settle: dry-run first so a void is never a surprise.
         if (action === "settle" && body) {
           const qs = new URLSearchParams(Object.entries(body).map(([k, v]) => [k, String(v)]));
@@ -473,7 +480,7 @@ function MarketRow({
 }: {
   m: AdminMarket;
   busy: boolean;
-  onAct: (id: number, action: "open" | "settle" | "void", body?: object) => void;
+  onAct: (id: number, action: "open" | "settle" | "void" | "delete", body?: object) => void;
   onPatched: () => void;
 }) {
   const [home, setHome] = useState("");
@@ -600,6 +607,12 @@ function MarketRow({
               Void
             </ActionBtn>
           </>
+        )}
+        {/* Server refuses a void market with unclaimed on-chain refunds and says why. */}
+        {(m.status === "draft" || m.status === "void") && (
+          <ActionBtn danger disabled={busy} onClick={() => onAct(m.id, "delete")}>
+            Delete
+          </ActionBtn>
         )}
       </div>
 

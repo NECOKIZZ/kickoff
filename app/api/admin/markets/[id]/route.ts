@@ -127,3 +127,52 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   await logAdminEvent("admin", "market.patch", id, { ...b, updateTxHash });
   return json({ market: updated });
 }
+
+/**
+ * DELETE /api/admin/markets/:id — remove a market that holds no live money.
+ *
+ * Allowed for drafts (nobody can stake before /open) and for voided markets
+ * once every on-chain refund has been claimed. Open/locked markets must be
+ * voided first; settled markets stay, they feed the leaderboard and PnL.
+ * An escrow-linked draft stays on-chain as an unopened market: nothing can
+ * be staked into it, so it's inert. The audit trail keeps its rows.
+ */
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!verifyAdmin(req)) return jsonError("unauthorized", 401);
+
+  const { id: idStr } = await params;
+  const id = Number(idStr);
+  if (!Number.isInteger(id) || id < 1) return jsonError("invalid market id", 400);
+  await lockDueMarkets();
+
+  const [market] = await db.select().from(schema.markets).where(eq(schema.markets.id, id)).limit(1);
+  if (!market) return jsonError("market not found", 404);
+  if (market.status === "open" || market.status === "locked" || market.status === "settling")
+    return jsonError(`market is '${market.status}', void it first (refunds every stake), then delete`, 409);
+  if (market.status === "settled")
+    return jsonError("settled markets can't be deleted, they feed the leaderboard and PnL history", 409);
+
+  const positions = await db.select().from(schema.positions).where(eq(schema.positions.marketId, id));
+  const linked = market.escrowAddress != null && market.onChainMarketId != null;
+  const unclaimed = linked ? positions.filter((p) => p.stakeTxHash != null && p.claimTxHash == null).length : 0;
+  if (unclaimed > 0)
+    return jsonError(`${unclaimed} on-chain refund(s) not claimed yet, delete would hide them from their owners`, 409);
+
+  await db.transaction(async (tx) => {
+    const [settlement] = await tx.select().from(schema.settlements).where(eq(schema.settlements.marketId, id));
+    if (settlement)
+      await tx.delete(schema.accumulatorEntries).where(eq(schema.accumulatorEntries.settlementId, settlement.id));
+    await tx.delete(schema.settlements).where(eq(schema.settlements.marketId, id));
+    await tx.delete(schema.pnlSnapshots).where(eq(schema.pnlSnapshots.marketId, id));
+    await tx.delete(schema.positions).where(eq(schema.positions.marketId, id));
+    await tx.delete(schema.markets).where(eq(schema.markets.id, id));
+  });
+
+  await logAdminEvent("admin", "market.delete", id, {
+    title: market.title,
+    status: market.status,
+    positions: positions.length,
+    onChainMarketId: market.onChainMarketId?.toString() ?? null,
+  });
+  return json({ deleted: id });
+}

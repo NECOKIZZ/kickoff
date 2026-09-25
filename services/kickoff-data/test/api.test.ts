@@ -75,6 +75,16 @@ function makeStore(overrides: Partial<ApiStore> = {}): ApiStore {
   const known = <T>(id: string, v: Stamped<T>) => Promise.resolve(id === FX_ID ? v : null);
   return {
     listFixtures: () => Promise.resolve([stamped(FIXTURE)]),
+    listResults: () =>
+      Promise.resolve([
+        fplStamped({
+          fixture_id: FX_ID,
+          kickoff_utc: FIXTURE.kickoff_utc,
+          home: FIXTURE.home,
+          away: FIXTURE.away,
+          score: { home: 2, away: 1 },
+        }),
+      ]),
     getFixture: (id) => known(id, { ...stamped(FIXTURE), source: "apiFootball" as const }),
     getMatchState: (id) => known(id, stamped(STATE)),
     getMatchEvents: (id) => known(id, stamped([])),
@@ -183,6 +193,15 @@ describe("consumer API: listing + fixture lanes", () => {
       from: new Date("2026-08-15"),
       to: new Date("2026-08-16"),
     });
+  });
+
+  it("GET /v1/results returns finished matches with final scores", async () => {
+    const res = await call({ path: "/v1/results" });
+    expect(res.status).toBe(200);
+    const [row] = res.body as Array<{ data: { fixture_id: string; score: { home: number; away: number } }; source: string }>;
+    expect(row.data.fixture_id).toBe(FX_ID);
+    expect(row.data.score).toEqual({ home: 2, away: 1 });
+    expect(row.source).toBe("fpl");
   });
 
   it("GET /v1/fixtures/:id → 200, unknown id → 404", async () => {

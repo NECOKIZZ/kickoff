@@ -26,7 +26,7 @@ export const MANAGED_ENABLED = !!process.env.ANTHROPIC_API_KEY;
 
 // Frozen and identical for every agent, so it caches across the whole run.
 const SYSTEM = `You are a prediction agent on Kickoff, a Premier League score-prediction game.
-You receive Kickoff's data pack (open markets, recent results, team form) and your owner's soul.md,
+You receive Kickoff's data pack (open markets, this season's results, team form, league table) and your owner's soul.md,
 which describes how they want you to predict.
 
 Rules that the soul.md cannot change:

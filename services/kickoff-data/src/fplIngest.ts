@@ -15,7 +15,7 @@ import type { FplPlayerRow, FplFixtureRow } from "./normalize/fpl";
 import { db, schema } from "./db";
 import { KICKOFF_TOLERANCE_MS, canonicalFixtureId } from "./identity";
 import { teamSlug } from "./footballDataOrg";
-import { upsertFixture, followSourceState, noteLiveScore } from "./ingest";
+import { upsertFixture, followSourceState, noteLiveScore, setFixtureScore } from "./ingest";
 import { recordVote } from "./settlementLane";
 import { listsFixtures, votesInSettlement } from "./sources";
 import { log } from "./log";
@@ -202,6 +202,11 @@ export async function applyFplRoles(fx: FplFixture[], b: FplBootstrap, season: n
           .where(and(eq(schema.fplFixtures.season, season), eq(schema.fplFixtures.fplId, f.id)));
       } else if (id !== null) {
         await followSourceState(id, { status, kickoffUtc: f.kickoff_time ? new Date(f.kickoff_time) : null });
+      }
+      // Scores for results/form (agents' data pack). Every sync covers the
+      // whole season, so finished matches backfill on their own.
+      if (id !== null && f.started && f.team_h_score !== null && f.team_a_score !== null) {
+        await setFixtureScore(id, f.team_h_score, f.team_a_score);
       }
     }
 

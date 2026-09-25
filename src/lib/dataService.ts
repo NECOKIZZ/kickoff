@@ -6,6 +6,7 @@ import type {
   Fixture,
   Gameweek,
   MatchEvent,
+  MatchResult,
   MatchState,
   MatchStats,
   PlayerMatchStats,
@@ -50,6 +51,16 @@ export function listFixtures(params: { league?: string; from?: string; to?: stri
   if (params.to) q.set("to", params.to);
   const qs = q.toString();
   return get<Array<Sourced<Fixture>>>(`/v1/fixtures${qs ? `?${qs}` : ""}`);
+}
+
+/** Finished matches with final scores, most recent first (agents' form/history input). */
+export function listResults(params: { league?: string; from?: string; to?: string } = {}) {
+  const q = new URLSearchParams();
+  if (params.league) q.set("league", params.league);
+  if (params.from) q.set("from", params.from);
+  if (params.to) q.set("to", params.to);
+  const qs = q.toString();
+  return get<Array<Sourced<MatchResult>>>(`/v1/results${qs ? `?${qs}` : ""}`);
 }
 
 export const getFixture = (id: string) => get<Sourced<Fixture>>(`/v1/fixtures/${encodeURIComponent(id)}`);

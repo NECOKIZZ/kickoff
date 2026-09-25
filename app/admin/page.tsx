@@ -5,6 +5,7 @@ import { adminApi, getAdminKey, setAdminKey, AdminAuthError } from "@/ui/admin/a
 import { fmtUsdc, fmtKickoff, shortAddr } from "@/ui/clientApi";
 import { Button3D } from "@/ui/Button3D";
 import { Logo } from "@/ui/Logo";
+import { explainVoid } from "@/lib/voidReasons";
 
 /**
  * Admin control room — /admin.
@@ -47,6 +48,17 @@ interface AdminMarket {
   fixedStake: string | null;
   takeRateBps: number;
   capMultiple: number;
+  positionCount: number;
+  distinctGuesses: number;
+  voidReason: string | null;
+}
+
+interface SettlePreview {
+  positionCount: number;
+  distinctGuesses: number;
+  void: string | null;
+  voidExplanation: string | null;
+  winners: number;
 }
 
 interface AdminEvent {
@@ -302,8 +314,26 @@ function MarketsTab() {
       setBusy(id);
       setNote(null);
       try {
-        await adminApi(`/api/admin/markets/${id}/${action}`, { method: "POST", body: JSON.stringify(body ?? {}) });
-        setNote(`market ${id}: ${action} ✓`);
+        // Settle: dry-run first so a void is never a surprise.
+        if (action === "settle" && body) {
+          const qs = new URLSearchParams(Object.entries(body).map(([k, v]) => [k, String(v)]));
+          const p = await adminApi<SettlePreview>(`/api/admin/markets/${id}/settle?${qs}`);
+          if (p.void && !window.confirm(`Market ${id} will VOID: ${p.voidExplanation}.\n\n${p.positionCount} position(s), ${p.distinctGuesses} distinct guess(es). Settle anyway?`)) {
+            setNote(`market ${id}: settle cancelled (would void: ${p.voidExplanation})`);
+            return;
+          }
+        }
+        const r = await adminApi<{ engine?: { void: string | null; voidExplanation?: string | null; outcomes?: { isWinner: boolean }[] } }>(
+          `/api/admin/markets/${id}/${action}`,
+          { method: "POST", body: JSON.stringify(body ?? {}) },
+        );
+        setNote(
+          action === "settle" && r.engine
+            ? r.engine.void
+              ? `market ${id}: VOIDED, ${r.engine.voidExplanation ?? r.engine.void}`
+              : `market ${id}: settled ✓ (${r.engine.outcomes?.filter((o) => o.isWinner).length ?? 0} winner(s))`
+            : `market ${id}: ${action} ✓`,
+        );
         reload();
       } catch (e) {
         setNote(`market ${id}: ${(e as Error).message}`);
@@ -414,6 +444,20 @@ function MarketRow({
           <span style={{ color: "var(--muted-foreground)", fontWeight: 400, marginLeft: 8, fontSize: "0.68rem" }}>
             γ{m.gamma} · {m.stakeMode === "fixed" ? `$${baseToUsdc(m.fixedStake)} fixed` : `$${baseToUsdc(m.minStake)}-$${baseToUsdc(m.maxStake)}`} · {m.takeRateBps / 100}% take
           </span>
+          <span style={{ color: "var(--muted-foreground)", fontWeight: 400, marginLeft: 8, fontSize: "0.68rem" }}>
+            {m.positionCount} position{m.positionCount === 1 ? "" : "s"} · {m.distinctGuesses} distinct guess{m.distinctGuesses === 1 ? "" : "es"}
+            {(m.status === "open" || m.status === "locked") && m.positionCount < 2 && (
+              <span style={{ color: "var(--destructive)", marginLeft: 6 }}>· will void (needs 2+ positions)</span>
+            )}
+            {(m.status === "open" || m.status === "locked") && m.positionCount >= 2 && m.distinctGuesses < 2 && (
+              <span style={{ color: "var(--destructive)", marginLeft: 6 }}>· will void (everyone guessed the same)</span>
+            )}
+          </span>
+          {m.status === "void" && m.voidReason && (
+            <span style={{ display: "block", color: "var(--destructive)", fontWeight: 400, fontSize: "0.7rem", marginTop: 2 }}>
+              Void: {explainVoid(m.voidReason)}
+            </span>
+          )}
         </span>
 
         {canEdit && (

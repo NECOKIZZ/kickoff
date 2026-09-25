@@ -7,7 +7,7 @@ import { INVITE_COOKIE, verifyInviteToken } from "@/lib/inviteGate";
  * the cookie server-side in their own handlers so the gate can't be bypassed
  * by calling the API directly.
  */
-const GATED_PREFIXES = ["/markets", "/leaderboard", "/positions"];
+const GATED_PREFIXES = ["/markets", "/leaderboard", "/positions", "/agent"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -25,5 +25,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/markets/:path*", "/leaderboard/:path*", "/positions/:path*"],
+  matcher: ["/markets/:path*", "/leaderboard/:path*", "/positions/:path*", "/agent/:path*"],
 };

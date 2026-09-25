@@ -51,6 +51,8 @@ interface AdminMarket {
   positionCount: number;
   distinctGuesses: number;
   voidReason: string | null;
+  escrowAddress: string | null;
+  onChainMarketId: string | null;
 }
 
 interface SettlePreview {
@@ -395,7 +397,9 @@ function MarketRow({
   const [patchErr, setPatchErr] = useState<string | null>(null);
   const [patching, setPatching] = useState(false);
 
-  const canEdit = m.status === "draft" || m.status === "open";
+  // On-chain markets freeze their config at open (the escrow enforces it).
+  const onChain = m.escrowAddress != null && m.onChainMarketId != null;
+  const canEdit = m.status === "draft" || (m.status === "open" && !onChain);
 
   const statusColor =
     m.status === "open" || m.status === "locked" ? "var(--ui-accent)"
@@ -445,7 +449,7 @@ function MarketRow({
             γ{m.gamma} · {m.stakeMode === "fixed" ? `$${baseToUsdc(m.fixedStake)} fixed` : `$${baseToUsdc(m.minStake)}-$${baseToUsdc(m.maxStake)}`} · {m.takeRateBps / 100}% take
           </span>
           <span style={{ color: "var(--muted-foreground)", fontWeight: 400, marginLeft: 8, fontSize: "0.68rem" }}>
-            {m.positionCount} position{m.positionCount === 1 ? "" : "s"} · {m.distinctGuesses} distinct guess{m.distinctGuesses === 1 ? "" : "es"}
+            {onChain ? `on-chain #${m.onChainMarketId}` : "off-chain"} · {m.positionCount} position{m.positionCount === 1 ? "" : "s"} · {m.distinctGuesses} distinct guess{m.distinctGuesses === 1 ? "" : "es"}
             {(m.status === "open" || m.status === "locked") && m.positionCount < 2 && (
               <span style={{ color: "var(--destructive)", marginLeft: 6 }}>· will void (needs 2+ positions)</span>
             )}

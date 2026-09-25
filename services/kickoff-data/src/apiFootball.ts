@@ -66,8 +66,19 @@ export function isMockMode(): boolean {
   return !process.env.API_FOOTBALL_KEY;
 }
 
+// Plan wall: the key works but the plan doesn't cover what we asked for (the
+// free plan has no current season: "Free plans do not have access to this
+// season"). Retrying can't help, so S1 goes quiet for the rest of the UTC day
+// instead of spending its daily budget on the same refusal every minute.
+let planBlockedDay: string | null = null;
+
+export function planBlocked(): boolean {
+  return planBlockedDay === today();
+}
+
 async function apiGet(endpoint: string, params: Record<string, string>): Promise<any> {
   if (isMockMode()) return mockGet(endpoint, params);
+  if (planBlocked()) throw new Error("API-Football plan doesn't cover this request; paused until tomorrow (UTC)");
 
   const state = budgetState();
   if (state.remaining <= 0) {
@@ -105,6 +116,14 @@ async function apiGet(endpoint: string, params: Record<string, string>): Promise
   }
   const body: any = await res.json();
   if (body.errors && Object.keys(body.errors).length > 0) {
+    if (body.errors.plan) {
+      planBlockedDay = today();
+      log.error("apiFootball", "plan does not cover this, S1 paused until tomorrow (UTC); upgrade the plan or remove the key", {
+        endpoint,
+        plan: body.errors.plan,
+      });
+      throw new Error(`API-Football ${endpoint} → plan: ${body.errors.plan}`);
+    }
     log.error("apiFootball", "api error body", { endpoint, errors: body.errors });
     throw new Error(`API-Football ${endpoint} → ${JSON.stringify(body.errors)}`);
   }

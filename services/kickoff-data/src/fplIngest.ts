@@ -15,7 +15,7 @@ import type { FplPlayerRow, FplFixtureRow } from "./normalize/fpl";
 import { db, schema } from "./db";
 import { KICKOFF_TOLERANCE_MS, canonicalFixtureId } from "./identity";
 import { teamSlug } from "./footballDataOrg";
-import { upsertFixture, followSourceState } from "./ingest";
+import { upsertFixture, followSourceState, noteLiveScore } from "./ingest";
 import { recordVote } from "./settlementLane";
 import { listsFixtures, votesInSettlement } from "./sources";
 import { log } from "./log";
@@ -154,6 +154,8 @@ function fplStatus(f: FplFixture): FixtureStatus {
 /** Only matches this recent get a settlement vote: a season backfill must not
  *  open snapshots (and settlement webhooks) for long-finished fixtures. */
 const VOTE_WINDOW_MS = 48 * 3600_000;
+/** Score changes are announced for matches this recent (covers stoppage time and the FT flip). */
+const LIVE_WINDOW_MS = 4 * 3600_000;
 
 /**
  * FPL's optional roles, run after upsertFplFixtures (so attachment is known):
@@ -201,6 +203,13 @@ export async function applyFplRoles(fx: FplFixture[], b: FplBootstrap, season: n
       } else if (id !== null) {
         await followSourceState(id, { status, kickoffUtc: f.kickoff_time ? new Date(f.kickoff_time) : null });
       }
+    }
+
+    // In-match score for the live PnL chart (matches kicked off in the last
+    // few hours only, so a restart doesn't re-announce the whole season).
+    const sinceKickoff = f.kickoff_time !== null ? now.getTime() - Date.parse(f.kickoff_time) : -1;
+    if (id !== null && f.started && sinceKickoff >= 0 && sinceKickoff <= LIVE_WINDOW_MS && f.team_h_score !== null && f.team_a_score !== null) {
+      noteLiveScore(id, f.team_h_score, f.team_a_score, f.minutes ?? null, status);
     }
 
     const recent = f.kickoff_time !== null && now.getTime() - Date.parse(f.kickoff_time) <= VOTE_WINDOW_MS;

@@ -15,7 +15,7 @@ import { installDbSink } from "./archive";
 import { installDbBudgetStore } from "./budget";
 import { budgetState, restoreBudget, isMockMode } from "./apiFootball";
 import { isMockMode as fplMockMode } from "./fpl";
-import { loadPlannerFixtures, loadSettledIds, installStatusChangeListener } from "./ingest";
+import { loadPlannerFixtures, loadSettledIds, installStatusChangeListener, installScoreChangeListener } from "./ingest";
 import { loadPlannerGameweeks } from "./fplIngest";
 import { deliver, webhookConfigFromEnv } from "./api/webhooks";
 import { freezeDue, needsTiebreak, escalateStalled, installSettlementEmitter, s3Trusted } from "./settlementLane";
@@ -150,6 +150,10 @@ async function main(): Promise<void> {
   const webhookConfig = webhookConfigFromEnv();
   installStatusChangeListener((fixtureId, from, to) => {
     void deliver(webhookConfig, { type: "fixture.status_changed", fixture_id: fixtureId, from, to });
+  });
+  // fixture.score_changed → the app's live PnL chart. Same contract.
+  installScoreChangeListener(({ fixtureId, home, away, minute, status }) => {
+    void deliver(webhookConfig, { type: "fixture.score_changed", fixture_id: fixtureId, home, away, minute, status });
   });
   // settlement.ready / settlement.disputed — same fire-and-forget contract.
   installSettlementEmitter((event) => {

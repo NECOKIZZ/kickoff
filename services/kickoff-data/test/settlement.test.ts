@@ -215,3 +215,29 @@ describe("settlement engine: order independence (spec §8.6 property)", () => {
     expect(latestPerSource([late, early]).get("apiFootball")).toEqual(late);
   });
 });
+
+describe("configurable roster (KICKOFF_DATA_SETTLEMENT_VOTERS/_QUORUM)", () => {
+  const fplOnly = { s3Trusted: false, voters: ["fpl" as const], quorum: 1 };
+
+  it("single-source roster: FPL alone reaches quorum", () => {
+    const d = decide([vote("fpl", 2, 1, 1)], fplOnly);
+    expect(d).toEqual({ kind: "quorum", outcome: { home: 2, away: 1 }, rule: "1-of-1 exact agreement" });
+  });
+
+  it("single-source roster ignores votes from sources outside it", () => {
+    expect(decide([vote("apiFootball", 2, 1, 1)], fplOnly)).toEqual({ kind: "await-votes", votesCollected: 0 });
+  });
+
+  it("adding a second source is config only: fpl+fdorg 2-of-2", () => {
+    const opts = { s3Trusted: false, voters: ["fpl" as const, "fdorg" as const], quorum: 2 };
+    expect(decide([vote("fpl", 1, 0, 1)], opts)).toEqual({ kind: "await-votes", votesCollected: 1 });
+    expect(decide([vote("fpl", 1, 0, 1), vote("fdorg", 1, 0, 2)], opts).kind).toBe("quorum");
+    expect(decide([vote("fpl", 1, 0, 1), vote("fdorg", 2, 0, 2)], opts).kind).toBe("need-tiebreak");
+  });
+
+  it("quorum 1 with two voters that disagree is NOT quorum (no arbitrary pick)", () => {
+    const opts = { s3Trusted: false, voters: ["fpl" as const, "fdorg" as const], quorum: 1 };
+    expect(decide([vote("fpl", 1, 0, 1), vote("fdorg", 2, 0, 2)], opts).kind).toBe("need-tiebreak");
+    expect(decide([vote("fpl", 1, 0, 1), vote("fdorg", 1, 0, 2)], opts).kind).toBe("quorum");
+  });
+});

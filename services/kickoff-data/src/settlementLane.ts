@@ -15,6 +15,7 @@ import type { SettlementVote, WebhookEvent } from "@kickoff/schema";
 import { db, schema } from "./db";
 import { archiveRaw } from "./archive";
 import { log } from "./log";
+import { settlementRoster } from "./sources";
 import {
   EMPTY_WORKING,
   decide,
@@ -25,6 +26,11 @@ import {
 /** Burn-in gate (spec §6): flip via env after ≥3 clean shadow matchdays. */
 export function s3Trusted(): boolean {
   return process.env.KICKOFF_DATA_S3_TRUSTED === "true";
+}
+
+/** Everything decide() needs: burn-in flag + the configured roster/quorum. */
+function quorumOpts() {
+  return { s3Trusted: s3Trusted(), ...settlementRoster() };
 }
 
 const FINALITY_DELAY_MS = Number(process.env.KICKOFF_DATA_FINALITY_DELAY_SECONDS ?? 15 * 60) * 1000;
@@ -89,7 +95,16 @@ export async function recordVote(
   source: SettlementVote["source"],
   scoreline: { home: number; away: number },
   now: Date,
+  opts: { skipIfUnchanged?: boolean } = {},
 ): Promise<void> {
+  // Pollers that re-read the same final score every few minutes (FPL) skip
+  // the no-op: it would only grow the votes array and the archive.
+  if (opts.skipIfUnchanged) {
+    const { working, frozenVersion } = await loadLatest(fixtureId);
+    if (working === null && frozenVersion > 0) return;
+    const last = working?.state.votes.filter((v) => v.source === source).at(-1);
+    if (last && last.scoreline.home === scoreline.home && last.scoreline.away === scoreline.away) return;
+  }
   const payloadId = await archiveRaw(source, `settlement-vote:${fixtureId}`, { fixtureId, scoreline });
   const vote: SettlementVote = {
     source,
@@ -103,7 +118,7 @@ export async function recordVote(
 
   const prev = working?.state ?? EMPTY_WORKING;
   const { next, becameDisputed } = transition(prev, vote, now, {
-    s3Trusted: s3Trusted(),
+    ...quorumOpts(),
     finalityDelayMs: FINALITY_DELAY_MS,
   });
 
@@ -202,7 +217,7 @@ export async function freezeDue(now: Date): Promise<number> {
   for (const r of due) {
     if (!r.freezesAt || new Date(r.freezesAt) > now) continue;
     if (r.outcomeHome === null || r.outcomeAway === null) continue; // defensive: provisional must carry an outcome
-    const decision = decide((r.votes ?? []) as SettlementVote[], { s3Trusted: s3Trusted() });
+    const decision = decide((r.votes ?? []) as SettlementVote[], quorumOpts());
     if (decision.kind !== "quorum") continue; // engine says no — leave for the next vote to sort out
     await db
       .update(schema.settlementSnapshots)
@@ -235,7 +250,7 @@ export async function needsTiebreak(fixtureIds: string[]): Promise<Set<string>> 
     );
   const out = new Set<string>();
   for (const r of rows) {
-    if (decide((r.votes ?? []) as SettlementVote[], { s3Trusted: s3Trusted() }).kind === "need-tiebreak") {
+    if (decide((r.votes ?? []) as SettlementVote[], quorumOpts()).kind === "need-tiebreak") {
       out.add(r.fixtureId);
     }
   }

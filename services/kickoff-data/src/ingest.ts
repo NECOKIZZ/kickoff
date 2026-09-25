@@ -115,6 +115,42 @@ export async function upsertFixture(
   return id;
 }
 
+/**
+ * A listing source moved a fixture it already tracks: new status, or a new
+ * kickoff (TV reschedule — beyond upsertFixture's ±5min reconciliation, which
+ * would otherwise mint a duplicate). Fires the status hook like upsertFixture.
+ * Never steps "ht" back to "live": a source without half-time (FPL) mustn't
+ * undo one that has it.
+ */
+export async function followSourceState(
+  id: string,
+  next: { status: FixtureStatus; kickoffUtc: Date | null },
+): Promise<void> {
+  const [prev] = await db
+    .select({ status: schema.fixtures.status, kickoffUtc: schema.fixtures.kickoffUtc })
+    .from(schema.fixtures)
+    .where(eq(schema.fixtures.id, id))
+    .limit(1);
+  if (!prev) return;
+
+  const status = prev.status === "ht" && next.status === "live" ? prev.status : next.status;
+  const kickoffMoved = next.kickoffUtc !== null && new Date(prev.kickoffUtc).getTime() !== next.kickoffUtc.getTime();
+  if (status === prev.status && !kickoffMoved) return;
+
+  await db
+    .update(schema.fixtures)
+    .set({ status, ...(kickoffMoved && { kickoffUtc: next.kickoffUtc! }), updatedAt: sql`now()` })
+    .where(eq(schema.fixtures.id, id));
+
+  if (onStatusChange && status !== prev.status) {
+    try {
+      onStatusChange(id, prev.status, status);
+    } catch (e) {
+      log.error("ingest", "status listener threw", { error: e as Error });
+    }
+  }
+}
+
 /** Batch player stats for one fixture — replaces the fixture's rows (S1 is
  *  the sole Market B source; a re-fetch is a full refresh, unique on
  *  (fixture_id, player_id) makes this idempotent). */

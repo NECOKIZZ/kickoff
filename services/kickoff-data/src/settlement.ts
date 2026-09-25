@@ -4,7 +4,8 @@
 // same outcome in ANY arrival order (property-tested). settlementLane.ts
 // persists what this file decides.
 //
-// Voter roster:
+// Voter roster (default — KICKOFF_DATA_SETTLEMENT_VOTERS/_QUORUM override it,
+// see sources.ts):
 //   - S1 apiFootball + S2 fdorg — the only official sources, always voters.
 //   - S3/S4 flashscore — ONE vote, and only after burn-in (s3Trusted flag);
 //     until then its votes are recorded but excluded (shadow mode — the
@@ -17,6 +18,10 @@ import type { SettlementVote, SourceId } from "@kickoff/schema";
 export interface QuorumOpts {
   /** Flashscore counts as a settlement voter only after burn-in passes. */
   s3Trusted: boolean;
+  /** Replaces the default roster when set (s3Trusted is then ignored). */
+  voters?: SourceId[];
+  /** Exact agreements needed for quorum. Default 2. */
+  quorum?: number;
 }
 
 export type Decision =
@@ -53,25 +58,27 @@ export function decide(votes: SettlementVote[], opts: QuorumOpts): Decision {
   const admin = latest.get("admin");
   if (admin) return { kind: "quorum", outcome: admin.scoreline, rule: "admin-override" };
 
-  const primaries: SourceId[] = opts.s3Trusted
-    ? ["apiFootball", "fdorg", "flashscore"]
-    : ["apiFootball", "fdorg"];
+  const primaries: SourceId[] =
+    opts.voters ?? (opts.s3Trusted ? ["apiFootball", "fdorg", "flashscore"] : ["apiFootball", "fdorg"]);
+  const needed = opts.quorum ?? 2;
   const cast = primaries.filter((s) => latest.has(s));
 
-  // ≥2 primaries agree exactly → quorum.
+  // ≥quorum primaries agree exactly, and no other scoreline has as many
+  // backers → quorum. (With the default 2-of-2/2-of-3 a tie can't happen;
+  // the uniqueness check matters for 1-of-N rosters.)
   const groups = new Map<string, SourceId[]>();
   for (const s of cast) {
     const key = scoreKey(latest.get(s)!.scoreline);
     groups.set(key, [...(groups.get(key) ?? []), s]);
   }
-  for (const [, sources] of [...groups].sort()) {
-    if (sources.length >= 2) {
-      return {
-        kind: "quorum",
-        outcome: latest.get(sources[0]!)!.scoreline,
-        rule: `${sources.length}-of-${primaries.length} exact agreement`,
-      };
-    }
+  const ranked = [...groups].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+  const [top, runnerUp] = ranked;
+  if (top && top[1].length >= needed && (!runnerUp || runnerUp[1].length < top[1].length)) {
+    return {
+      kind: "quorum",
+      outcome: latest.get(top[1][0]!)!.scoreline,
+      rule: `${top[1].length}-of-${primaries.length} exact agreement`,
+    };
   }
 
   // Quorum can still form — wait for the missing primaries.

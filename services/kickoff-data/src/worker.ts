@@ -21,7 +21,7 @@ import { deliver, webhookConfigFromEnv } from "./api/webhooks";
 import { freezeDue, needsTiebreak, escalateStalled, installSettlementEmitter, s3Trusted } from "./settlementLane";
 import { sweepPlayerPoints, installPlayerPointsEmitter } from "./fplSettlementLane";
 import { db, schema } from "./db";
-import { jobEnabled, disabledSources } from "./sources";
+import { jobEnabled, disabledSources, listsFixtures, settlementRoster } from "./sources";
 import { log } from "./log";
 
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
@@ -156,6 +156,9 @@ async function main(): Promise<void> {
     fplMock: fplMockMode(),
     s3Trusted: s3Trusted(),
     disabledSources: disabledSources(),
+    // Parsed here so a bad KICKOFF_DATA_SETTLEMENT_* config fails at boot, not mid-tick.
+    settlement: settlementRoster(),
+    fplLists: listsFixtures("fpl"),
     webhooks: webhookConfig.url ? "on" : "OFF (KICKOFF_DATA_WEBHOOK_URL unset)",
   });
 

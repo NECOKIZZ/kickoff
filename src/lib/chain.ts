@@ -207,7 +207,7 @@ export async function verifyClaimTx(txHash: Hex, onChainMarketId: bigint, trader
 // stake without first finding a faucet. Amounts are env-tunable.
 // ---------------------------------------------------------------------------
 
-const DRIP_ETH_WEI = BigInt(process.env.FAUCET_ETH_WEI ?? "2000000000000000"); // 0.002 ETH
+const DRIP_ETH_WEI = BigInt(process.env.FAUCET_ETH_WEI ?? "200000000000000"); // 0.0002 ETH, ~100 stakes at testnet gas
 const DRIP_TUSDC = BigInt(process.env.FAUCET_TUSDC ?? "100000000"); // 100 tUSDC
 // Only top up what's actually low, so repeat clicks can't farm the drip.
 const MIN_ETH_WEI = DRIP_ETH_WEI / 4n;

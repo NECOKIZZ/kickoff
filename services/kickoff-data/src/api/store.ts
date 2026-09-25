@@ -2,12 +2,13 @@
 // Rows come out of the canonical tables and are shaped into @kickoff/schema
 // entities here so routes.ts (and its tests) never see Drizzle.
 
-import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, lte } from "drizzle-orm";
 import type {
   Fixture,
   Gameweek,
   MatchEvent,
   MatchEventType,
+  MatchResult,
   MatchState,
   MatchStats,
   PlayerGwPoints,
@@ -54,6 +55,7 @@ function fixtureSource(refs: SourceRefs): SourceId {
   if (refs.apiFootball !== undefined) return "apiFootball";
   if (refs.fdorg !== undefined) return "fdorg";
   if (refs.flashscore !== undefined || refs.fsfd !== undefined) return "flashscore";
+  if (refs.fpl !== undefined) return "fpl";
   return "admin";
 }
 
@@ -79,6 +81,33 @@ export const drizzleStore: ApiStore = {
     return rows.map(stampFixture);
   },
 
+  async listResults(filter: FixtureFilter) {
+    const conds = [
+      eq(schema.fixtures.status, "ft"),
+      isNotNull(schema.fixtures.homeScore),
+      isNotNull(schema.fixtures.awayScore),
+    ];
+    if (filter.league) conds.push(eq(schema.fixtures.league, filter.league));
+    if (filter.from) conds.push(gte(schema.fixtures.kickoffUtc, filter.from));
+    if (filter.to) conds.push(lte(schema.fixtures.kickoffUtc, filter.to));
+    const rows = await db
+      .select()
+      .from(schema.fixtures)
+      .where(and(...conds))
+      .orderBy(desc(schema.fixtures.kickoffUtc))
+      .limit(800); // two seasons of EPL
+    return rows.map((r): Stamped<MatchResult> => ({
+      data: {
+        fixture_id: r.id,
+        kickoff_utc: new Date(r.kickoffUtc).toISOString(),
+        home: { slug: r.homeSlug, name: r.homeName },
+        away: { slug: r.awaySlug, name: r.awayName },
+        score: { home: r.homeScore!, away: r.awayScore! },
+      },
+      source: fixtureSource(r.sourceRefs as SourceRefs),
+      fetchedAt: new Date(r.updatedAt),
+    }));
+  },
   async getFixture(id: string) {
     const rows = await db.select().from(schema.fixtures).where(eq(schema.fixtures.id, id)).limit(1);
     return rows[0] ? stampFixture(rows[0]) : null;

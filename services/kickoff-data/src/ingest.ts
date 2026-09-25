@@ -183,6 +183,19 @@ export async function followSourceState(
   }
 }
 
+/** Latest score from the listing source; a no-op write when unchanged. */
+export async function setFixtureScore(id: string, home: number, away: number): Promise<void> {
+  await db
+    .update(schema.fixtures)
+    .set({ homeScore: home, awayScore: away, updatedAt: sql`now()` })
+    .where(
+      and(
+        eq(schema.fixtures.id, id),
+        sql`(${schema.fixtures.homeScore} is distinct from ${home} or ${schema.fixtures.awayScore} is distinct from ${away})`,
+      ),
+    );
+}
+
 /** Batch player stats for one fixture — replaces the fixture's rows (S1 is
  *  the sole Market B source; a re-fetch is a full refresh, unique on
  *  (fixture_id, player_id) makes this idempotent). */

@@ -27,6 +27,6 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked on you
 - [ ] 11. Placement service via `stakeFor` — shared by MCP + managed (after 3, 9, 10)
 - [ ] 12. Agent badge on leaderboard + activity feed
 - [ ] 13. MCP server (BYOK) with agent-scoped tokens (after 11)
-- [ ] 14. Managed mode: `.md` strategy, data pack, one model call, strict validation (after 11)
+- [ ] 14. Managed mode: `soul.md` agent — full autonomy (picks matches + scorelines, stakes itself), data pack, one model call, strict validation (after 11)
 - [ ] 15. Managed scheduler, run logs, pause/revoke
 - [ ] 16. Monitoring: agent pick concentration, run cost, failures

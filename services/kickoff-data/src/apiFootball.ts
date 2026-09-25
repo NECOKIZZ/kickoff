@@ -25,7 +25,12 @@ export const EPL_LEAGUE_ID = 39;
 // later so restarts don't forget the day's spend.
 // ---------------------------------------------------------------------------
 
-const DAILY_LIMIT = 100;
+/** Plan's daily request cap: 100 on the free plan. A paid plan is an env
+ *  change (KICKOFF_DATA_S1_DAILY_LIMIT), not a code change. */
+const DAILY_LIMIT = (() => {
+  const n = Number(process.env.KICKOFF_DATA_S1_DAILY_LIMIT);
+  return Number.isInteger(n) && n > 0 ? n : 100;
+})();
 /** Widen polling when fewer than this many requests remain (§12.1). */
 export const CIRCUIT_BREAKER_THRESHOLD = 15;
 
@@ -67,7 +72,7 @@ async function apiGet(endpoint: string, params: Record<string, string>): Promise
   const state = budgetState();
   if (state.remaining <= 0) {
     log.error("apiFootball", "budget exhausted", { endpoint, used: budget.used, limit: DAILY_LIMIT });
-    throw new Error("API-Football daily budget exhausted (100/day)");
+    throw new Error(`API-Football daily budget exhausted (${DAILY_LIMIT}/day)`);
   }
   if (state.breakerTripped) {
     log.warn("apiFootball", "circuit breaker tripped", { remaining: state.remaining, endpoint });

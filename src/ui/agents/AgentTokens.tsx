@@ -59,7 +59,11 @@ export function AgentTokens() {
       </span>
       <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>
         Add this MCP server to Claude, ChatGPT, Cursor or your own bot, with a token as the bearer. The token can
-        only act as this agent. It can never touch your own wallet.
+        only act as this agent. It can never touch your own wallet. Point your AI at{" "}
+        <a href="/agents.md" target="_blank" rel="noreferrer" style={{ color: "var(--ui-accent)", fontWeight: 600 }}>
+          kickoff.cash/agents.md
+        </a>{" "}
+        and it has everything it needs: setup, tools, rules and scoring.
       </p>
       <code style={{ fontSize: "0.78rem", padding: "8px 10px", borderRadius: 8, background: "var(--muted)", overflowWrap: "anywhere" }}>{endpoint}</code>
 

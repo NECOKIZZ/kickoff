@@ -3,15 +3,19 @@ import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyCaller } from "@/lib/auth";
 import { verifyInviteFromRequest } from "@/lib/inviteGate";
 import { validateGuess, validateStake } from "@/lib/markets";
-import { verifyStakeTx } from "@/lib/chain";
+import { CHAIN_ENABLED, verifyStakeTx } from "@/lib/chain";
 import { eq, and } from "drizzle-orm";
 
 /**
  * POST /api/markets/:id/positions — place (or update, pre-lock) a position.
  *
  * Body: { stake: string base units, guessHome?, guessAway?, guessPoints?,
- *         stakeTxHash? }  — stakeTxHash links the on-chain escrow deposit;
- * optional until the escrow contract is deployed, required after.
+ *         stakeTxHash? }
+ *
+ * Escrow-linked market with chain wiring on: the tUSDC must already be in
+ * the escrow. stakeTxHash is REQUIRED, and the recorded stake + guess come
+ * from the verified on-chain Staked event, never from the body. Off-chain
+ * (dev mode / unlinked market): the body is recorded as before.
  */
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const caller = await verifyCaller(req);
@@ -53,20 +57,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   const stakeTxHash = typeof body.stakeTxHash === "string" ? body.stakeTxHash : null;
 
-  // When the market is escrow-linked and chain wiring is on, a provided
-  // stakeTxHash must actually be a successful Staked(marketId, trader) tx on
-  // the escrow. Absent hash is still allowed in the testnet phase (dev-mode
-  // header flow has no wallet); verifyStakeTx returns null when wiring is off.
-  if (stakeTxHash && m.escrowAddress && m.onChainMarketId != null) {
-    const ok = await verifyStakeTx(
-      stakeTxHash as `0x${string}`,
-      m.onChainMarketId,
-      caller.address as `0x${string}`,
-    );
-    if (ok === false) return jsonError("stakeTxHash does not match a successful escrow stake for this market/address", 400);
-  }
+  const [existing] = await db
+    .select()
+    .from(schema.positions)
+    .where(and(eq(schema.positions.marketId, marketId), eq(schema.positions.userId, caller.userId)))
+    .limit(1);
 
-  const values = {
+  let values = {
     marketId,
     userId: caller.userId,
     guessHome: m.kind === "scoreline" ? (body.guessHome as number) : null,
@@ -75,6 +72,29 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     stake,
     stakeTxHash,
   };
+
+  if (CHAIN_ENABLED && m.escrowAddress && m.onChainMarketId != null) {
+    if (!stakeTxHash || !/^0x[0-9a-fA-F]{64}$/.test(stakeTxHash))
+      return jsonError("stakeTxHash required: stake tUSDC in the escrow first", 400);
+    const [reused] = await db
+      .select({ id: schema.positions.id })
+      .from(schema.positions)
+      .where(eq(schema.positions.stakeTxHash, stakeTxHash))
+      .limit(1);
+    if (reused) return jsonError("this stake transaction is already recorded", 409);
+
+    const v = await verifyStakeTx(stakeTxHash as `0x${string}`, m.onChainMarketId, caller.address as `0x${string}`);
+    if (!v) return jsonError("stakeTxHash does not match a successful escrow stake for this market/address", 400);
+    // A restake adds to the on-chain stake (0 in fixed mode) and replaces the guess.
+    const onChainStake = v.restake && existing ? existing.stake + v.amount : v.amount;
+    values = {
+      ...values,
+      guessHome: m.kind === "scoreline" ? v.guessA : null,
+      guessAway: m.kind === "scoreline" ? v.guessB : null,
+      guessPoints: m.kind === "player_points" ? BigInt(v.guessA) : null,
+      stake: onChainStake,
+    };
+  }
 
   // One position per user per market; re-posting pre-lock updates the guess/stake.
   const [row] = await db

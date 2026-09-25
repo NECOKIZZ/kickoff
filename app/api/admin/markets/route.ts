@@ -4,6 +4,7 @@ import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
 import { resolveGameweek } from "@/lib/gameweek";
+import { createMarketOnChain } from "@/lib/chain";
 import { desc, eq, sql } from "drizzle-orm";
 
 /**
@@ -71,6 +72,27 @@ export async function POST(req: Request) {
     gameweek = await resolveGameweek(kickoffAt);
   }
 
+  // Chain first (same rule as settle/void): list the market on the escrow in
+  // Draft and link it, or fail before touching the DB. Off-chain dev mode
+  // (CHAIN_ENABLED false) skips this and keeps any manual linkage.
+  let onChain: Awaited<ReturnType<typeof createMarketOnChain>> = null;
+  try {
+    onChain = await createMarketOnChain({
+      kind: b.kind,
+      stakeMode,
+      gamma,
+      takeRateBps,
+      accumulatorShareBps,
+      capMultiple,
+      locksAt,
+      minStake,
+      maxStake,
+      fixedStake,
+    });
+  } catch (err) {
+    return jsonError(`on-chain createMarket failed, DB untouched: ${err instanceof Error ? err.message : err}`, 502);
+  }
+
   const [row] = await db
     .insert(schema.markets)
     .values({
@@ -93,12 +115,16 @@ export async function POST(req: Request) {
       takeRateBps,
       accumulatorShareBps,
       capMultiple,
-      escrowAddress: typeof b.escrowAddress === "string" ? b.escrowAddress : null,
-      onChainMarketId: b.onChainMarketId == null ? null : BigInt(b.onChainMarketId as string | number),
+      escrowAddress: onChain ? onChain.escrowAddress : typeof b.escrowAddress === "string" ? b.escrowAddress : null,
+      onChainMarketId: onChain
+        ? onChain.onChainMarketId
+        : b.onChainMarketId == null
+          ? null
+          : BigInt(b.onChainMarketId as string | number),
     })
     .returning();
 
-  await logAdminEvent("admin", "market.create", row.id, b);
+  await logAdminEvent("admin", "market.create", row.id, { ...b, createTxHash: onChain?.txHash ?? null });
   return json({ market: row }, { status: 201 });
 }
 

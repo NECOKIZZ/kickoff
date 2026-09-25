@@ -16,6 +16,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ address: strin
       marketKind: schema.markets.kind,
       marketStatus: schema.markets.status,
       kickoffAt: schema.markets.kickoffAt,
+      escrowAddress: schema.markets.escrowAddress,
+      onChainMarketId: schema.markets.onChainMarketId,
     })
     .from(schema.positions)
     .innerJoin(schema.users, eq(schema.positions.userId, schema.users.id))

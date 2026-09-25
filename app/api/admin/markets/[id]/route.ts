@@ -3,10 +3,15 @@ import { lockDueMarkets } from "@/lib/markets";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
+import { updateDraftConfigOnChain } from "@/lib/chain";
 import { eq } from "drizzle-orm";
 
 /**
  * PATCH /api/admin/markets/:id — edit knobs on a draft or open market.
+ *
+ * Escrow-linked markets: drafts are mirrored on-chain (updateDraftConfig);
+ * open ones are refused, because the escrow froze their config at open and
+ * the DB must never disagree with the contract that pays out.
  *
  * Only gamma, stakeMode, minStake, maxStake, fixedStake, takeRateBps, and
  * capMultiple are patchable. Status transitions use the dedicated sub-routes
@@ -24,6 +29,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!market) return jsonError("market not found", 404);
   if (!["draft", "open"].includes(market.status))
     return jsonError(`cannot edit a ${market.status} market`, 400);
+  const linked = market.escrowAddress != null && market.onChainMarketId != null;
+  if (linked && market.status === "open")
+    return jsonError("knobs are frozen on-chain once a market opens, void and relist to change them", 409);
 
   let b: Record<string, unknown>;
   try {
@@ -90,12 +98,32 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   if (Object.keys(patch).length === 0) return jsonError("no patchable fields provided", 400);
 
+  let updateTxHash: string | null = null;
+  if (linked) {
+    try {
+      updateTxHash = await updateDraftConfigOnChain(market.onChainMarketId!, {
+        kind: market.kind,
+        stakeMode,
+        gamma: patch.gamma ?? market.gamma,
+        takeRateBps: patch.takeRateBps ?? market.takeRateBps,
+        accumulatorShareBps: market.accumulatorShareBps,
+        capMultiple: patch.capMultiple ?? market.capMultiple,
+        locksAt: market.locksAt,
+        minStake,
+        maxStake,
+        fixedStake: patch.fixedStake !== undefined ? patch.fixedStake : market.fixedStake,
+      });
+    } catch (err) {
+      return jsonError(`on-chain config update failed, DB untouched: ${err instanceof Error ? err.message : err}`, 502);
+    }
+  }
+
   const [updated] = await db
     .update(schema.markets)
     .set(patch)
     .where(eq(schema.markets.id, id))
     .returning();
 
-  await logAdminEvent("admin", "market.patch", id, b);
+  await logAdminEvent("admin", "market.patch", id, { ...b, updateTxHash });
   return json({ market: updated });
 }

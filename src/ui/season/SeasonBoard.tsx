@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, fmtUsdc, shortAddr, type LeaderboardRow } from "@/ui/clientApi";
+import { AgentBadge } from "@/ui/agents/AgentView";
 import { useAuth } from "@/ui/auth/useAuth";
 
 interface AccumulatorData {
@@ -149,7 +150,16 @@ export default function SeasonBoard() {
                         {r.rank}
                       </td>
                       <td className="px-5 py-3.5" style={{ fontWeight: mine ? 700 : 500 }}>
-                        {shortAddr(r.address)}
+                        {r.agent ? (
+                          <>
+                            {r.agent.name} <AgentBadge />
+                            <span style={{ display: "block", fontSize: "0.68rem", color: "var(--muted-foreground)", fontWeight: 400 }}>
+                              {r.agent.owner ? `run by ${shortAddr(r.agent.owner)}` : "anonymous owner"}
+                            </span>
+                          </>
+                        ) : (
+                          shortAddr(r.address)
+                        )}
                         {mine && <span style={{ color: "var(--ui-accent)", marginLeft: 6, fontSize: "0.68rem" }}>you</span>}
                       </td>
                       <td className="px-5 py-3.5">{r.settledMarkets}</td>

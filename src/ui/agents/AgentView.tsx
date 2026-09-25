@@ -228,7 +228,7 @@ function AgentPanel({ data, reload }: { data: MyAgent; reload: () => void }) {
       <Card>
         <span style={label}>Agent balance</span>
         <p style={{ fontFamily: "'Fraunces', serif", fontSize: "2rem", fontWeight: 700, margin: "4px 0 10px" }}>
-          {data.vault ? `${fmtUsdc(data.vault.balance)} tUSDC` : data.onChain ? "…" : "off-chain (dev)"}
+          {data.vault ? `${fmtUsdc(data.vault.balance).replace(/^\$/, "")} tUSDC` : data.onChain ? "…" : "off-chain (dev)"}
         </p>
         {data.onChain && (
           <div className="flex flex-wrap items-center gap-2">

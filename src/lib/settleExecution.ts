@@ -10,6 +10,7 @@ import { db, schema } from "@/db";
 import { computeSettlement, positionDistance, type MarketRow } from "@/lib/markets";
 import { settleOnChain } from "@/lib/chain";
 import { logAdminEvent } from "@/lib/admin";
+import { sweepAgentPayouts } from "@/lib/agentPlacement";
 import { eq } from "drizzle-orm";
 
 export type SettleOutcome = { home?: number; away?: number; points?: bigint };
@@ -120,6 +121,9 @@ export async function executeSettlement(
     settleTxHash,
     ...evidence,
   });
+
+  // Agents have no key to claim with: sweep their payouts into the vault.
+  await sweepAgentPayouts(m.id).catch((err) => console.error("agent payout sweep failed", err));
 
   return { ok: true, status: 200, market: result.market, settlement: result.settlement, engine };
 }

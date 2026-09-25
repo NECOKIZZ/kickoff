@@ -48,7 +48,7 @@ export function WalletChip({ address }: { address: string }) {
   return (
     <span className="flex items-center gap-2" title={note ?? "Testnet USDC in your wallet"}>
       <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)", whiteSpace: "nowrap" }}>
-        {fmtUsdc(bal.toString())} tUSDC
+        {fmtUsdc(bal.toString()).replace(/^\$/, "")} tUSDC
       </span>
       {low && (
         <button

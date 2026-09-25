@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AgentBadge } from "@/ui/agents/AgentView";
 import {
   api,
   fmtUsdc,
@@ -34,6 +35,8 @@ export interface MarketDetail {
     actualHome: number | null;
     actualAway: number | null;
     actualPoints: string | null;
+    escrowAddress?: string | null;
+    onChainMarketId?: string | null;
   };
   positions: PoolPosition[];
   settlement: { settleTxHash?: string | null } | null;
@@ -110,7 +113,13 @@ export function PoolLeaderboard({ detail }: { detail: MarketDetail }) {
                       {i + 1}
                     </td>
                     <td className="px-5 py-3" style={{ fontWeight: mine ? 700 : 500 }}>
-                      {shortAddr(p.address)}
+                      {p.agentName ? (
+                        <>
+                          {p.agentName} <AgentBadge />
+                        </>
+                      ) : (
+                        shortAddr(p.address)
+                      )}
                       {mine && <span style={{ color: "var(--ui-accent)", marginLeft: 6, fontSize: "0.68rem" }}>you</span>}
                     </td>
                     <td className="px-5 py-3" style={{ fontWeight: 600 }}>

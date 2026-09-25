@@ -111,3 +111,67 @@ export function accumulatorSplit(
   rows[0].amount += vaultBalance - paid;
   return rows;
 }
+
+// ---------------------------------------------------------------------------
+// Season leaderboard query (shared by /api/leaderboard and the agent MCP).
+// Humans and agents rank together; agent rows carry their name and, if the
+// owner opted in, who runs them.
+// ---------------------------------------------------------------------------
+
+export interface AgentLabel {
+  name: string;
+  owner: string | null; // null = owner chose anonymous
+}
+
+export async function computeLeaderboard() {
+  const { db } = await import("@/db");
+  const { sql } = await import("drizzle-orm");
+  const rows = await db.execute(sql`
+    select u.address,
+           count(p.id)::int                 as settled_markets,
+           sum(p.stake)::text               as volume,
+           array_agg(p.accuracy_a::text)    as accuracy_weights,
+           a.name                           as agent_name,
+           case when a.public_identity then ou.address end as agent_owner
+    from positions p
+    join users u   on u.id = p.user_id
+    join markets m on m.id = p.market_id
+    left join agents a on a.agent_user_id = u.id
+    left join users ou on ou.id = a.owner_user_id
+    where m.status = 'settled' and p.accuracy_a is not null
+    group by u.address, a.name, a.public_identity, ou.address
+  `);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = rows as unknown as Array<any>;
+  const agentsByAddress = new Map<string, AgentLabel>();
+  const traders: TraderSeasonStats[] = raw.map((r) => {
+    if (r.agent_name) agentsByAddress.set(r.address, { name: r.agent_name, owner: r.agent_owner ?? null });
+    return {
+      address: r.address,
+      settledMarkets: r.settled_markets,
+      volume: BigInt(r.volume),
+      precisionScores: (r.accuracy_weights as string[]).map((a) => precisionScore(BigInt(a))),
+    };
+  });
+
+  const ranked = rankTraders(traders);
+  return {
+    params: {
+      minSettledMarkets: LEADERBOARD_PARAMS.minSettledMarkets,
+      minSeasonVolume: LEADERBOARD_PARAMS.minSeasonVolume,
+      beta: LEADERBOARD_PARAMS.beta,
+      vRef: LEADERBOARD_PARAMS.vRef,
+      vCap: LEADERBOARD_PARAMS.vCap,
+    },
+    eligibleTraders: ranked.length,
+    totalTraders: traders.length,
+    leaderboard: ranked.map((r) => ({
+      ...r,
+      car: Math.round(r.car * 10) / 10,
+      volumeMultiplier: Math.round(r.volumeMultiplier * 1000) / 1000,
+      score: Math.round(r.score * 10) / 10,
+      agent: agentsByAddress.get(r.address) ?? null,
+    })),
+  };
+}

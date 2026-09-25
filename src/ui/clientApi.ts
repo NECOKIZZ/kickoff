@@ -45,6 +45,8 @@ export interface PoolPosition {
   distanceD?: string | null;
   payout: string | null;
   capped?: boolean;
+  /** Set when this position belongs to someone's prediction agent. */
+  agentName?: string | null;
 }
 
 export interface LeaderboardRow {
@@ -55,6 +57,8 @@ export interface LeaderboardRow {
   volumeMultiplier: number;
   score: number;
   rank: number;
+  /** Set when this trader is someone's prediction agent. */
+  agent?: { name: string; owner: string | null } | null;
 }
 
 const DEV_ADDRESS_KEY = "kickoff-dev-address";

@@ -25,9 +25,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       distanceD: schema.positions.distanceD,
       payout: schema.positions.payout,
       capped: schema.positions.capped,
+      agentName: schema.agents.name, // non-null = this position is someone's agent
     })
     .from(schema.positions)
     .innerJoin(schema.users, eq(schema.positions.userId, schema.users.id))
+    .leftJoin(schema.agents, eq(schema.agents.agentUserId, schema.users.id))
     .where(eq(schema.positions.marketId, marketId));
 
   const [settlement] = await db

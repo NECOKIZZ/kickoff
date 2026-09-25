@@ -27,6 +27,13 @@ interface IAccumulatorVault {
 ///           owner   — config, void, platform withdrawal; never auto-settles
 ///           agent   — createMarket/openMarket ONLY (daily rate-capped)
 ///           relayer — settle ONLY; can never move stake directly
+///
+///         Agent accounts: a user's prediction agent is a keyless address held
+///         in the AgentVault. Only that vault may stake/claim on an agent's
+///         behalf (stakeFor/claimFor); the agent is a normal trader in every
+///         other respect — own position, one vote in the median gate.
+///         (Not to be confused with the `agent` role above, which is the
+///         market-listing bot.)
 contract KickoffEscrow {
     // --- engine constants (mirror engine.ts) ----------------------------------
 
@@ -108,6 +115,8 @@ contract KickoffEscrow {
     address public owner;
     address public relayer; // settle only
     address public agent;   // list only
+    /// @dev AgentVault — the only caller of stakeFor/claimFor. Zero = off.
+    address public agentVault;
 
     uint256 public marketCount;
     mapping(uint256 => Market) public markets;
@@ -136,6 +145,7 @@ contract KickoffEscrow {
     event Claimed(uint256 indexed marketId, address indexed trader, uint256 amount);
     event PlatformWithdrawn(address indexed to, uint256 amount);
     event RolesChanged(address owner, address relayer, address agent);
+    event AgentVaultChanged(address indexed agentVault);
 
     // --- errors ----------------------------------------------------------------
 
@@ -153,6 +163,7 @@ contract KickoffEscrow {
     error TransferFailed();
     error Reentrancy();
     error ZeroAddress();
+    error NotAgentVault();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -185,6 +196,11 @@ contract KickoffEscrow {
         relayer = _relayer;
         agent = _agent;
         emit RolesChanged(_owner, _relayer, _agent);
+    }
+
+    function setAgentVault(address _agentVault) external onlyOwner {
+        agentVault = _agentVault;
+        emit AgentVaultChanged(_agentVault);
     }
 
     function setAgentDailyCap(uint256 cap) external onlyOwner {
@@ -251,11 +267,28 @@ contract KickoffEscrow {
     /// @notice Place or update a position. One per address per market; a restake
     ///         before lock adds to the stake and replaces the guess (app parity).
     function stake(uint256 marketId, uint32 guessA, uint32 guessB, uint128 amount) external nonReentrant {
+        _stake(msg.sender, msg.sender, marketId, guessA, guessB, amount);
+    }
+
+    /// @notice AgentVault-only: stake as `trader` (a vault-held agent address),
+    ///         funded by the vault. Same rules as stake().
+    function stakeFor(address trader, uint256 marketId, uint32 guessA, uint32 guessB, uint128 amount)
+        external
+        nonReentrant
+    {
+        if (msg.sender != agentVault || agentVault == address(0)) revert NotAgentVault();
+        if (trader == address(0)) revert ZeroAddress();
+        _stake(trader, msg.sender, marketId, guessA, guessB, amount);
+    }
+
+    function _stake(address trader, address payer, uint256 marketId, uint32 guessA, uint32 guessB, uint128 amount)
+        internal
+    {
         Market storage m = markets[marketId];
         if (m.status != MarketStatus.Open) revert BadStatus();
         if (block.timestamp >= m.config.locksAt) revert MarketLocked();
 
-        uint256 idx = _positionIndex[marketId][msg.sender];
+        uint256 idx = _positionIndex[marketId][trader];
         Position[] storage ps = _positions[marketId];
 
         if (m.config.stakeMode == StakeMode.Fixed) {
@@ -272,8 +305,8 @@ contract KickoffEscrow {
             if (m.config.stakeMode == StakeMode.Variable) {
                 if (amount < m.config.minStake || amount > m.config.maxStake) revert StakeOutOfRange();
             }
-            ps.push(Position({trader: msg.sender, stake: amount, guessA: guessA, guessB: guessB, claimed: false}));
-            _positionIndex[marketId][msg.sender] = ps.length; // 1-based
+            ps.push(Position({trader: trader, stake: amount, guessA: guessA, guessB: guessB, claimed: false}));
+            _positionIndex[marketId][trader] = ps.length; // 1-based
         } else {
             Position storage p = ps[idx - 1];
             uint256 newStake = uint256(p.stake) + amount;
@@ -287,9 +320,9 @@ contract KickoffEscrow {
 
         if (amount > 0) {
             m.totalPool += amount;
-            if (!stakeToken.transferFrom(msg.sender, address(this), amount)) revert TransferFailed();
+            if (!stakeToken.transferFrom(payer, address(this), amount)) revert TransferFailed();
         }
-        emit Staked(marketId, msg.sender, amount, guessA, guessB, idx != 0);
+        emit Staked(marketId, trader, amount, guessA, guessB, idx != 0);
     }
 
     // --- settlement (engine.ts port) ----------------------------------------------
@@ -446,13 +479,23 @@ contract KickoffEscrow {
 
     /// @notice Pull payment (spec §3.2 pattern). Zeroed before transfer.
     function claim(uint256 marketId) external nonReentrant {
+        _claim(marketId, msg.sender, msg.sender);
+    }
+
+    /// @notice AgentVault-only: claim an agent's payout into the vault.
+    function claimFor(uint256 marketId, address trader) external nonReentrant returns (uint256) {
+        if (msg.sender != agentVault || agentVault == address(0)) revert NotAgentVault();
+        return _claim(marketId, trader, msg.sender);
+    }
+
+    function _claim(uint256 marketId, address trader, address to) internal returns (uint256 amount) {
         Market storage m = markets[marketId];
         if (m.status != MarketStatus.Settled && m.status != MarketStatus.Voided) revert BadStatus();
-        uint256 amount = payoutOf[marketId][msg.sender];
+        amount = payoutOf[marketId][trader];
         if (amount == 0) revert NothingToClaim();
-        payoutOf[marketId][msg.sender] = 0;
-        if (!stakeToken.transfer(msg.sender, amount)) revert TransferFailed();
-        emit Claimed(marketId, msg.sender, amount);
+        payoutOf[marketId][trader] = 0;
+        if (!stakeToken.transfer(to, amount)) revert TransferFailed();
+        emit Claimed(marketId, trader, amount);
     }
 
     // --- views ----------------------------------------------------------------------

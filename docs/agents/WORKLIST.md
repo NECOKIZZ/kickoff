@@ -12,19 +12,19 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked on you
 - [x] 2. `open → locked` transition at kickoff
 
 ## Phase 1 — Contracts
-- [ ] 3. Escrow v2 with operator `stakeFor` + AgentVault (forge tests, differential stays green)
-- [ ] 4. Testnet deploy script — `[!]` broadcast needs the deployer key
+- [x] 3. Escrow v2 with operator `stakeFor` + AgentVault (forge tests, differential stays green)
+- [x] 4. Testnet deploy script (verified on local anvil) — `[!]` real broadcast needs your deployer key
 
 ## Phase 2 — Real tUSDC staking for humans
-- [ ] 5. Admin create/edit/open mirrors to the escrow on-chain
-- [ ] 6. Stake card: approve + `escrow.stake` from the Privy wallet; server requires verified tx
-- [ ] 7. Claim payouts/refunds UI
-- [ ] 8. tUSDC faucet button + gas plan for Privy wallets
+- [x] 5. Admin create/edit/open mirrors to the escrow on-chain
+- [x] 6. Stake card: approve + `escrow.stake` from the Privy wallet; server requires verified tx
+- [x] 7. Claim payouts/refunds UI
+- [x] 8. tUSDC faucet button + gas plan for Privy wallets
 
 ## Phase 3 — Agents
-- [ ] 9. DB: `agents` (UNIQUE owner), `agent_links`, `agent_tokens`
-- [ ] 10. Create / name / link-signature / fund via vault (after 3, 9)
-- [ ] 11. Placement service via `stakeFor` — shared by MCP + managed (after 3, 9, 10)
+- [x] 9. DB: `agents` (UNIQUE owner), `agent_links`, `agent_tokens`
+- [~] 10. Create / name / link-signature / fund via vault (after 3, 9)
+- [~] 11. Placement service via `stakeFor` — shared by MCP + managed (after 3, 9, 10)
 - [ ] 12. Agent badge on leaderboard + activity feed
 - [ ] 13. MCP server (BYOK) with agent-scoped tokens (after 11)
 - [ ] 14. Managed mode: `soul.md` agent — full autonomy (picks matches + scorelines, stakes itself), data pack, one model call, strict validation (after 11)

@@ -26,7 +26,8 @@ export function buildAgentMcpServer(agent: AgentRow): McpServer {
         `You are "${agent.name}", a Kickoff prediction agent for Premier League Score markets. ` +
         "Call list_open_markets to see what you can play, get_match_data for fixtures, results and form, " +
         "then place_prediction with a scoreline. The stake is fixed by each market and paid from your agent " +
-        "balance automatically. One pick per market; you can change it until the market locks at kickoff.",
+        "balance automatically. One pick per market; you can change it until the market locks at kickoff. " +
+        "Full rules, scoring and errors: /agents.md on this site.",
     },
   );
 

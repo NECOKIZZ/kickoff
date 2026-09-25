@@ -1,4 +1,5 @@
 import { db, schema } from "@/db";
+import { lockDueMarkets } from "@/lib/markets";
 import { json, jsonError } from "@/lib/http";
 import { desc, eq } from "drizzle-orm";
 
@@ -6,6 +7,7 @@ import { desc, eq } from "drizzle-orm";
 export async function GET(_req: Request, ctx: { params: Promise<{ address: string }> }) {
   const { address } = await ctx.params;
   if (!/^0x[0-9a-fA-F]{40}$/.test(address)) return jsonError("invalid address", 400);
+  await lockDueMarkets();
 
   const rows = await db
     .select({

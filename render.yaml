@@ -56,6 +56,14 @@ services:
         value: fpl
       - key: KICKOFF_DATA_SETTLEMENT_QUORUM
         value: "1"
+      # Settle as soon as the result is in: no finality window. With one source
+      # a wrong full-time score is final; a second voter (QUORUM=2) is the
+      # safety net before mainnet, not a longer wait.
+      - key: KICKOFF_DATA_FINALITY_DELAY_SECONDS
+        value: "0"
+      # FPL poll during matches (default 180s), so full time is seen within a minute.
+      - key: KICKOFF_DATA_CADENCE_FPL_LIVE_POLL_SECONDS
+        value: "60"
       - key: KICKOFF_DATA_NO_MOCKS
         value: "1"
       - key: KICKOFF_DATA_S3_TRUSTED

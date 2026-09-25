@@ -1,0 +1,2 @@
+ALTER TABLE "markets" ADD COLUMN "data_fixture_id" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "markets_data_fixture_kind_idx" ON "markets" USING btree ("data_fixture_id","kind") WHERE "markets"."status" <> 'void';

@@ -86,6 +86,9 @@ export const fixtures = pgTable(
     awaySlug: text("away_slug").notNull(),
     awayName: text("away_name").notNull(),
     status: fixtureStatus("status").notNull().default("scheduled"),
+    /** Latest score from the listing source (FPL): running while live, final at FT. */
+    homeScore: integer("home_score"),
+    awayScore: integer("away_score"),
     venue: text("venue"),
     /** Per-source native ids: { apiFootball: 1399001, fdorg: 497xxx, flashscore: "..." } */
     sourceRefs: jsonb("source_refs").notNull().default({}),

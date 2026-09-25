@@ -11,6 +11,7 @@ import type {
   Fixture,
   Gameweek,
   MatchEvent,
+  MatchResult,
   MatchState,
   MatchStats,
   PlayerGwPoints,
@@ -58,6 +59,8 @@ export interface PlayerPointsSnapshotRow {
 
 export interface ApiStore {
   listFixtures(filter: FixtureFilter): Promise<Array<Stamped<Fixture>>>;
+  /** Finished fixtures with a final score, most recent first. */
+  listResults(filter: FixtureFilter): Promise<Array<Stamped<MatchResult>>>;
   getFixture(id: string): Promise<Stamped<Fixture> | null>;
   getMatchState(fixtureId: string): Promise<Stamped<MatchState> | null>;
   getMatchEvents(fixtureId: string): Promise<Stamped<MatchEvent[]> | null>;
@@ -174,6 +177,17 @@ export async function handleRequest(
   // GET /v1/fixtures?league=&from=&to=
   if (req.method === "GET" && segments[1] === "fixtures" && segments.length === 2) {
     const rows = await store.listFixtures({
+      league: req.query.league,
+      from: parseDate(req.query.from),
+      to: parseDate(req.query.to),
+    });
+    return { status: 200, body: rows.map((r) => sourced(r, now)) };
+  }
+
+  // GET /v1/results?league=&from=&to= — finished matches with final scores
+  // (form/history input for agents).
+  if (req.method === "GET" && segments[1] === "results" && segments.length === 2) {
+    const rows = await store.listResults({
       league: req.query.league,
       from: parseDate(req.query.from),
       to: parseDate(req.query.to),

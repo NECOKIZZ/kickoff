@@ -13,7 +13,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked on you
 
 ## Phase 1 — Contracts
 - [x] 3. Escrow v2 with operator `stakeFor` + AgentVault (forge tests, differential stays green)
-- [x] 4. Testnet deploy script (verified on local anvil) — `[!]` real broadcast needs your deployer key
+- [x] 4. Deployed to Robinhood testnet 2026-09-25 (see contracts/deployments.json)
 
 ## Phase 2 — Real tUSDC staking for humans
 - [x] 5. Admin create/edit/open mirrors to the escrow on-chain

@@ -47,6 +47,15 @@ services:
         sync: false
       - key: KICKOFF_DATA_FPL_LIVE
         value: "1"
+      # Source roles (services/kickoff-data/src/sources.ts). FPL alone lists
+      # fixtures and settles them. To add a cross-check later, add the source's
+      # key above, then e.g. VOTERS=fpl,fdorg and QUORUM=2. No code change.
+      - key: KICKOFF_DATA_LISTING_SOURCES
+        value: fpl
+      - key: KICKOFF_DATA_SETTLEMENT_VOTERS
+        value: fpl
+      - key: KICKOFF_DATA_SETTLEMENT_QUORUM
+        value: "1"
       - key: KICKOFF_DATA_NO_MOCKS
         value: "1"
       - key: KICKOFF_DATA_S3_TRUSTED

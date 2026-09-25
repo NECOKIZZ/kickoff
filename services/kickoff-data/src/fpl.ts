@@ -133,6 +133,9 @@ export interface FplFixture {
   finished_provisional: boolean;
   /** Bonus added — the provisional-settlement gate. */
   finished: boolean;
+  /** Running score while live; the final score once finished_provisional. */
+  team_h_score: number | null;
+  team_a_score: number | null;
 }
 
 // ---------------------------------------------------------------------------

@@ -26,16 +26,19 @@ worker that polls every 30s).
 is switched off instead of serving recorded payloads, so test data can never
 reach this database. The worker's startup log lists `disabledSources`.
 
-**Source roles** (`src/sources.ts`, set in the Blueprint). Today FPL is the
-only source: `KICKOFF_DATA_LISTING_SOURCES=fpl` lets it create fixtures (and
-follow reschedules/status); `KICKOFF_DATA_SETTLEMENT_VOTERS=fpl` +
-`KICKOFF_DATA_SETTLEMENT_QUORUM=1` settles on its full-time score.
-`KICKOFF_DATA_FINALITY_DELAY_SECONDS=0`: a result freezes the moment quorum
-is reached. With one voter that means a wrong full-time score is final, so
-before real money add a second fast source and set `QUORUM=2`: agreement,
-not waiting, is the safety net (disagreement waits for a tie-break/admin).
-Adding a source = its key + the roster vars. A roster that can never reach
-quorum fails at boot. Only matches kicked off in the last 48h get a vote.
+**Source roles** (`src/sources.ts`, set in the Blueprint; Render re-applies
+Blueprint values whenever `render.yaml` changes, so change them there).
+FPL creates fixtures (`KICKOFF_DATA_LISTING_SOURCES=fpl`); API-Football and
+football-data.org attach to them (clubs matched by slug + alias table, with
+Town/City naming variants tolerated). Settlement: `VOTERS=fpl,apiFootball,fdorg`,
+`QUORUM=2`, `FINALITY_DELAY_SECONDS=0`: a market settles the moment two
+sources agree. S1/S2 vote once the fixture is at full time (which FPL's
+60s live poll detects), so settlement lands ~FPL's FT lag + one tick.
+Disagreement waits for a tie-break/admin. A roster that can never reach
+quorum fails at boot. Only matches kicked off in the last 48h get an FPL
+vote. `KICKOFF_DATA_DISABLED_JOBS` switches single jobs off (player-perps
+jobs are off while perps are paused); `KICKOFF_DATA_RETRY_BACKOFF_SECONDS`
+spaces out retries of failed jobs (protects the API-Football budget).
 
 **Rate limits.** Every source client backs off on HTTP 429 (retried next
 tick), and every polling cadence is an env var

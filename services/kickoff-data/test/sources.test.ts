@@ -72,3 +72,15 @@ describe("source roles config", () => {
     expect(() => settlementRoster()).toThrow(/unknown source "espn"/);
   });
 });
+
+describe("KICKOFF_DATA_DISABLED_JOBS", () => {
+  it("switches individual jobs off, leaves the rest of the source running", () => {
+    keys({ API_FOOTBALL_KEY: "k" });
+    vi.stubEnv("KICKOFF_DATA_NO_MOCKS", "1");
+    vi.stubEnv("KICKOFF_DATA_DISABLED_JOBS", "s1.lineups, s1.postMatch");
+    expect(jobEnabled("s1.lineups")).toBe(false);
+    expect(jobEnabled("s1.postMatch")).toBe(false);
+    expect(jobEnabled("s1.fixtureSync")).toBe(true);
+    expect(jobEnabled("s1.settlementVote")).toBe(true);
+  });
+});

@@ -11,7 +11,8 @@ import {
   normalizeAfPlayers,
 } from "../src/normalize/apiFootball";
 import { fdStatus, normalizeFdMatch } from "../src/normalize/footballDataOrg";
-import { canonicalFixtureId, resolveFixtureId } from "../src/identity";
+import { canonicalFixtureId, resolveFixtureId, sameClub } from "../src/identity";
+import { teamSlug } from "../src/footballDataOrg";
 
 async function loadFixture(name: string): Promise<any> {
   const raw = await readFile(path.join(fixturesDir(), name), "utf8");
@@ -145,5 +146,27 @@ describe("cross-source identity resolution (±5min tolerance)", () => {
 
   it("does NOT resolve a different pairing at the same kickoff", () => {
     expect(resolveFixtureId(known, "EPL", new Date("2026-08-15T14:00:00Z"), "Arsenal", "Spurs")).toBeNull();
+  });
+
+  it("resolves Town/City naming variants across sources (FPL long names vs API-Football short)", () => {
+    const fplCreated = [
+      {
+        id: "epl-ipswich-town-fulham-202610101400",
+        league: "EPL",
+        kickoffUtc: new Date("2026-10-10T14:00:00Z"),
+        homeSlug: "ipswich-town",
+        awaySlug: "fulham",
+      },
+    ];
+    // Alias covers the known short names...
+    expect(teamSlug("Ipswich")).toBe("ipswich-town");
+    expect(teamSlug("Coventry")).toBe("coventry-city");
+    expect(teamSlug("Hull City AFC")).toBe("hull-city");
+    // ...and the suffix rule covers the next promoted club before an alias exists.
+    expect(sameClub("wrexham", "wrexham-afc")).toBe(true);
+    expect(sameClub("man-city", "manchester-city")).toBe(false);
+    expect(resolveFixtureId(fplCreated, "EPL", new Date("2026-10-10T14:00:00Z"), "Ipswich", "Fulham FC")).toBe(
+      "epl-ipswich-town-fulham-202610101400",
+    );
   });
 });

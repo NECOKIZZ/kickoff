@@ -1,0 +1,55 @@
+# Render Blueprint for kickoff-data — see services/kickoff-data/DEPLOY.md.
+# One free web service runs the API AND the worker tick loop (src/render.ts):
+# Render's free tier has no background workers and one service's worth of
+# hours. The database lives on Supabase, not Render (free Render Postgres
+# expires after 30 days).
+
+services:
+  - type: web
+    name: kickoff-data
+    runtime: node
+    plan: free
+    region: virginia # next to Vercel's iad1 functions
+    # Repo root: the service imports workspace packages (@kickoff/engine, @kickoff/schema).
+    buildCommand: npm install -g pnpm@12.6.0 && pnpm install --frozen-lockfile --filter "@kickoff/data..."
+    # Migrations are idempotent and run before the API binds, on every deploy.
+    startCommand: pnpm --filter @kickoff/data db:migrate && pnpm --filter @kickoff/data start:render
+    healthCheckPath: /health
+    autoDeploy: true
+    # Only redeploy when the data service (or what it builds on) changes, not on markets-app commits.
+    buildFilter:
+      paths:
+        - services/kickoff-data/**
+        - packages/**
+        - pnpm-lock.yaml
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Supabase → Connect → Session pooler string, with ?sslmode=require appended.
+      - key: KICKOFF_DATA_DATABASE_URL
+        sync: false
+      # The markets app presents these; copy them into Vercel after the first deploy.
+      - key: KICKOFF_DATA_API_KEY
+        generateValue: true
+      - key: KICKOFF_DATA_ADMIN_KEY
+        generateValue: true
+      - key: KICKOFF_DATA_WEBHOOK_URL
+        value: https://kickoff.cash/api/data-hooks
+      - key: KICKOFF_DATA_WEBHOOK_SECRET
+        generateValue: true
+      # Sources. A blank key switches that source OFF (KICKOFF_DATA_NO_MOCKS).
+      - key: API_FOOTBALL_KEY
+        sync: false
+      - key: FOOTBALL_DATA_ORG_KEY
+        sync: false
+      - key: APIFY_TOKEN
+        sync: false
+      - key: KICKOFF_DATA_FPL_LIVE
+        value: "1"
+      - key: KICKOFF_DATA_NO_MOCKS
+        value: "1"
+      - key: KICKOFF_DATA_S3_TRUSTED
+        value: "false"
+      - key: KICKOFF_DATA_LOG_FORMAT
+        value: json

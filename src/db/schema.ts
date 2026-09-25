@@ -249,3 +249,107 @@ export const inviteCodes = pgTable(
   },
   (t) => [uniqueIndex("invite_codes_code_idx").on(t.code)],
 );
+
+// ---------------------------------------------------------------------------
+// Agent accounts — one optional prediction agent per human.
+//
+// The agent trades as its own KEYLESS address held in the on-chain
+// AgentVault (contracts/src/AgentVault.sol). It also gets its own `users`
+// row (address = agent address), so positions, settlement and the
+// leaderboard treat it as an ordinary trader: one position, one vote.
+// ---------------------------------------------------------------------------
+
+export const agentMode = pgEnum("agent_mode", ["byok", "managed"]);
+export const agentStatus = pgEnum("agent_status", ["active", "paused"]);
+
+export const agents = pgTable(
+  "agents",
+  {
+    id: serial("id").primaryKey(),
+    // The human. UNIQUE = one agent per human, enforced by the database.
+    ownerUserId: integer("owner_user_id")
+      .notNull()
+      .references(() => users.id),
+    // The agent's own trader row (users.address = agent wallet address).
+    agentUserId: integer("agent_user_id")
+      .notNull()
+      .references(() => users.id),
+    name: text("name").notNull(),
+    walletAddress: text("wallet_address").notNull(), // AgentVault.agentOf(owner), lowercased
+    mode: agentMode("mode").notNull(),
+    status: agentStatus("status").notNull().default("active"),
+    // Show "by <owner>" next to the agent on the leaderboard. The Agent
+    // badge itself always shows.
+    publicIdentity: boolean("public_identity").notNull().default(true),
+    // Managed mode: the user's soul.md (untrusted — never executed, only
+    // passed to a tool-less model call whose output is schema-validated).
+    soulMd: text("soul_md"),
+    registerTxHash: text("register_tx_hash"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("agents_owner_idx").on(t.ownerUserId),
+    uniqueIndex("agents_agent_user_idx").on(t.agentUserId),
+    uniqueIndex("agents_wallet_idx").on(t.walletAddress),
+  ],
+);
+
+/** The human's signed authorization linking their agent (EIP-712 LinkAgent). */
+export const agentLinks = pgTable("agent_links", {
+  id: serial("id").primaryKey(),
+  agentId: integer("agent_id")
+    .notNull()
+    .references(() => agents.id),
+  ownerWallet: text("owner_wallet").notNull(),
+  signature: text("signature").notNull(),
+  signedMessage: jsonb("signed_message").notNull(), // full typed data that was signed
+  linkedAt: timestamp("linked_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Agent-scoped API tokens (MCP / BYOK). Only the hash is stored. */
+export const agentTokens = pgTable(
+  "agent_tokens",
+  {
+    id: serial("id").primaryKey(),
+    agentId: integer("agent_id")
+      .notNull()
+      .references(() => agents.id),
+    tokenHash: text("token_hash").notNull(), // sha256 hex of the full token
+    tokenPrefix: text("token_prefix").notNull(), // first chars, for display ("kagt_3f9a…")
+    scopes: text("scopes").array().notNull().default(sql`ARRAY['predict','read']::text[]`),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("agent_tokens_hash_idx").on(t.tokenHash), index("agent_tokens_agent_idx").on(t.agentId)],
+);
+
+/**
+ * Managed-agent runs: one row per soul.md run (one model call → picks).
+ * The audit trail for what the model returned, what was placed, what was
+ * rejected and what it cost.
+ */
+export const agentRunStatus = pgEnum("agent_run_status", ["ok", "error", "refused"]);
+
+export const agentRuns = pgTable(
+  "agent_runs",
+  {
+    id: serial("id").primaryKey(),
+    agentId: integer("agent_id")
+      .notNull()
+      .references(() => agents.id),
+    status: agentRunStatus("status").notNull(),
+    trigger: text("trigger").notNull(), // "cron" | "admin" | "owner"
+    model: text("model"),
+    // Markets offered to the model this run (so the scheduler doesn't re-ask).
+    marketIds: integer("market_ids").array().notNull().default(sql`ARRAY[]::integer[]`),
+    // [{marketId, home, away, placed: bool, error?}]
+    picks: jsonb("picks").notNull().default(sql`'[]'::jsonb`),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    cacheReadTokens: integer("cache_read_tokens"),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("agent_runs_agent_idx").on(t.agentId, t.createdAt)],
+);

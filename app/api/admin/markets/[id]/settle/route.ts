@@ -1,8 +1,54 @@
 import { db, schema } from "@/db";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
-import { executeSettlement } from "@/lib/settleExecution";
+import { executeSettlement, type SettleOutcome } from "@/lib/settleExecution";
+import { computeSettlement, type MarketRow } from "@/lib/markets";
+import { explainVoid } from "@/lib/voidReasons";
 import { eq } from "drizzle-orm";
+
+function parseOutcome(m: MarketRow, b: Record<string, unknown>): SettleOutcome | string {
+  if (m.kind === "scoreline") {
+    const home = Number(b.home);
+    const away = Number(b.away);
+    if (b.home == null || b.away == null || !Number.isInteger(home) || !Number.isInteger(away) || home < 0 || away < 0)
+      return "home and away (non-negative integers) required";
+    return { home, away };
+  }
+  const points = parseAmount(b.points);
+  if (points === null) return "points (fixed-point ×1e6 string) required";
+  return { points };
+}
+
+/**
+ * GET /api/admin/markets/:id/settle?home=2&away=1 (or ?points=7500000) —
+ * dry run. Runs the engine against the proposed outcome WITHOUT writing
+ * anything, so the dashboard can warn "this will void" before the admin
+ * commits. Same engine call as the real settle.
+ */
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  if (!verifyAdmin(req)) return jsonError("unauthorized", 401);
+  const { id } = await ctx.params;
+  const marketId = Number(id);
+
+  const [m] = await db.select().from(schema.markets).where(eq(schema.markets.id, marketId)).limit(1);
+  if (!m) return jsonError("market not found", 404);
+
+  const q = Object.fromEntries(new URL(req.url).searchParams);
+  const outcome = parseOutcome(m, q);
+  if (typeof outcome === "string") return jsonError(outcome, 400);
+
+  const { positions, engine } = await computeSettlement(m, outcome);
+  const guesses = new Set(positions.map((p) => (m.kind === "scoreline" ? `${p.guessHome}-${p.guessAway}` : `${p.guessPoints}`)));
+  return json({
+    positionCount: positions.length,
+    distinctGuesses: guesses.size,
+    void: engine.void,
+    voidExplanation: explainVoid(engine.void),
+    winners: engine.outcomes.filter((o) => o.isWinner).length,
+    coalitionMode: engine.coalitionMode,
+    totalPool: engine.totalPool,
+  });
+}
 
 /**
  * POST /api/admin/markets/:id/settle — submit the outcome and settle.
@@ -31,18 +77,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const [m] = await db.select().from(schema.markets).where(eq(schema.markets.id, marketId)).limit(1);
   if (!m) return jsonError("market not found", 404);
 
-  let outcome: { home?: number; away?: number; points?: bigint };
-  if (m.kind === "scoreline") {
-    const home = Number(b.home);
-    const away = Number(b.away);
-    if (!Number.isInteger(home) || !Number.isInteger(away) || home < 0 || away < 0)
-      return jsonError("home and away (non-negative integers) required", 400);
-    outcome = { home, away };
-  } else {
-    const points = parseAmount(b.points);
-    if (points === null) return jsonError("points (fixed-point ×1e6 string) required", 400);
-    outcome = { points };
-  }
+  const outcome = parseOutcome(m, b);
+  if (typeof outcome === "string") return jsonError(outcome, 400);
 
   const r = await executeSettlement(m, outcome, "admin");
   if (!r.ok) return jsonError(r.error!, r.status);
@@ -53,6 +89,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     settlement: r.settlement,
     engine: {
       void: engine.void,
+      voidExplanation: explainVoid(engine.void),
       medianD: engine.medianD,
       coalitionMode: engine.coalitionMode,
       losersStakeSum: engine.losersStakeSum,

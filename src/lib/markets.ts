@@ -1,5 +1,5 @@
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { and, eq, lte, sql } from "drizzle-orm";
 import {
   distanceA,
   distanceB,
@@ -19,6 +19,19 @@ export function payoutParamsOf(m: MarketRow): PayoutParams {
     accumulatorShareBps: m.accumulatorShareBps,
     capMultiple: BigInt(m.capMultiple),
   };
+}
+
+/**
+ * open → locked for every market whose lock time has passed. There's no
+ * cron on the app host, so read paths call this lazily: one cheap UPDATE,
+ * idempotent, safe to race. Staking was already refused past locksAt; this
+ * makes the status (and the hub's "Live" sections) match.
+ */
+export async function lockDueMarkets(): Promise<void> {
+  await db
+    .update(schema.markets)
+    .set({ status: "locked" })
+    .where(and(eq(schema.markets.status, "open"), lte(schema.markets.locksAt, sql`now()`)));
 }
 
 /** Distance for one position given a (possibly interim) outcome. */

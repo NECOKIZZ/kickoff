@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, fmtUsdc, fmtPoints, fmtKickoff } from "@/ui/clientApi";
 import { useAuth } from "@/ui/auth/useAuth";
+import { claimFromEscrow, explainTxError, isOnChainMarket } from "@/ui/chain/escrowTx";
+import { useWalletProvider } from "@/ui/chain/useWalletProvider";
 
 interface UserPositionRow {
   position: {
@@ -15,24 +17,52 @@ interface UserPositionRow {
     stake: string;
     isWinner: boolean | null;
     payout: string | null;
+    claimTxHash: string | null;
   };
   marketTitle: string;
   marketKind: "scoreline" | "player_points";
   marketStatus: string;
   kickoffAt: string;
+  escrowAddress: string | null;
+  onChainMarketId: string | null;
 }
 
 export default function PositionsView() {
   const { address: addr } = useAuth();
   const [rows, setRows] = useState<UserPositionRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState<number | null>(null);
+  const [claimMsg, setClaimMsg] = useState<string | null>(null);
+  const wallet = useWalletProvider();
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!addr) return;
     api<{ positions: UserPositionRow[] }>(`/api/users/${addr}/positions`)
       .then((d) => setRows(d.positions))
       .catch((e) => setError(e.message));
   }, [addr]);
+  useEffect(load, [load]);
+
+  // Pull a payout/refund from the escrow to the wallet, then stamp it.
+  const claim = useCallback(
+    async (r: UserPositionRow) => {
+      setClaiming(r.position.id);
+      setClaimMsg(null);
+      try {
+        const hash = await claimFromEscrow(await wallet.getProvider(), wallet.address!, BigInt(r.onChainMarketId!));
+        await api(`/api/markets/${r.position.marketId}/claim`, {
+          method: "POST",
+          body: JSON.stringify({ claimTxHash: hash }),
+        });
+        load();
+      } catch (e) {
+        setClaimMsg(explainTxError(e));
+      } finally {
+        setClaiming(null);
+      }
+    },
+    [wallet, load],
+  );
 
   if (!addr) {
     return (
@@ -61,6 +91,12 @@ export default function PositionsView() {
         </div>
       )}
 
+      {claimMsg && (
+        <div className="card-diagonal-sm glass px-6 py-3 mb-3" style={{ color: "var(--destructive)", fontSize: "0.82rem" }}>
+          {claimMsg}
+        </div>
+      )}
+
       {rows !== null && rows.length === 0 && (
         <div className="card-diagonal glass px-8 py-12 text-center">
           <p style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 600, marginBottom: 8 }}>
@@ -79,6 +115,9 @@ export default function PositionsView() {
         {(rows ?? []).map((r) => {
           const p = r.position;
           const settled = r.marketStatus === "settled";
+          const voided = r.marketStatus === "void";
+          const owed = (settled && p.isWinner) || voided;
+          const canClaim = owed && isOnChainMarket(r) && !p.claimTxHash && p.payout != null && p.payout !== "0";
           return (
             <Link
               key={p.id}
@@ -107,7 +146,32 @@ export default function PositionsView() {
                 <p style={{ fontSize: "0.9rem", fontWeight: 600 }}>{fmtUsdc(p.stake)}</p>
               </div>
               <div className="text-right" style={{ minWidth: 80 }}>
-                {settled ? (
+                {canClaim ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault(); // the row is a link; the button isn't
+                      claim(r);
+                    }}
+                    disabled={claiming === p.id}
+                    className="cursor-pointer"
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      padding: "6px 12px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: "var(--ui-accent)",
+                      color: "var(--ui-accent-contrast)",
+                      opacity: claiming === p.id ? 0.5 : 1,
+                    }}
+                  >
+                    {claiming === p.id ? "Claiming…" : `Claim ${fmtUsdc(p.payout)}`}
+                  </button>
+                ) : owed && p.claimTxHash ? (
+                  <span style={{ color: "var(--muted-foreground)", fontSize: "0.75rem" }}>Claimed {fmtUsdc(p.payout)}</span>
+                ) : voided ? (
+                  <span style={{ color: "var(--muted-foreground)", fontSize: "0.8rem" }}>Refunded {fmtUsdc(p.stake)}</span>
+                ) : settled ? (
                   p.isWinner ? (
                     <span style={{ color: "var(--ui-accent)", fontWeight: 700 }}>{fmtUsdc(p.payout)}</span>
                   ) : (

@@ -1,9 +1,11 @@
 import { db, schema } from "@/db";
+import { lockDueMarkets } from "@/lib/markets";
 import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
 import { resolveGameweek } from "@/lib/gameweek";
-import { desc } from "drizzle-orm";
+import { createMarketOnChain } from "@/lib/chain";
+import { desc, eq, sql } from "drizzle-orm";
 
 /**
  * POST /api/admin/markets — create a market in "draft" (knobs editable until
@@ -70,6 +72,27 @@ export async function POST(req: Request) {
     gameweek = await resolveGameweek(kickoffAt);
   }
 
+  // Chain first (same rule as settle/void): list the market on the escrow in
+  // Draft and link it, or fail before touching the DB. Off-chain dev mode
+  // (CHAIN_ENABLED false) skips this and keeps any manual linkage.
+  let onChain: Awaited<ReturnType<typeof createMarketOnChain>> = null;
+  try {
+    onChain = await createMarketOnChain({
+      kind: b.kind,
+      stakeMode,
+      gamma,
+      takeRateBps,
+      accumulatorShareBps,
+      capMultiple,
+      locksAt,
+      minStake,
+      maxStake,
+      fixedStake,
+    });
+  } catch (err) {
+    return jsonError(`on-chain createMarket failed, DB untouched: ${err instanceof Error ? err.message : err}`, 502);
+  }
+
   const [row] = await db
     .insert(schema.markets)
     .values({
@@ -92,18 +115,44 @@ export async function POST(req: Request) {
       takeRateBps,
       accumulatorShareBps,
       capMultiple,
-      escrowAddress: typeof b.escrowAddress === "string" ? b.escrowAddress : null,
-      onChainMarketId: b.onChainMarketId == null ? null : BigInt(b.onChainMarketId as string | number),
+      escrowAddress: onChain ? onChain.escrowAddress : typeof b.escrowAddress === "string" ? b.escrowAddress : null,
+      onChainMarketId: onChain
+        ? onChain.onChainMarketId
+        : b.onChainMarketId == null
+          ? null
+          : BigInt(b.onChainMarketId as string | number),
     })
     .returning();
 
-  await logAdminEvent("admin", "market.create", row.id, b);
+  await logAdminEvent("admin", "market.create", row.id, { ...b, createTxHash: onChain?.txHash ?? null });
   return json({ market: row }, { status: 201 });
 }
 
-/** GET /api/admin/markets — all markets including drafts. */
+/**
+ * GET /api/admin/markets — all markets including drafts, with the numbers
+ * that predict a void (position count, distinct guesses) and the stored void
+ * reason once settled.
+ */
 export async function GET(req: Request) {
   if (!verifyAdmin(req)) return jsonError("unauthorized", 401);
-  const rows = await db.select().from(schema.markets).orderBy(desc(schema.markets.createdAt)).limit(500);
-  return json({ markets: rows });
+  await lockDueMarkets();
+  const rows = await db
+    .select({
+      m: schema.markets,
+      voidReason: schema.settlements.voidReason,
+      positionCount: sql<number>`(select count(*) from positions p where p.market_id = ${schema.markets.id})`,
+      distinctGuesses: sql<number>`(select count(distinct concat_ws('/', p.guess_home, p.guess_away, p.guess_points)) from positions p where p.market_id = ${schema.markets.id})`,
+    })
+    .from(schema.markets)
+    .leftJoin(schema.settlements, eq(schema.settlements.marketId, schema.markets.id))
+    .orderBy(desc(schema.markets.createdAt))
+    .limit(500);
+  return json({
+    markets: rows.map((r) => ({
+      ...r.m,
+      voidReason: r.voidReason,
+      positionCount: Number(r.positionCount),
+      distinctGuesses: Number(r.distinctGuesses),
+    })),
+  });
 }

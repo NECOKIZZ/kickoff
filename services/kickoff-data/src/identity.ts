@@ -46,10 +46,20 @@ export function resolveFixtureId(
   const home = teamSlug(homeName);
   const away = teamSlug(awayName);
   for (const f of known) {
-    if (f.league !== league || f.homeSlug !== home || f.awaySlug !== away) continue;
+    if (f.league !== league || !sameClub(f.homeSlug, home) || !sameClub(f.awaySlug, away)) continue;
     if (Math.abs(f.kickoffUtc.getTime() - kickoffUtc.getTime()) <= KICKOFF_TOLERANCE_MS) {
       return f.id;
     }
   }
   return null;
+}
+
+/**
+ * Same club under two naming styles: identical slugs, or one is the other
+ * plus a suffix word ("ipswich" / "ipswich-town", "hull" / "hull-city") —
+ * sources disagree on whether to include "Town"/"City". A genuinely
+ * different club never matches ("man-city" vs "manchester-united").
+ */
+export function sameClub(a: string, b: string): boolean {
+  return a === b || a.startsWith(`${b}-`) || b.startsWith(`${a}-`);
 }

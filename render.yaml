@@ -47,23 +47,31 @@ services:
         sync: false
       - key: KICKOFF_DATA_FPL_LIVE
         value: "1"
-      # Source roles (services/kickoff-data/src/sources.ts). FPL alone lists
-      # fixtures and settles them. To add a cross-check later, add the source's
-      # key above, then e.g. VOTERS=fpl,fdorg and QUORUM=2. No code change.
+      # Source roles (services/kickoff-data/src/sources.ts). FPL lists fixtures;
+      # a market settles the moment any 2 of the 3 voters agree on the score.
+      # NOTE: Render re-applies these values whenever this file changes, so
+      # change them HERE, not only in the Render dashboard.
       - key: KICKOFF_DATA_LISTING_SOURCES
         value: fpl
       - key: KICKOFF_DATA_SETTLEMENT_VOTERS
-        value: fpl
+        value: fpl,apiFootball,fdorg
       - key: KICKOFF_DATA_SETTLEMENT_QUORUM
-        value: "1"
-      # Settle as soon as the result is in: no finality window. With one source
-      # a wrong full-time score is final; a second voter (QUORUM=2) is the
-      # safety net before mainnet, not a longer wait.
+        value: "2"
+      # A failed job (e.g. a vote asked before that source shows full time)
+      # retries after 60s instead of every 30s tick: protects the S1 budget.
+      - key: KICKOFF_DATA_RETRY_BACKOFF_SECONDS
+        value: "60"
+      # Settle as soon as quorum is reached: no finality window. Agreement
+      # between two sources is the safety net, not waiting.
       - key: KICKOFF_DATA_FINALITY_DELAY_SECONDS
         value: "0"
       # FPL poll during matches (default 180s), so full time is seen within a minute.
       - key: KICKOFF_DATA_CADENCE_FPL_LIVE_POLL_SECONDS
         value: "60"
+      # Player perps are paused: these API-Football jobs only feed them and
+      # would spend the free plan's 100 requests/day. Remove to re-enable.
+      - key: KICKOFF_DATA_DISABLED_JOBS
+        value: s1.lineups,s1.postMatch
       - key: KICKOFF_DATA_NO_MOCKS
         value: "1"
       - key: KICKOFF_DATA_S3_TRUSTED

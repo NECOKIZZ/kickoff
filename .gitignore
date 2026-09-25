@@ -3,7 +3,6 @@ node_modules/
 .env
 .env.local
 *.tsbuildinfo
-drizzle/meta/
 contracts/broadcast/*/*/dry-run/
 contracts/broadcast/*/*/run-1*.json
 # local-only pnpm store relocation (tiny /home disk) — must NOT reach Vercel

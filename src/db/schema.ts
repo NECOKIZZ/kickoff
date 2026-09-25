@@ -55,7 +55,11 @@ export const markets = pgTable(
     status: marketStatus("status").notNull().default("draft"),
 
     title: text("title").notNull(), // e.g. "Arsenal vs Chelsea — final score"
-    // Fixture linkage (API-Football id is source of truth; fdOrg id for cross-check).
+    // kickoff-data's canonical fixture id (e.g. "epl-arsenal-leeds-202610101130"):
+    // what listing links on and settlement webhooks match. One live market
+    // per (fixture, kind): see markets_data_fixture_kind_idx.
+    dataFixtureId: text("data_fixture_id"),
+    // Legacy linkage (API-Football id; fdOrg id for cross-check).
     fixtureId: integer("fixture_id"),
     fdOrgMatchId: integer("fd_org_match_id"),
     // FPL gameweek (1–38) — batches score markets on the hub. Resolved from
@@ -102,6 +106,10 @@ export const markets = pgTable(
     index("markets_status_idx").on(t.status),
     index("markets_kickoff_idx").on(t.kickoffAt),
     index("markets_gameweek_idx").on(t.gameweek),
+    // A voided market frees its fixture for relisting; deleted ones are gone.
+    uniqueIndex("markets_data_fixture_kind_idx")
+      .on(t.dataFixtureId, t.kind)
+      .where(sql`${t.status} <> 'void'`),
   ],
 );
 

@@ -1,7 +1,7 @@
 import { db, schema } from "@/db";
 import { json, jsonError } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
-import { computeSettlement } from "@/lib/markets";
+import { recordPnlSnapshot } from "@/lib/pnlSnapshot";
 import { asc, eq } from "drizzle-orm";
 
 /**
@@ -44,8 +44,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
  * { matchClock, points? } (player_points, fixed-point string).
  *
  * Runs the same mark-to-model as /estimate and stores the result, so the
- * chart replays without re-running the engine. Caller: the live-tracking
- * worker on score changes; admin/curl on testnet.
+ * chart replays without re-running the engine. Live matches are fed by the
+ * fixture.score_changed webhook (/api/data-hooks); this is the manual path.
  */
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!verifyAdmin(req)) return jsonError("unauthorized", 401);
@@ -78,30 +78,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     outcome = { points };
   }
 
-  const { positions, engine } = await computeSettlement(m, outcome);
-
-  // Rank by estimated payout (desc) — ties share the earlier rank's order.
-  const est = positions.map((p, i) => ({
-    positionId: p.id,
-    stake: String(p.stake),
-    isWinner: engine.outcomes[i]?.isWinner ?? false,
-    estimatedPayout: String(engine.outcomes[i]?.payout ?? 0n),
-    estimatedGain: String((engine.outcomes[i]?.payout ?? 0n) - p.stake),
-  }));
-  const ranked = [...est].sort((a, b) => (BigInt(b.estimatedPayout) > BigInt(a.estimatedPayout) ? 1 : -1));
-  const rankOf = new Map(ranked.map((e, i) => [e.positionId, i + 1]));
-
-  const [row] = await db
-    .insert(schema.pnlSnapshots)
-    .values({
-      marketId,
-      matchClock: body.matchClock,
-      scoreHome: m.kind === "scoreline" ? (outcome.home ?? null) : null,
-      scoreAway: m.kind === "scoreline" ? (outcome.away ?? null) : null,
-      livePoints: m.kind === "player_points" ? (outcome.points ?? null) : null,
-      positions: est.map((e) => ({ ...e, rank: rankOf.get(e.positionId) })),
-    })
-    .returning({ id: schema.pnlSnapshots.id });
-
-  return json({ ok: true, snapshotId: row.id }, { status: 201 });
+  const snapshotId = await recordPnlSnapshot(m, body.matchClock, outcome);
+  return json({ ok: true, snapshotId }, { status: 201 });
 }

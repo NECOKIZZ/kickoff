@@ -4,7 +4,8 @@ import { json, jsonError } from "@/lib/http";
 import { logAdminEvent } from "@/lib/admin";
 import { getFixture, getSettlement } from "@/lib/dataService";
 import { executeSettlement } from "@/lib/settleExecution";
-import { and, eq, inArray } from "drizzle-orm";
+import { voidMarket } from "@/lib/marketLifecycle";
+import { and, eq, inArray, or } from "drizzle-orm";
 
 /**
  * POST /api/data-hooks — kickoff-data webhook receiver.
@@ -55,13 +56,15 @@ export async function POST(req: Request) {
       return json({ ok: true, action: "logged-disputed" });
 
     case "fixture.status_changed":
-      // Postponed/abandoned fixtures need the admin void flow; log for now.
+      // Postponed/abandoned: the match won't produce a result, so refund now
+      // rather than leave stakes waiting for the listing agent's next run.
       if (event.to === "postponed" || event.to === "abandoned") {
         await logAdminEvent("kickoff-data", "fixture.status_changed", null, {
           fixtureId: event.fixture_id,
           from: event.from,
           to: event.to,
         });
+        return voidLinkedMarkets(event.fixture_id, `fixture ${event.to}`);
       }
       return json({ ok: true, action: "noted" });
 
@@ -84,24 +87,9 @@ async function handleSettlementReady(fixtureId: string, snapshotVersion: number 
     return json({ ok: true, action: "superseded", currentVersion: snapshot.version });
   }
 
-  // Canonical fixture id → S1 numeric id, which is what markets link on.
-  const fixture = await getFixture(fixtureId);
-  const s1Id = fixture.data.source_refs.apiFootball;
-  if (s1Id === undefined) {
-    await logAdminEvent("kickoff-data", "settlement.unlinkable", null, { fixtureId });
-    return json({ ok: true, action: "no-s1-ref-cannot-link" });
-  }
-
-  const markets = await db
-    .select()
-    .from(schema.markets)
-    .where(
-      and(
-        eq(schema.markets.fixtureId, s1Id),
-        eq(schema.markets.kind, "scoreline"),
-        inArray(schema.markets.status, ["open", "locked", "settling"]),
-      ),
-    );
+  const markets = await linkedMarkets(fixtureId, ["open", "locked", "settling"]);
+  // Most fixtures have no market; nothing to settle is not an error.
+  if (markets.length === 0) return json({ ok: true, action: "no-linked-markets" });
 
   const results: Array<{ marketId: number; ok: boolean; error?: string }> = [];
   for (const m of markets) {
@@ -115,4 +103,33 @@ async function handleSettlementReady(fixtureId: string, snapshotVersion: number 
   }
 
   return json({ ok: true, action: "settled", snapshotVersion: snapshot.version, results });
+}
+
+/**
+ * Score markets linked to a kickoff-data fixture: by the canonical id markets
+ * are listed with (dataFixtureId), plus the legacy API-Football id link for
+ * markets created before fixture listing.
+ */
+async function linkedMarkets(fixtureId: string, statuses: Array<(typeof schema.markets.$inferSelect)["status"]>) {
+  const byCanonical = eq(schema.markets.dataFixtureId, fixtureId);
+  let link = byCanonical;
+  const s1Id = await getFixture(fixtureId)
+    .then((f) => f.data.source_refs.apiFootball)
+    .catch(() => undefined);
+  if (s1Id !== undefined) link = or(byCanonical, eq(schema.markets.fixtureId, s1Id))!;
+  return db
+    .select()
+    .from(schema.markets)
+    .where(and(link, eq(schema.markets.kind, "scoreline"), inArray(schema.markets.status, statuses)));
+}
+
+async function voidLinkedMarkets(fixtureId: string, reason: string) {
+  const markets = await linkedMarkets(fixtureId, ["open", "locked", "settling"]);
+  const results: Array<{ marketId: number; ok: boolean; error?: string }> = [];
+  for (const m of markets) {
+    const r = await voidMarket(m.id, reason, "kickoff-data");
+    results.push({ marketId: m.id, ok: r.ok, ...(r.ok ? {} : { error: r.error }) });
+    if (!r.ok) console.error(`[data-hooks] void market ${m.id} failed: ${r.error}`);
+  }
+  return json({ ok: true, action: markets.length ? "voided" : "noted", results });
 }

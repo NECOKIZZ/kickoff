@@ -1,9 +1,6 @@
-import { db, schema } from "@/db";
 import { json, jsonError } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
-import { logAdminEvent } from "@/lib/admin";
-import { CHAIN_ENABLED, openMarketOnChain } from "@/lib/chain";
-import { eq } from "drizzle-orm";
+import { openMarket } from "@/lib/marketLifecycle";
 
 /**
  * POST /api/admin/markets/:id/open — draft → open. THE FREEZE POINT: from
@@ -12,35 +9,7 @@ import { eq } from "drizzle-orm";
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!verifyAdmin(req)) return jsonError("unauthorized", 401);
   const { id } = await ctx.params;
-  const marketId = Number(id);
-
-  const [m] = await db.select().from(schema.markets).where(eq(schema.markets.id, marketId)).limit(1);
-  if (!m) return jsonError("market not found", 404);
-  if (m.status !== "draft") return jsonError(`market is '${m.status}', only drafts can be opened`, 409);
-  if (m.stakeMode === "fixed" && m.fixedStake == null)
-    return jsonError("cannot open: fixed stakeMode without fixedStake", 409);
-  if (new Date() >= m.locksAt) return jsonError("cannot open: locksAt is already in the past", 409);
-
-  // With chain wiring on, every market must be escrow-linked before staking
-  // opens — otherwise stakes would have nowhere real to go.
-  if (CHAIN_ENABLED && (m.escrowAddress == null || m.onChainMarketId == null))
-    return jsonError("cannot open: market is not linked to the escrow (created before chain wiring?)", 409);
-
-  let openTxHash: string | null = null;
-  if (m.escrowAddress && m.onChainMarketId != null) {
-    try {
-      openTxHash = await openMarketOnChain(m.onChainMarketId);
-    } catch (err) {
-      return jsonError(`on-chain open failed, DB untouched: ${err instanceof Error ? err.message : err}`, 502);
-    }
-  }
-
-  const [row] = await db
-    .update(schema.markets)
-    .set({ status: "open", openedAt: new Date() })
-    .where(eq(schema.markets.id, marketId))
-    .returning();
-
-  await logAdminEvent("admin", "market.open", marketId, { paramsFrozen: true, openTxHash });
-  return json({ market: row });
+  const r = await openMarket(Number(id), "admin");
+  if (!r.ok) return jsonError(r.error, r.status);
+  return json({ market: r.value });
 }

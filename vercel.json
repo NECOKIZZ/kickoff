@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/listing", "schedule": "7 5 * * *" },
+    { "path": "/api/cron/managed-agents", "schedule": "7 10 * * *" }
+  ]
+}

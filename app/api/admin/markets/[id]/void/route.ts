@@ -3,6 +3,7 @@ import { json, jsonError } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
 import { voidOnChain } from "@/lib/chain";
+import { sweepAgentPayouts } from "@/lib/agentPlacement";
 import { eq } from "drizzle-orm";
 
 /**
@@ -62,5 +63,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   });
 
   await logAdminEvent("admin", "market.void", marketId, { reason, settleTxHash });
+  await sweepAgentPayouts(marketId).catch((err) => console.error("agent refund sweep failed", err));
   return json(result);
 }

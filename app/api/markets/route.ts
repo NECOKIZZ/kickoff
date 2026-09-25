@@ -1,4 +1,5 @@
 import { db, schema } from "@/db";
+import { lockDueMarkets } from "@/lib/markets";
 import { json } from "@/lib/http";
 import { desc, eq, inArray, sql } from "drizzle-orm";
 
@@ -8,6 +9,7 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
  * Draft markets are admin-only and never appear here.
  */
 export async function GET(req: Request) {
+  await lockDueMarkets();
   const url = new URL(req.url);
   const status = url.searchParams.get("status") ?? "all";
 

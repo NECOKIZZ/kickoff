@@ -9,11 +9,13 @@ import { ThemeToggle } from "@/ui/ThemeToggle";
 import { NavUnderlineItem } from "@/ui/NavUnderline";
 import { useAuth } from "@/ui/auth/useAuth";
 import { shortAddr } from "@/ui/clientApi";
+import { WalletChip } from "@/ui/chain/WalletChip";
 
 const APP_TABS = [
   { label: "Markets", href: "/markets" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "My Positions", href: "/positions" },
+  { label: "My Agent", href: "/agent" },
 ];
 
 /**
@@ -27,24 +29,27 @@ function SignInButton() {
 
   if (address) {
     return (
-      <button
-        onClick={signOut}
-        title="Signed in. Click to sign out"
-        className="cursor-pointer"
-        style={{
-          fontFamily: "'Clash Display', sans-serif",
-          fontSize: "0.78rem",
-          fontWeight: 600,
-          padding: "8px 14px",
-          borderRadius: 10,
-          border: "1px solid var(--border)",
-          background: "var(--muted)",
-          color: "var(--foreground)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {shortAddr(address)}
-      </button>
+      <span className="flex items-center gap-3">
+        <WalletChip address={address} />
+        <button
+          onClick={signOut}
+          title="Signed in. Click to sign out"
+          className="cursor-pointer"
+          style={{
+            fontFamily: "'Clash Display', sans-serif",
+            fontSize: "0.78rem",
+            fontWeight: 600,
+            padding: "8px 14px",
+            borderRadius: 10,
+            border: "1px solid var(--border)",
+            background: "var(--muted)",
+            color: "var(--foreground)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {shortAddr(address)}
+        </button>
+      </span>
     );
   }
 

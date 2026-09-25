@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button3D } from "@/ui/Button3D";
 import { useAuth } from "@/ui/auth/useAuth";
 import { api, fmtUsdc, untilLock, type PoolPosition } from "@/ui/clientApi";
+import { explainTxError, isOnChainMarket, stakeOnEscrow } from "@/ui/chain/escrowTx";
+import { useWalletProvider } from "@/ui/chain/useWalletProvider";
 
 /**
  * Score staking card — cubic stepper (big HOME/AWAY numbers with +/− buttons)
@@ -20,6 +22,8 @@ interface StakeMarket {
   minStake: string;
   maxStake: string;
   fixedStake: string | null;
+  escrowAddress?: string | null;
+  onChainMarketId?: string | null;
 }
 
 interface Estimate {
@@ -131,6 +135,8 @@ export function ScoreStakeCard({
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const { address } = useAuth();
   const signedIn = !!address;
+  const wallet = useWalletProvider();
+  const onChain = isOnChainMarket(m);
 
   // Live winner-count estimate as the pick changes (a count, never a payout).
   useEffect(() => {
@@ -148,22 +154,39 @@ export function ScoreStakeCard({
     setMsg(null);
     setPlacing(true);
     try {
+      const want = BigInt(Math.round(stake * 1e6));
+      let stakeTxHash: string | undefined;
+      if (onChain) {
+        // tUSDC moves first; the server records what the chain says happened.
+        // A restake adds to the escrow stake (fixed mode: adds 0, guess only).
+        const have = myPosition ? BigInt(myPosition.stake) : 0n;
+        const amount = fixed ? (myPosition ? 0n : want) : want - have;
+        if (amount < 0n) throw new Error("On-chain stakes can only go up. Keep or raise your stake.");
+        setMsg({ kind: "ok", text: "Confirm in your wallet…" });
+        stakeTxHash = await stakeOnEscrow(await wallet.getProvider(), wallet.address!, {
+          onChainMarketId: BigInt(m.onChainMarketId!),
+          guessA: home,
+          guessB: away,
+          amount,
+        });
+      }
       await api(`/api/markets/${m.id}/positions`, {
         method: "POST",
         body: JSON.stringify({
-          stake: String(Math.round(stake * 1e6)),
+          stake: String(want),
           guessHome: home,
           guessAway: away,
+          stakeTxHash,
         }),
       });
       setMsg({ kind: "ok", text: "Position placed. You can restake to change it until lock." });
       onPlaced();
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error).message });
+      setMsg({ kind: "err", text: explainTxError(e) });
     } finally {
       setPlacing(false);
     }
-  }, [m.id, home, away, stake, onPlaced]);
+  }, [m.id, m.onChainMarketId, home, away, stake, onPlaced, onChain, fixed, myPosition, wallet]);
 
   // ── Closed: read-only summary ───────────────────────────────────────────────
   if (!open) {

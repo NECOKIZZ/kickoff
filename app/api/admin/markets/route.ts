@@ -3,7 +3,7 @@ import { json, jsonError, parseAmount } from "@/lib/http";
 import { verifyAdmin } from "@/lib/auth";
 import { logAdminEvent } from "@/lib/admin";
 import { resolveGameweek } from "@/lib/gameweek";
-import { desc } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 /**
  * POST /api/admin/markets — create a market in "draft" (knobs editable until
@@ -101,9 +101,30 @@ export async function POST(req: Request) {
   return json({ market: row }, { status: 201 });
 }
 
-/** GET /api/admin/markets — all markets including drafts. */
+/**
+ * GET /api/admin/markets — all markets including drafts, with the numbers
+ * that predict a void (position count, distinct guesses) and the stored void
+ * reason once settled.
+ */
 export async function GET(req: Request) {
   if (!verifyAdmin(req)) return jsonError("unauthorized", 401);
-  const rows = await db.select().from(schema.markets).orderBy(desc(schema.markets.createdAt)).limit(500);
-  return json({ markets: rows });
+  const rows = await db
+    .select({
+      m: schema.markets,
+      voidReason: schema.settlements.voidReason,
+      positionCount: sql<number>`(select count(*) from positions p where p.market_id = ${schema.markets.id})`,
+      distinctGuesses: sql<number>`(select count(distinct concat_ws('/', p.guess_home, p.guess_away, p.guess_points)) from positions p where p.market_id = ${schema.markets.id})`,
+    })
+    .from(schema.markets)
+    .leftJoin(schema.settlements, eq(schema.settlements.marketId, schema.markets.id))
+    .orderBy(desc(schema.markets.createdAt))
+    .limit(500);
+  return json({
+    markets: rows.map((r) => ({
+      ...r.m,
+      voidReason: r.voidReason,
+      positionCount: Number(r.positionCount),
+      distinctGuesses: Number(r.distinctGuesses),
+    })),
+  });
 }

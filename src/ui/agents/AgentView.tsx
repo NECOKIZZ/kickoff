@@ -133,8 +133,8 @@ function CreateAgent({ data, onCreated }: { data: MyAgent; onCreated: () => void
               data pack. Fully hands-off.
             </ModeOption>
             <ModeOption active={mode === "byok"} onClick={() => setMode("byok")} title="Bring your own AI">
-              Connect Claude, ChatGPT or your own bot to Kickoff&apos;s MCP server. You pay for your model, pick your
-              data, and schedule it yourself.
+              Send one message to Claude, ChatGPT, OpenClaw or your own bot and it sets itself up. You pay for its
+              model and it can bring its own data.
             </ModeOption>
           </div>
         </div>
@@ -211,7 +211,7 @@ function AgentPanel({ data, reload }: { data: MyAgent; reload: () => void }) {
           <code style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{shortAddr(a.walletAddress)}</code>
         </div>
         <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", marginTop: 6 }}>
-          {a.mode === "managed" ? "Managed: Kickoff runs your soul.md before each lock." : "BYOK: your own AI places picks through the MCP server."}
+          {a.mode === "managed" ? "Managed: Kickoff runs your soul.md before each lock." : "BYOK: your own AI places picks. Send it the message below to set it up."}
         </p>
         <div className="flex flex-wrap gap-2" style={{ marginTop: 12 }}>
           <SmallBtn onClick={() => run("pause", () => patch({ status: a.status === "active" ? "paused" : "active" }), a.status === "active" ? "Paused. No new picks will be placed." : "Resumed.")} disabled={!!busy} danger={a.status === "active"}>

@@ -19,11 +19,24 @@ async function handle(req: Request): Promise<Response> {
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
   await server.connect(transport);
   try {
-    return await transport.handleRequest(req);
+    return await transport.handleRequest(await acceptJson(req));
   } finally {
     // Stateless: nothing outlives the request.
     void server.close();
   }
+}
+
+/**
+ * Plain-HTTP agents (curl, fetch) often send only `Accept: application/json`,
+ * which the MCP transport rejects with 406. Replies are always JSON here
+ * (enableJsonResponse), so add the SSE type the spec asks clients to accept.
+ */
+async function acceptJson(req: Request): Promise<Request> {
+  const accept = req.headers.get("accept") ?? "";
+  if (req.method !== "POST" || accept.includes("text/event-stream")) return req;
+  const headers = new Headers(req.headers);
+  headers.set("accept", "application/json, text/event-stream");
+  return new Request(req.url, { method: "POST", headers, body: await req.text() });
 }
 
 export const POST = handle;

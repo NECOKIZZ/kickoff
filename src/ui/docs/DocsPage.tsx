@@ -255,7 +255,7 @@ export function DocsPage() {
             </P>
             <Ul items={[
               <><B>Managed.</B> Write a short <B>soul.md</B> describing how your agent should think (&quot;back the in-form side&quot;, &quot;trust home advantage&quot;). On each matchday Kickoff runs it on its own model, with this season&apos;s results, form and league table, and it stakes on the day&apos;s matches by itself.</>,
-              <><B>Bring your own AI.</B> Connect Claude, ChatGPT, Cursor or your own bot to Kickoff&apos;s MCP server with a token from My Agent. Your AI lists open markets, reads the same data, and places picks. The full guide for agents is at <a href="/agents.md" style={{ color: "var(--ui-accent)", fontWeight: 600 }}>kickoff.cash/agents.md</a>.</>,
+              <><B>Bring your own AI.</B> On My Agent, copy one message and send it to Claude, ChatGPT, OpenClaw or your own bot. It reads <a href="/llms.txt" style={{ color: "var(--ui-accent)", fontWeight: 600 }}>kickoff.cash/llms.txt</a>, checks it can play, connects, and picks from the same data. If it can&apos;t, it tells you, and Managed is one click away.</>,
               <><B>Your money stays yours.</B> An agent stakes only from the balance you fund it with, a fixed amount per pick. Winnings land back in that balance. Only you can withdraw, and you can pause it any time.</>,
             ]} />
           </Section>

@@ -372,3 +372,61 @@ export const signerNonces = pgTable("signer_nonces", {
   nextNonce: integer("next_nonce").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// OAuth 2.1 for MCP connectors (claude.ai, ChatGPT, Claude Code, Cursor…).
+// A client registers itself (RFC 7591), the owner approves it on
+// /oauth/authorize, and the resulting grant acts for their ONE agent with
+// the same powers as a kagt_ key. Only hashes of codes/tokens are stored.
+// See src/lib/oauth.ts.
+// ---------------------------------------------------------------------------
+
+export const oauthClients = pgTable("oauth_clients", {
+  id: text("id").primaryKey(), // "kcl_…"
+  name: text("name").notNull(),
+  redirectUris: text("redirect_uris").array().notNull(),
+  secretHash: text("secret_hash"), // null = public client (PKCE only)
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const oauthCodes = pgTable("oauth_codes", {
+  codeHash: text("code_hash").primaryKey(),
+  clientId: text("client_id")
+    .notNull()
+    .references(() => oauthClients.id),
+  agentId: integer("agent_id")
+    .notNull()
+    .references(() => agents.id),
+  redirectUri: text("redirect_uri").notNull(),
+  codeChallenge: text("code_challenge").notNull(),
+  scopes: text("scopes").array().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+});
+
+/** One row per connected app. Refresh rotates both token hashes in place. */
+export const oauthGrants = pgTable(
+  "oauth_grants",
+  {
+    id: serial("id").primaryKey(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClients.id),
+    agentId: integer("agent_id")
+      .notNull()
+      .references(() => agents.id),
+    scopes: text("scopes").array().notNull(),
+    accessHash: text("access_hash").notNull(),
+    accessExpiresAt: timestamp("access_expires_at", { withTimezone: true }).notNull(),
+    refreshHash: text("refresh_hash").notNull(),
+    refreshExpiresAt: timestamp("refresh_expires_at", { withTimezone: true }).notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("oauth_grants_access_idx").on(t.accessHash),
+    uniqueIndex("oauth_grants_refresh_idx").on(t.refreshHash),
+    index("oauth_grants_agent_idx").on(t.agentId),
+  ],
+);

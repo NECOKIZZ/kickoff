@@ -11,6 +11,29 @@ const nextConfig: NextConfig = {
   // Cloud Shell web preview proxies the dev server from a *.cloudshell.dev
   // host — allow it so HMR/dev assets aren't blocked (choppy-loading fix).
   // NOTE: a single * only matches one DNS label, so spell out the deep host.
+  // OAuth discovery for MCP connectors (claude.ai, ChatGPT…) lives at fixed
+  // /.well-known paths; the handlers are ordinary API routes.
+  async rewrites() {
+    return [
+      { source: "/.well-known/oauth-protected-resource", destination: "/api/oauth/metadata/resource" },
+      { source: "/.well-known/oauth-protected-resource/:path*", destination: "/api/oauth/metadata/resource" },
+      { source: "/.well-known/oauth-authorization-server", destination: "/api/oauth/metadata/server" },
+      { source: "/.well-known/oauth-authorization-server/:path*", destination: "/api/oauth/metadata/server" },
+      { source: "/.well-known/openid-configuration", destination: "/api/oauth/metadata/server" },
+    ];
+  },
+  // The consent page must never be framed (clickjacking the Approve button).
+  async headers() {
+    return [
+      {
+        source: "/oauth/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+        ],
+      },
+    ];
+  },
   allowedDevOrigins: [
     "*.cloudshell.dev",
     "*.cs-europe-west1-xedi.cloudshell.dev",

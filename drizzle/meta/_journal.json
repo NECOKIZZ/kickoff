@@ -64,6 +64,13 @@
       "when": 1790514470723,
       "tag": "0008_signer_nonces",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790514663372,
+      "tag": "0009_oauth",
+      "breakpoints": true
     }
   ]
 }

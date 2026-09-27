@@ -5,6 +5,13 @@ import { api } from "@/ui/clientApi";
 import { SmallBtn } from "@/ui/agents/AgentView";
 import { AGENT_PROMPT_PREFIX } from "@/lib/agentGuide";
 
+interface ConnectionRow {
+  id: number;
+  clientName: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
 interface TokenRow {
   id: number;
   tokenPrefix: string;
@@ -32,6 +39,7 @@ const muted = { fontSize: "0.8rem", color: "var(--muted-foreground)", lineHeight
  */
 export function AgentTokens() {
   const [tokens, setTokens] = useState<TokenRow[]>([]);
+  const [connections, setConnections] = useState<ConnectionRow[]>([]);
   const [fresh, setFresh] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -41,6 +49,9 @@ export function AgentTokens() {
     api<{ tokens: TokenRow[] }>("/api/agents/me/tokens")
       .then((d) => setTokens(d.tokens))
       .catch((e) => setErr(e.message));
+    api<{ connections: ConnectionRow[] }>("/api/agents/me/connections")
+      .then((d) => setConnections(d.connections))
+      .catch(() => {});
   }, []);
   useEffect(load, [load]);
 
@@ -65,6 +76,16 @@ export function AgentTokens() {
     }
   }
 
+  async function disconnect(id: number) {
+    setErr(null);
+    try {
+      await api(`/api/agents/me/connections/${id}`, { method: "DELETE" });
+      load();
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }
+
   function copy(key: string, value: string) {
     navigator.clipboard?.writeText(value);
     setCopied(key);
@@ -72,6 +93,7 @@ export function AgentTokens() {
   }
 
   const active = tokens.filter((t) => !t.revokedAt);
+  const mcpUrl = `${origin}/api/mcp`;
   const key = fresh ?? "kagt_your_key";
   const message = `${AGENT_PROMPT_PREFIX(origin)} My agent key: ${key}`;
   const mcpConfig = JSON.stringify(
@@ -118,6 +140,42 @@ export function AgentTokens() {
           The key can only place picks for this agent. It can never withdraw or touch your own wallet.
         </p>
       </section>
+
+      <section className="flex flex-col gap-2">
+        <span style={label}>Or add it as a connector</span>
+        <p style={muted}>
+          In apps that take MCP connectors (claude.ai, ChatGPT, Claude Code, Cursor), add this URL. The app sends you
+          here to sign in and approve it, so there&apos;s no key to copy.
+        </p>
+        <code style={codeBox}>{mcpUrl}</code>
+        <div>
+          <SmallBtn onClick={() => copy("url", mcpUrl)}>{copied === "url" ? "Copied" : "Copy URL"}</SmallBtn>
+        </div>
+        <ul style={{ ...muted, paddingLeft: 18, listStyle: "disc", display: "flex", flexDirection: "column", gap: 2 }}>
+          <li>claude.ai: Settings → Connectors → Add custom connector.</li>
+          <li>ChatGPT: Settings → Apps &amp; Connectors → Create (developer mode).</li>
+          <li>
+            Claude Code: <code style={{ fontSize: "0.75rem" }}>claude mcp add --transport http kickoff {mcpUrl}</code>, then{" "}
+            <code style={{ fontSize: "0.75rem" }}>/mcp</code> to sign in.
+          </li>
+        </ul>
+      </section>
+
+      {connections.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <span style={label}>Connected apps</span>
+          {connections.map((c) => (
+            <div key={c.id} className="flex items-center gap-3" style={{ fontSize: "0.78rem" }}>
+              <strong>{c.clientName}</strong>
+              <span style={{ color: "var(--muted-foreground)" }}>
+                {c.lastUsedAt ? `last used ${new Date(c.lastUsedAt).toLocaleString("en-GB")}` : "never used"}
+              </span>
+              <span className="flex-1" />
+              <SmallBtn danger onClick={() => disconnect(c.id)}>Disconnect</SmallBtn>
+            </div>
+          ))}
+        </section>
+      )}
 
       <Details title="Setting it up by hand">
         <span style={label}>MCP config</span>

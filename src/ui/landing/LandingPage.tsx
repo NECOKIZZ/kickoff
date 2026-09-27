@@ -6,6 +6,7 @@ import { Button3D } from "@/ui/Button3D";
 import { Logo } from "@/ui/Logo";
 import { NavUnderlineItem } from "@/ui/NavUnderline";
 import { Reveal, RevealWords } from "@/ui/landing/Reveal";
+import { CONTACT_EMAIL } from "@/ui/contact";
 
 const NAV_LINKS = [
   { label: "How it Works", href: "#how-it-works" },
@@ -934,7 +935,7 @@ function Footer() {
         { label: "Leaderboard", href: "/leaderboard" },
       ],
     },
-    { heading: "Company", links: [{ label: "About" }, { label: "Blog" }, { label: "Careers" }, { label: "Press" }, { label: "Brand Book", href: "/kickoff_brand_book.pdf", download: true }, { label: "Contact" }] },
+    { heading: "Company", links: [{ label: "About" }, { label: "Blog" }, { label: "Careers" }, { label: "Press" }, { label: "Brand Book", href: "/kickoff_brand_book.pdf", download: true }, { label: "Contact", href: `mailto:${CONTACT_EMAIL}` }] },
     { heading: "Legal", links: [{ label: "Privacy Policy" }, { label: "Terms of Service" }, { label: "Cookie Policy" }, { label: "Responsible Play" }] },
   ];
 
@@ -951,6 +952,12 @@ function Footer() {
           <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.8rem", lineHeight: 1.7, color: "rgba(255,255,255,0.3)" }}>
             Proximity markets for football. Rewards for how close you land, not just yes or no.
           </p>
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            style={{ display: "inline-block", fontFamily: "'Clash Display', sans-serif", fontSize: "0.8rem", color: "rgba(255,255,255,0.45)", marginTop: "1rem", textDecoration: "none" }}
+          >
+            {CONTACT_EMAIL}
+          </a>
           <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "0.72rem", color: "rgba(255,255,255,0.18)", marginTop: "1.5rem" }}>
             © 2026 kickoff.cash
           </p>

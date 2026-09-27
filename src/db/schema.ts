@@ -361,3 +361,14 @@ export const agentRuns = pgTable(
   },
   (t) => [index("agent_runs_agent_idx").on(t.agentId, t.createdAt)],
 );
+
+/**
+ * Next nonce per server signing key. Every server-side tx (relayer + agent
+ * operator) reserves its nonce here under a row lock, so concurrent requests
+ * on different serverless instances never reuse one. See src/lib/txQueue.ts.
+ */
+export const signerNonces = pgTable("signer_nonces", {
+  address: text("address").primaryKey(), // lowercase
+  nextNonce: integer("next_nonce").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

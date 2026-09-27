@@ -6,6 +6,7 @@ import { logAdminEvent } from "@/lib/admin";
 import { agentAddressOf, linkTypedData, validateAgentName } from "@/lib/agentLink";
 import { LINK_VAULT, agentNameTaken, agentOfOwner, publicAgent, validateSoulMd } from "@/lib/agents";
 import { registerAgentOnChain } from "@/lib/chain";
+import { isNonceError } from "@/lib/txQueue";
 import { robinhoodTestnet } from "@/lib/chainConfig";
 import { recoverTypedDataAddress, type Hex } from "viem";
 
@@ -71,6 +72,7 @@ export async function POST(req: Request) {
     const msg = err instanceof Error ? err.message : String(err);
     // Registered on-chain by an earlier attempt whose DB write failed: the
     // chain already says this human owns this agent, so just finish the DB.
+    if (isNonceError(err)) return jsonError("The network was busy and nothing was saved. Please press Create agent again.", 503);
     if (!/AlreadyRegistered/.test(msg)) return jsonError(`on-chain registration failed, nothing saved: ${msg}`, 502);
   }
 

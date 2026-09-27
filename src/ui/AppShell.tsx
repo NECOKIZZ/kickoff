@@ -10,6 +10,7 @@ import { NavUnderlineItem } from "@/ui/NavUnderline";
 import { useAuth } from "@/ui/auth/useAuth";
 import { shortAddr } from "@/ui/clientApi";
 import { WalletChip } from "@/ui/chain/WalletChip";
+import { CONTACT_EMAIL } from "@/ui/contact";
 
 const APP_TABS = [
   { label: "Markets", href: "/markets" },
@@ -124,6 +125,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {children}
+
+      <footer
+        className="mx-auto px-4 sm:px-6 py-8 text-center"
+        style={{ maxWidth: 1100, borderTop: "1px solid var(--border)", marginTop: 48, fontSize: "0.8rem", color: "var(--muted-foreground)" }}
+      >
+        Found a bug or have feedback? Email us at{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--foreground)", textDecoration: "underline", textUnderlineOffset: 3 }}>
+          {CONTACT_EMAIL}
+        </a>
+      </footer>
     </div>
   );
 }

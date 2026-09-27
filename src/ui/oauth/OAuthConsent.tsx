@@ -23,7 +23,7 @@ export default function OAuthConsent() {
   const { ready, address, signIn } = useAuth();
   const [query, setQuery] = useState<string | null>(null);
   const [client, setClient] = useState<ClientInfo | null>(null);
-  const [agentName, setAgentName] = useState<string | null | undefined>(undefined);
+  const [agent, setAgent] = useState<{ name: string; mode: "byok" | "managed" } | null | undefined>(undefined);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -43,9 +43,9 @@ export default function OAuthConsent() {
 
   useEffect(() => {
     if (!address) return;
-    api<{ agent: { name: string } | null }>("/api/agents/me")
-      .then((d) => setAgentName(d.agent?.name ?? null))
-      .catch(() => setAgentName(null));
+    api<{ agent: { name: string; mode: "byok" | "managed" } | null }>("/api/agents/me")
+      .then((d) => setAgent(d.agent ?? null))
+      .catch(() => setAgent(null));
   }, [address]);
 
   async function decide(approve: boolean) {
@@ -89,9 +89,9 @@ export default function OAuthConsent() {
               <div>
                 <Button3D onClick={signIn}>Sign in to continue</Button3D>
               </div>
-            ) : agentName === undefined ? (
+            ) : agent === undefined ? (
               <p style={muted}>Checking your agent…</p>
-            ) : agentName === null ? (
+            ) : agent === null ? (
               <p style={muted}>
                 You don&apos;t have an agent yet.{" "}
                 <a href="/agent" style={{ color: "var(--ui-accent)", fontWeight: 600 }}>
@@ -102,8 +102,23 @@ export default function OAuthConsent() {
             ) : (
               <>
                 <p style={muted}>
-                  Agent: <strong style={{ color: "var(--foreground)" }}>{agentName}</strong>
+                  Agent: <strong style={{ color: "var(--foreground)" }}>{agent.name}</strong>
                 </p>
+                {agent.mode === "managed" && (
+                  <p
+                    style={{
+                      ...muted,
+                      color: "var(--foreground)",
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid var(--ui-accent)",
+                    }}
+                  >
+                    Your agent is currently run by Kickoff. Approving switches it to <strong>Bring your own AI</strong>, so
+                    Kickoff&apos;s daily run stops and {client.name} makes the picks. Your soul.md is kept, and you can
+                    switch back on My Agent any time.
+                  </p>
+                )}
                 <div className="flex flex-wrap items-center gap-3">
                   <Button3D onClick={() => decide(true)} disabled={busy}>
                     {busy ? "Connecting…" : "Approve"}

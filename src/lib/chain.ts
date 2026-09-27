@@ -9,6 +9,7 @@ import {
   robinhoodTestnet,
   tusdcAbi,
 } from "@/lib/chainConfig";
+import { sendSerialized } from "@/lib/txQueue";
 
 // ---------------------------------------------------------------------------
 // Server-side chain wiring (relayer writes + stake verification). The chain
@@ -43,6 +44,18 @@ function relayerClient() {
     chain: robinhoodTestnet,
     transport: http(),
   });
+}
+
+type ServerWallet = ReturnType<typeof relayerClient>;
+
+/**
+ * Every server-side send goes through here: the nonce is reserved in order
+ * across all instances (src/lib/txQueue.ts), so concurrent requests on the
+ * same key can't clash. `send` must pass `nonce` through and not wait.
+ */
+function submit(wallet: ServerWallet, send: (nonce: number) => Promise<Hex>): Promise<Hex> {
+  const address = wallet.account.address;
+  return sendSerialized(address, () => publicClient.getTransactionCount({ address, blockTag: "pending" }), send);
 }
 
 /** Max positions per on-chain market — bounds the single-tx settle's gas. */
@@ -88,12 +101,15 @@ export async function createMarketOnChain(
 ): Promise<{ escrowAddress: Hex; onChainMarketId: bigint; txHash: Hex } | null> {
   if (!CHAIN_ENABLED) return null;
   const wallet = relayerClient();
-  const hash = await wallet.writeContract({
-    address: ESCROW_ADDRESS!,
-    abi: escrowAbi,
-    functionName: "createMarket",
-    args: [toOnChainConfig(k)],
-  });
+  const hash = await submit(wallet, (nonce) =>
+    wallet.writeContract({
+      address: ESCROW_ADDRESS!,
+      abi: escrowAbi,
+      functionName: "createMarket",
+      args: [toOnChainConfig(k)],
+      nonce,
+    }),
+  );
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`createMarket reverted (${hash})`);
   const [created] = parseEventLogs({ abi: escrowAbi, eventName: "MarketCreated", logs: receipt.logs });
@@ -116,7 +132,9 @@ export async function openMarketOnChain(onChainMarketId: bigint): Promise<Hex | 
 /** Relayer write that FAILS on a reverted receipt (viem's wait doesn't throw on revert). */
 async function writeAndWait(functionName: any, args: any): Promise<Hex> {
   const wallet = relayerClient();
-  const hash = await wallet.writeContract({ address: ESCROW_ADDRESS!, abi: escrowAbi, functionName, args });
+  const hash = await submit(wallet, (nonce) =>
+    wallet.writeContract({ address: ESCROW_ADDRESS!, abi: escrowAbi, functionName, args, nonce }),
+  );
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`${functionName} reverted (${hash})`);
   return hash;
@@ -219,23 +237,28 @@ export interface DripResult {
 }
 
 export async function dripTestFunds(to: Hex): Promise<DripResult | null> {
-  if (!CHAIN_ENABLED || !MOCKUSDC_ADDRESS) return null;
+  const usdc = MOCKUSDC_ADDRESS;
+  if (!CHAIN_ENABLED || !usdc) return null;
   const wallet = relayerClient();
   const out: DripResult = { ethTxHash: null, tusdcTxHash: null };
 
   if ((await publicClient.getBalance({ address: to })) < MIN_ETH_WEI) {
-    const hash = await wallet.sendTransaction({ to, value: DRIP_ETH_WEI });
+    const hash = await submit(wallet, (nonce) => wallet.sendTransaction({ to, value: DRIP_ETH_WEI, nonce }));
     const r = await publicClient.waitForTransactionReceipt({ hash });
     if (r.status !== "success") throw new Error(`ETH drip reverted (${hash})`);
     out.ethTxHash = hash;
   }
 
-  const tusdc = await publicClient.readContract({ address: MOCKUSDC_ADDRESS, abi: tusdcAbi, functionName: "balanceOf", args: [to] });
+  const tusdc = await publicClient.readContract({ address: usdc, abi: tusdcAbi, functionName: "balanceOf", args: [to] });
   if (tusdc < MIN_TUSDC) {
     // MockUSDC.faucet mints to the caller; mint to the server wallet, then send.
-    const mint = await wallet.writeContract({ address: MOCKUSDC_ADDRESS, abi: tusdcAbi, functionName: "faucet", args: [DRIP_TUSDC] });
+    const mint = await submit(wallet, (nonce) =>
+      wallet.writeContract({ address: usdc, abi: tusdcAbi, functionName: "faucet", args: [DRIP_TUSDC], nonce }),
+    );
     await publicClient.waitForTransactionReceipt({ hash: mint });
-    const hash = await wallet.writeContract({ address: MOCKUSDC_ADDRESS, abi: tusdcAbi, functionName: "transfer", args: [to, DRIP_TUSDC] });
+    const hash = await submit(wallet, (nonce) =>
+      wallet.writeContract({ address: usdc, abi: tusdcAbi, functionName: "transfer", args: [to, DRIP_TUSDC], nonce }),
+    );
     const r = await publicClient.waitForTransactionReceipt({ hash });
     if (r.status !== "success") throw new Error(`tUSDC drip reverted (${hash})`);
     out.tusdcTxHash = hash;
@@ -258,7 +281,10 @@ function operatorClient() {
 }
 
 async function operatorWrite(functionName: any, args: any): Promise<Hex> {
-  const hash = await operatorClient().writeContract({ address: AGENT_VAULT_ADDRESS!, abi: agentVaultAbi, functionName, args });
+  const wallet = operatorClient();
+  const hash = await submit(wallet, (nonce) =>
+    wallet.writeContract({ address: AGENT_VAULT_ADDRESS!, abi: agentVaultAbi, functionName, args, nonce }),
+  );
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`AgentVault.${functionName} reverted (${hash})`);
   return hash;
@@ -297,12 +323,16 @@ export async function agentVaultState(agent: Hex): Promise<{ owner: Hex; paused:
 /** Platform kill switch: halt/resume ALL agent staking on-chain (vault owner). */
 export async function setAgentStakingHalted(halted: boolean): Promise<Hex | null> {
   if (!AGENTS_ON_CHAIN) return null;
-  const hash = await relayerClient().writeContract({
-    address: AGENT_VAULT_ADDRESS!,
-    abi: agentVaultAbi,
-    functionName: "setStakingHalted",
-    args: [halted],
-  });
+  const wallet = relayerClient();
+  const hash = await submit(wallet, (nonce) =>
+    wallet.writeContract({
+      address: AGENT_VAULT_ADDRESS!,
+      abi: agentVaultAbi,
+      functionName: "setStakingHalted",
+      args: [halted],
+      nonce,
+    }),
+  );
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`setStakingHalted reverted (${hash})`);
   return hash;

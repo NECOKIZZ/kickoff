@@ -57,6 +57,13 @@
       "when": 1790366223405,
       "tag": "0007_market_fixture_link",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790514470723,
+      "tag": "0008_signer_nonces",
+      "breakpoints": true
     }
   ]
 }

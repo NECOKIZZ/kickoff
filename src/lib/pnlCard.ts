@@ -42,7 +42,20 @@ export interface PnlCardView {
   of: number;
 }
 
-const pnlOf = (p: { stake: bigint; payout: bigint | null }) => (p.payout ?? 0n) - p.stake;
+type Amount = bigint | string;
+type Priced = { stake: Amount; payout: Amount | null };
+
+/** Settled PnL in base units: payout − stake (a null payout counts as 0). */
+export const pnlOf = (p: Priced) => BigInt(p.payout ?? 0n) - BigInt(p.stake);
+
+/**
+ * Rank by PnL within a market (1 = best); tied PnL shares the higher rank.
+ * The one ranking used by the card, the market page tiles and pool table.
+ */
+export function pnlRank(field: Priced[], mine: Priced): number {
+  const m = pnlOf(mine);
+  return 1 + field.filter((p) => pnlOf(p) > m).length;
+}
 
 /** Whole dollars stay clean ($190); fractional amounts show cents ($2.50). */
 export function fmtCardUsd(micro: bigint): string {
@@ -71,7 +84,7 @@ export function buildPnlCardView(
   codeFor: (teamName: string) => string | null,
 ): PnlCardView {
   const mine = pnlOf(input.position);
-  const rank = 1 + input.field.filter((p) => pnlOf(p) > mine).length;
+  const rank = pnlRank(input.field, input.position);
   const scoreline = input.kind === "scoreline";
 
   return {

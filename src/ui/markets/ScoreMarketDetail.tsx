@@ -10,6 +10,7 @@ import { ConcentrationGrid } from "@/ui/markets/ConcentrationGrid";
 import { useTimeline } from "@/ui/markets/useTimeline";
 import type { MarketDetail } from "@/ui/markets/MarketDetailView";
 import { PoolLeaderboard } from "@/ui/markets/MarketDetailView";
+import { pnlOf, pnlRank } from "@/lib/pnlCard";
 import { MyPnlCard } from "@/ui/positions/MyPnlCard";
 
 /**
@@ -51,12 +52,10 @@ export function ScoreMarketDetail({ detail, onPlaced }: { detail: MarketDetail; 
   // Stat tiles from the latest snapshot (or final results when settled).
   const tiles = useMemo(() => {
     if (settled && myPosition) {
-      const rank =
-        [...detail.positions]
-          .sort((a, b) => Number(BigInt(b.payout ?? "0") - BigInt(a.payout ?? "0")))
-          .findIndex((p) => p.id === myPosition.id) + 1;
-      const pnl = myPosition.payout !== null ? gainDollars(String(BigInt(myPosition.payout) - BigInt(myPosition.stake))) : null;
-      return { stake: myPosition.stake, rank: rank || null, of: detail.positions.length, pnl, final: true };
+      // Same ranking as the PnL card: by payout − stake, ties share a rank.
+      const rank = pnlRank(detail.positions, myPosition);
+      const pnl = gainDollars(String(pnlOf(myPosition)));
+      return { stake: myPosition.stake, rank, of: detail.positions.length, pnl, final: true };
     }
     if (myPositionId !== null && latestSnapshot) {
       const p = latestSnapshot.positions.find((q) => q.positionId === myPositionId);

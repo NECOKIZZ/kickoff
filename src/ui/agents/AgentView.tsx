@@ -9,6 +9,7 @@ import { depositToAgent, explainTxError, signAgentLink, withdrawFromAgent } from
 import { useWalletProvider } from "@/ui/chain/useWalletProvider";
 import { AgentTokens } from "@/ui/agents/AgentTokens";
 import { AgentRuns } from "@/ui/agents/AgentRuns";
+import { AgentResults } from "@/ui/agents/AgentResults";
 
 /**
  * My Agent — create, fund, steer and pause the user's one prediction agent.
@@ -252,6 +253,8 @@ function AgentPanel({ data, reload }: { data: MyAgent; reload: () => void }) {
           Each pick stakes the market&apos;s fixed amount from this balance. Winnings land back here.
         </p>
       </Card>
+
+      <AgentResults walletAddress={a.walletAddress} />
 
       {a.mode === "managed" && <AgentRuns />}
 

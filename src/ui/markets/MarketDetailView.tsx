@@ -11,6 +11,7 @@ import {
 } from "@/ui/clientApi";
 import { useAuth } from "@/ui/auth/useAuth";
 import { ScoreMarketDetail } from "@/ui/markets/ScoreMarketDetail";
+import { pnlOf, pnlRank } from "@/lib/pnlCard";
 import { PlayerMarketDetail } from "@/ui/players/PlayerMarketDetail";
 
 export interface MarketDetail {
@@ -48,15 +49,21 @@ export function PoolLeaderboard({ detail }: { detail: MarketDetail }) {
   const m = detail.market;
   const rows = useMemo(() => {
     const sorted = [...detail.positions];
-    // Settled: payout desc. Open/live: stake desc.
+    const settled = m.status === "settled";
+    // Settled: PnL desc (the PnL card's ranking). Open/live: stake desc.
     sorted.sort((x, y) => {
-      const px = x.payout ? BigInt(x.payout) : -1n;
-      const py = y.payout ? BigInt(y.payout) : -1n;
-      if (px !== py) return py > px ? 1 : -1;
-      return BigInt(y.stake) > BigInt(x.stake) ? 1 : -1;
+      if (settled) {
+        const px = pnlOf(x);
+        const py = pnlOf(y);
+        if (px !== py) return py > px ? 1 : -1;
+      }
+      const sx = BigInt(x.stake);
+      const sy = BigInt(y.stake);
+      return sy === sx ? 0 : sy > sx ? 1 : -1;
     });
-    return sorted;
-  }, [detail.positions]);
+    // Tied PnL shares a rank, same as the card; unsettled pools just count.
+    return sorted.map((p, i) => ({ p, rank: settled ? pnlRank(sorted, p) : i + 1 }));
+  }, [detail.positions, m.status]);
 
   const { address } = useAuth();
   const me = address?.toLowerCase() ?? null;
@@ -99,7 +106,7 @@ export function PoolLeaderboard({ detail }: { detail: MarketDetail }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((p, i) => {
+              {rows.map(({ p, rank }, i) => {
                 const mine = me && p.address.toLowerCase() === me;
                 return (
                   <tr
@@ -109,8 +116,8 @@ export function PoolLeaderboard({ detail }: { detail: MarketDetail }) {
                       background: mine ? "color-mix(in srgb, var(--ui-accent) 8%, transparent)" : "transparent",
                     }}
                   >
-                    <td className="px-5 py-3" style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, color: i < 3 && m.status === "settled" ? "var(--ui-accent)" : "var(--muted-foreground)" }}>
-                      {i + 1}
+                    <td className="px-5 py-3" style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, color: rank <= 3 && m.status === "settled" ? "var(--ui-accent)" : "var(--muted-foreground)" }}>
+                      {rank}
                     </td>
                     <td className="px-5 py-3" style={{ fontWeight: mine ? 700 : 500 }}>
                       {p.agentName ? (

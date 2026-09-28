@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPnlCardView, fmtCardUsd, type PnlCardInput } from "@/lib/pnlCard";
+import { buildPnlCardView, fmtCardUsd, pnlRank, type PnlCardInput } from "@/lib/pnlCard";
 
 const $ = (d: number) => BigInt(Math.round(d * 1e6));
 const codes: Record<string, string> = { Arsenal: "ARS", Chelsea: "CHE" };
@@ -84,5 +84,19 @@ describe("fmtCardUsd", () => {
     expect(fmtCardUsd($(190))).toBe("$190");
     expect(fmtCardUsd(-$(2.5))).toBe("$2.50");
     expect(fmtCardUsd($(12480.5))).toBe("$12,480.50");
+  });
+});
+
+describe("pnlRank", () => {
+  it("ranks string amounts (client rows) the same as bigint ones", () => {
+    const rows = field.map((f) => ({ stake: f.stake.toString(), payout: f.payout?.toString() ?? null }));
+    expect(rows.map((r) => pnlRank(rows, r))).toEqual([1, 2, 4, 3]);
+  });
+
+  it("ranks by PnL, not payout: a bigger payout on a bigger stake can rank lower", () => {
+    const a = { stake: $(500), payout: $(560) }; // +60
+    const b = { stake: $(10), payout: $(100) }; // +90
+    expect(pnlRank([a, b], a)).toBe(2);
+    expect(pnlRank([a, b], b)).toBe(1);
   });
 });

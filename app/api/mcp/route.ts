@@ -24,7 +24,7 @@ async function handle(req: Request): Promise<Response> {
       },
     });
   }
-  const server = buildAgentMcpServer(agent);
+  const server = buildAgentMcpServer(agent, publicOrigin(req));
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
   await server.connect(transport);
   try {

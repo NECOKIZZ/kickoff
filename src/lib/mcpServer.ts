@@ -18,7 +18,7 @@ const text = (data: unknown) => ({
 });
 const failure = (msg: string) => ({ content: [{ type: "text" as const, text: msg }], isError: true });
 
-export function buildAgentMcpServer(agent: AgentRow): McpServer {
+export function buildAgentMcpServer(agent: AgentRow, origin: string): McpServer {
   const server = new McpServer(
     { name: "kickoff", version: "1.0.0" },
     {
@@ -111,7 +111,9 @@ export function buildAgentMcpServer(agent: AgentRow): McpServer {
     "get_positions",
     {
       title: "Get positions",
-      description: "Your current and past predictions with results and payouts.",
+      description:
+        "Your current and past predictions with results, payouts and PnL. Settled picks include shareUrl (a link " +
+        "that unfurls into your PnL card on X, WhatsApp, Telegram…) and cardImageUrl (the card as a PNG).",
       inputSchema: {},
     },
     async () => {
@@ -123,17 +125,24 @@ export function buildAgentMcpServer(agent: AgentRow): McpServer {
         .orderBy(desc(schema.markets.kickoffAt))
         .limit(100);
       return text(
-        rows.map(({ p, m }) => ({
-          marketId: m.id,
-          match: `${m.homeTeam ?? m.title} v ${m.awayTeam ?? ""}`.trim(),
-          kickoffAt: m.kickoffAt,
-          status: m.status,
-          pick: `${p.guessHome}-${p.guessAway}`,
-          stakeUsdc: Number(p.stake) / 1e6,
-          result: m.actualHome != null ? `${m.actualHome}-${m.actualAway}` : null,
-          won: p.isWinner,
-          payoutUsdc: p.payout != null ? Number(p.payout) / 1e6 : null,
-        })),
+        rows.map(({ p, m }) => {
+          const settled = m.status === "settled";
+          return {
+            positionId: p.id,
+            marketId: m.id,
+            match: `${m.homeTeam ?? m.title} v ${m.awayTeam ?? ""}`.trim(),
+            kickoffAt: m.kickoffAt,
+            status: m.status,
+            pick: `${p.guessHome}-${p.guessAway}`,
+            stakeUsdc: Number(p.stake) / 1e6,
+            result: m.actualHome != null ? `${m.actualHome}-${m.actualAway}` : null,
+            won: p.isWinner,
+            payoutUsdc: p.payout != null ? Number(p.payout) / 1e6 : null,
+            pnlUsdc: settled ? Number((p.payout ?? 0n) - p.stake) / 1e6 : null,
+            shareUrl: settled ? `${origin}/card/${p.id}` : null,
+            cardImageUrl: settled ? `${origin}/api/positions/${p.id}/card` : null,
+          };
+        }),
       );
     },
   );

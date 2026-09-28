@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * EPL club lookup for score markets — crest slug (public/brand/clubs/*.webp)
  * plus the 3-letter code used on goal markers ("12' ARS"). Matching is by

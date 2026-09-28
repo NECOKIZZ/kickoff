@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 /**
  * Preview + download/share for a settled position's PnL card. The card is
  * rendered server-side (/api/positions/:id/card), so what's previewed is
- * byte-for-byte what gets downloaded or shared.
+ * byte-for-byte what gets downloaded, and what the /card/:id share link
+ * unfurls into.
  */
 export default function PnlCardModal({ positionId, onClose }: { positionId: number; onClose: () => void }) {
   const src = `/api/positions/${positionId}/card?w=2000`;
@@ -36,19 +37,27 @@ export default function PnlCardModal({ positionId, onClose }: { positionId: numb
     }
   };
 
-  // Native share sheet (mobile) with the image attached; falls back to download.
+  // The share link (/card/:id) unfurls into the card on X, WhatsApp, Telegram…
+  const shareUrl = () => `${window.location.origin}/card/${positionId}`;
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(shareUrl()).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+
+  const postOnX = () => {
+    const intent = new URL("https://x.com/intent/post");
+    intent.searchParams.set("text", "Called it on Kickoff.");
+    intent.searchParams.set("url", shareUrl());
+    window.open(intent.toString(), "_blank", "noopener,noreferrer");
+  };
+
+  // Native share sheet (mobile): the link, so the chat app shows the card preview.
   const share = async () => {
-    setBusy(true);
-    try {
-      const file = await fetchPng();
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text: "Called it on Kickoff." }).catch(() => {});
-      } else {
-        await download();
-      }
-    } finally {
-      setBusy(false);
-    }
+    if (navigator.share) await navigator.share({ url: shareUrl(), text: "Called it on Kickoff." }).catch(() => {});
+    else await copyLink();
   };
 
   const btn = {
@@ -92,20 +101,28 @@ export default function PnlCardModal({ positionId, onClose }: { positionId: numb
             />
           )}
         </div>
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button onClick={onClose} style={{ ...btn, opacity: 1, background: "rgba(255,255,255,0.12)", color: "#fff" }}>
             Close
           </button>
           <button onClick={download} disabled={busy || !loaded} style={{ ...btn, background: "#fff", color: "#000" }}>
             Download
           </button>
-          <button
-            onClick={share}
-            disabled={busy || !loaded}
-            style={{ ...btn, background: "var(--ui-accent)", color: "var(--ui-accent-contrast)" }}
-          >
-            Share
+          <button onClick={copyLink} disabled={!loaded} style={{ ...btn, background: "#fff", color: "#000" }}>
+            {copied ? "Copied" : "Copy link"}
           </button>
+          <button onClick={postOnX} disabled={!loaded} style={{ ...btn, background: "#fff", color: "#000" }}>
+            Post on X
+          </button>
+          {typeof navigator !== "undefined" && "share" in navigator && (
+            <button
+              onClick={share}
+              disabled={!loaded}
+              style={{ ...btn, background: "var(--ui-accent)", color: "var(--ui-accent-contrast)" }}
+            >
+              Share
+            </button>
+          )}
         </div>
       </div>
     </div>

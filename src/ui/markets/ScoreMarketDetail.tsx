@@ -10,6 +10,7 @@ import { ConcentrationGrid } from "@/ui/markets/ConcentrationGrid";
 import { useTimeline } from "@/ui/markets/useTimeline";
 import type { MarketDetail } from "@/ui/markets/MarketDetailView";
 import { PoolLeaderboard } from "@/ui/markets/MarketDetailView";
+import { MyPnlCard } from "@/ui/positions/MyPnlCard";
 
 /**
  * Score market detail — the redesigned layout (user wireframe 2026-08-04):
@@ -105,6 +106,7 @@ export function ScoreMarketDetail({ detail, onPlaced }: { detail: MarketDetail; 
 
       {/* 3 — Live PnL ⇄ concentration (one at a time, pill-switched) */}
       <div style={{ gridArea: "chart" }}>
+        {settled && myPositionId !== null && <MyPnlCard positionId={myPositionId} />}
         <div className="card-diagonal glass px-6 py-6">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
             <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.15rem", fontWeight: 600 }}>

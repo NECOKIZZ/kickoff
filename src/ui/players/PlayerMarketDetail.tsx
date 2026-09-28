@@ -10,6 +10,7 @@ import { LivePnlChart, PnlStatTiles } from "@/ui/markets/LivePnlChart";
 import { useTimeline } from "@/ui/markets/useTimeline";
 import type { MarketDetail } from "@/ui/markets/MarketDetailView";
 import { PoolLeaderboard } from "@/ui/markets/MarketDetailView";
+import { MyPnlCard } from "@/ui/positions/MyPnlCard";
 
 /**
  * Player perp detail — minimal GW strip on top; right rail leads with the
@@ -89,6 +90,7 @@ export function PlayerMarketDetail({ detail, onPlaced }: { detail: MarketDetail;
 
       {/* 3 — Main: live PnL with the leaderboard right beneath it */}
       <div style={{ gridArea: "main" }} className="flex flex-col">
+        {settled && myPositionId !== null && <MyPnlCard positionId={myPositionId} />}
         <div className="card-diagonal glass px-6 py-6">
           <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.15rem", fontWeight: 600, marginBottom: 20 }}>
             Live PnL

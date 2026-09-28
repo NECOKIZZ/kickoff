@@ -6,6 +6,7 @@ import { api, fmtUsdc, fmtPoints, fmtKickoff } from "@/ui/clientApi";
 import { useAuth } from "@/ui/auth/useAuth";
 import { claimFromEscrow, explainTxError, isOnChainMarket } from "@/ui/chain/escrowTx";
 import { useWalletProvider } from "@/ui/chain/useWalletProvider";
+import PnlCardModal from "@/ui/positions/PnlCardModal";
 
 interface UserPositionRow {
   position: {
@@ -33,6 +34,7 @@ export default function PositionsView() {
   const [error, setError] = useState<string | null>(null);
   const [claiming, setClaiming] = useState<number | null>(null);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
+  const [cardFor, setCardFor] = useState<number | null>(null);
   const wallet = useWalletProvider();
 
   const load = useCallback(() => {
@@ -145,6 +147,27 @@ export default function PositionsView() {
                 </p>
                 <p style={{ fontSize: "0.9rem", fontWeight: 600 }}>{fmtUsdc(p.stake)}</p>
               </div>
+              {settled && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault(); // the row is a link; the button isn't
+                    setCardFor(p.id);
+                  }}
+                  className="cursor-pointer"
+                  title="PnL card"
+                  style={{
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    padding: "5px 10px",
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "transparent",
+                    color: "inherit",
+                  }}
+                >
+                  Card
+                </button>
+              )}
               <div className="text-right" style={{ minWidth: 80 }}>
                 {canClaim ? (
                   <button
@@ -187,6 +210,8 @@ export default function PositionsView() {
           );
         })}
       </div>
+
+      {cardFor !== null && <PnlCardModal positionId={cardFor} onClose={() => setCardFor(null)} />}
     </div>
   );
 }

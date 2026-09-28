@@ -124,10 +124,11 @@ export default function PositionsView() {
             <Link
               key={p.id}
               href={`/markets/${p.marketId}`}
-              className="card-diagonal glass flex items-center gap-4 px-6 py-4 transition-transform duration-150 hover:-translate-y-0.5"
+              className="card-diagonal glass flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4 transition-transform duration-150 hover:-translate-y-0.5"
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              <div className="flex-1">
+              {/* Phones: title on its own line, the figures wrap beneath it */}
+              <div className="flex-1 basis-full sm:basis-0">
                 <p style={{ fontSize: "0.88rem", fontWeight: 600, marginBottom: 3 }}>{r.marketTitle}</p>
                 <p style={{ fontSize: "0.7rem", color: "var(--muted-foreground)" }}>
                   {fmtKickoff(r.kickoffAt)} · {r.marketStatus}

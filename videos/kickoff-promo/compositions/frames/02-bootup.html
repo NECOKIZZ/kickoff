@@ -1,0 +1,164 @@
+<template>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-500.woff2") format("woff2");font-weight:500}
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-600.woff2") format("woff2");font-weight:600}
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-700.woff2") format("woff2");font-weight:700}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-400.woff2") format("woff2");font-weight:400}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-600.woff2") format("woff2");font-weight:600}
+@font-face{font-family:"JetBrains Mono";src:url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");font-weight:500}
+
+#root{position:absolute;inset:0;overflow:hidden;color:#F5F4FF;font-family:"Inter",sans-serif}
+.f02-bg{position:absolute;inset:0;background:#05060A;overflow:hidden}
+.f02-nebula{position:absolute;inset:-10%;background:
+  radial-gradient(45% 40% at 50% 58%,rgba(78,60,181,.42),transparent 70%),
+  radial-gradient(30% 28% at 18% 22%,rgba(123,98,246,.18),transparent 70%),
+  radial-gradient(28% 26% at 84% 78%,rgba(0,200,5,.08),transparent 70%)}
+.f02-stage{position:absolute;inset:0}
+.f02-fx{position:absolute;inset:0;pointer-events:none}
+.f02-grain{position:absolute;left:-300px;top:-300px;width:2520px;height:1680px;opacity:.06;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");mix-blend-mode:overlay}
+.f02-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);opacity:.5}
+.f02-vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.78) 100%)}
+.f02-glass{position:absolute;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+  backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);
+  border:1px solid rgba(255,255,255,.18);border-radius:28px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),inset 0 0 40px rgba(123,98,246,.10),0 30px 80px rgba(0,0,0,.55)}
+.f02-label{font-family:"Inter",sans-serif;font-weight:600;font-size:16px;letter-spacing:.28em;text-transform:uppercase;color:#A6A3C2}
+.f02-mono{font-family:"JetBrains Mono",monospace;font-weight:500}
+.f02-display{font-family:"Clash Display",sans-serif;font-weight:600;letter-spacing:-.03em;line-height:.95}
+.f02-dot{position:absolute;border-radius:50%;background:#fff}
+
+
+.f02-stad{position:absolute;inset:0;filter:drop-shadow(0 0 8px rgba(123,98,246,.8))}
+.f02-ring{stroke-dasharray:1;stroke-dashoffset:1}
+.f02-flare{position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95) 0,rgba(185,169,255,.55) 12%,rgba(123,98,246,.18) 35%,transparent 65%);mix-blend-mode:screen}
+.f02-panel{width:440px;padding:30px 30px 24px}
+.f02-ptitle{margin-bottom:18px;color:#F5F4FF}
+.f02-bl{display:flex;gap:10px;font-family:"JetBrains Mono",monospace;font-size:17px;color:#A6A3C2;margin:10px 0}
+.f02-dots{flex:1;border-bottom:2px dotted rgba(255,255,255,.18);transform:translateY(-6px)}
+.f02-ok{color:#00C805;text-shadow:0 0 10px rgba(0,200,5,.7)}
+.f02-bad{color:#ff4d6d;text-shadow:0 0 10px rgba(255,77,109,.6)}
+.f02-bars{display:flex;align-items:flex-end;gap:7px;height:150px;margin-top:8px}
+.f02-bar{flex:1;height:100%;background:linear-gradient(0deg,#7B62F6,#b9a9ff);border-radius:3px;transform-origin:50% 100%;box-shadow:0 0 10px rgba(123,98,246,.6)}
+.f02-board{left:560px;top:300px;width:800px;height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.f02-teams{display:flex;gap:340px;margin-bottom:6px}
+.f02-score{position:relative;font-size:190px;color:#fff;text-shadow:0 0 30px rgba(123,98,246,.9),0 0 80px rgba(123,98,246,.5)}
+.f02-sr,.f02-sc{position:absolute;left:0;top:0;width:100%;text-align:center;mix-blend-mode:screen;opacity:0;text-shadow:none}
+.f02-sr{color:#ff2d55}.f02-sc{color:#22d3ee}
+.f02-pill{top:650px;width:220px;height:84px;display:flex;align-items:center;justify-content:center;font-size:44px;border-radius:42px}
+#f02-yes{left:710px;color:#00C805;text-shadow:0 0 18px rgba(0,200,5,.8)}
+#f02-no{left:990px;color:#ff4d6d;text-shadow:0 0 18px rgba(255,77,109,.8)}
+.f02-strike{position:absolute;left:680px;top:690px;width:560px;height:4px;background:#fff;box-shadow:0 0 16px #fff;transform-origin:0 50%}
+.f02-bin{position:absolute;left:0;right:0;top:770px;text-align:center}
+.f02-slice{position:absolute;left:560px;width:800px;height:34px;background:rgba(123,98,246,.35);mix-blend-mode:screen;opacity:0}
+
+</style>
+<div id="root" data-composition-id="02-bootup" data-width="1920" data-height="1080" data-duration="6.5">
+  <div class="f02-bg clip" id="f02-bgclip" data-start="0" data-duration="6.5" data-track-index="0">
+    <div class="f02-nebula" id="f02-nebula"></div>
+    <div class="f02-stage" id="f02-particles"></div>
+  </div>
+  <div class="f02-stage" id="f02-stage">
+
+    <div class="f02-stad" id="f02-stad"><svg viewBox="0 0 1920 1080" width="1920" height="1080" fill="none" stroke="#7B62F6" stroke-width="2"><ellipse class="f02-ring" cx="960" cy="650" rx="930" ry="300" pathLength="1" opacity="0.90"/><ellipse class="f02-ring" cx="960" cy="650" rx="820" ry="262" pathLength="1" opacity="0.75"/><ellipse class="f02-ring" cx="960" cy="650" rx="700" ry="222" pathLength="1" opacity="0.60"/><ellipse class="f02-ring" cx="960" cy="650" rx="580" ry="184" pathLength="1" opacity="0.45"/><g stroke-width="1" opacity=".35"><line class="f02-tick" x1="1890.0" y1="650.0" x2="1660.0" y2="650.0"/><line class="f02-tick" x1="1886.5" y1="676.1" x2="1657.3" y2="669.3"/><line class="f02-tick" x1="1875.9" y1="702.1" x2="1649.4" y2="688.5"/><line class="f02-tick" x1="1858.3" y1="727.6" x2="1636.1" y2="707.5"/><line class="f02-tick" x1="1833.9" y1="752.6" x2="1617.8" y2="725.9"/><line class="f02-tick" x1="1802.9" y1="776.8" x2="1594.4" y2="743.8"/><line class="f02-tick" x1="1765.4" y1="800.0" x2="1566.2" y2="761.0"/><line class="f02-tick" x1="1721.8" y1="822.1" x2="1533.4" y2="777.3"/><line class="f02-tick" x1="1672.4" y1="842.8" x2="1496.2" y2="792.7"/><line class="f02-tick" x1="1617.6" y1="862.1" x2="1455.0" y2="807.0"/><line class="f02-tick" x1="1557.8" y1="879.8" x2="1410.0" y2="820.1"/><line class="f02-tick" x1="1493.4" y1="895.7" x2="1361.5" y2="831.9"/><line class="f02-tick" x1="1425.0" y1="909.8" x2="1310.0" y2="842.3"/><line class="f02-tick" x1="1353.0" y1="921.9" x2="1255.8" y2="851.2"/><line class="f02-tick" x1="1278.1" y1="931.9" x2="1199.4" y2="858.6"/><line class="f02-tick" x1="1200.7" y1="939.8" x2="1141.2" y2="864.4"/><line class="f02-tick" x1="1121.5" y1="945.4" x2="1081.6" y2="868.6"/><line class="f02-tick" x1="1041.1" y1="948.9" x2="1021.0" y2="871.2"/><line class="f02-tick" x1="960.0" y1="950.0" x2="960.0" y2="872.0"/><line class="f02-tick" x1="878.9" y1="948.9" x2="899.0" y2="871.2"/><line class="f02-tick" x1="798.5" y1="945.4" x2="838.4" y2="868.6"/><line class="f02-tick" x1="719.3" y1="939.8" x2="778.8" y2="864.4"/><line class="f02-tick" x1="641.9" y1="931.9" x2="720.6" y2="858.6"/><line class="f02-tick" x1="567.0" y1="921.9" x2="664.2" y2="851.2"/><line class="f02-tick" x1="495.0" y1="909.8" x2="610.0" y2="842.3"/><line class="f02-tick" x1="426.6" y1="895.7" x2="558.5" y2="831.9"/><line class="f02-tick" x1="362.2" y1="879.8" x2="510.0" y2="820.1"/><line class="f02-tick" x1="302.4" y1="862.1" x2="465.0" y2="807.0"/><line class="f02-tick" x1="247.6" y1="842.8" x2="423.8" y2="792.7"/><line class="f02-tick" x1="198.2" y1="822.1" x2="386.6" y2="777.3"/><line class="f02-tick" x1="154.6" y1="800.0" x2="353.8" y2="761.0"/><line class="f02-tick" x1="117.1" y1="776.8" x2="325.6" y2="743.8"/><line class="f02-tick" x1="86.1" y1="752.6" x2="302.2" y2="725.9"/><line class="f02-tick" x1="61.7" y1="727.6" x2="283.9" y2="707.5"/><line class="f02-tick" x1="44.1" y1="702.1" x2="270.6" y2="688.5"/><line class="f02-tick" x1="33.5" y1="676.1" x2="262.7" y2="669.3"/><line class="f02-tick" x1="30.0" y1="650.0" x2="260.0" y2="650.0"/><line class="f02-tick" x1="33.5" y1="623.9" x2="262.7" y2="630.7"/><line class="f02-tick" x1="44.1" y1="597.9" x2="270.6" y2="611.5"/><line class="f02-tick" x1="61.7" y1="572.4" x2="283.9" y2="592.5"/><line class="f02-tick" x1="86.1" y1="547.4" x2="302.2" y2="574.1"/><line class="f02-tick" x1="117.1" y1="523.2" x2="325.6" y2="556.2"/><line class="f02-tick" x1="154.6" y1="500.0" x2="353.8" y2="539.0"/><line class="f02-tick" x1="198.2" y1="477.9" x2="386.6" y2="522.7"/><line class="f02-tick" x1="247.6" y1="457.2" x2="423.8" y2="507.3"/><line class="f02-tick" x1="302.4" y1="437.9" x2="465.0" y2="493.0"/><line class="f02-tick" x1="362.2" y1="420.2" x2="510.0" y2="479.9"/><line class="f02-tick" x1="426.6" y1="404.3" x2="558.5" y2="468.1"/><line class="f02-tick" x1="495.0" y1="390.2" x2="610.0" y2="457.7"/><line class="f02-tick" x1="567.0" y1="378.1" x2="664.2" y2="448.8"/><line class="f02-tick" x1="641.9" y1="368.1" x2="720.6" y2="441.4"/><line class="f02-tick" x1="719.3" y1="360.2" x2="778.8" y2="435.6"/><line class="f02-tick" x1="798.5" y1="354.6" x2="838.4" y2="431.4"/><line class="f02-tick" x1="878.9" y1="351.1" x2="899.0" y2="428.8"/><line class="f02-tick" x1="960.0" y1="350.0" x2="960.0" y2="428.0"/><line class="f02-tick" x1="1041.1" y1="351.1" x2="1021.0" y2="428.8"/><line class="f02-tick" x1="1121.5" y1="354.6" x2="1081.6" y2="431.4"/><line class="f02-tick" x1="1200.7" y1="360.2" x2="1141.2" y2="435.6"/><line class="f02-tick" x1="1278.1" y1="368.1" x2="1199.4" y2="441.4"/><line class="f02-tick" x1="1353.0" y1="378.1" x2="1255.8" y2="448.8"/><line class="f02-tick" x1="1425.0" y1="390.2" x2="1310.0" y2="457.7"/><line class="f02-tick" x1="1493.4" y1="404.3" x2="1361.5" y2="468.1"/><line class="f02-tick" x1="1557.8" y1="420.2" x2="1410.0" y2="479.9"/><line class="f02-tick" x1="1617.6" y1="437.9" x2="1455.0" y2="493.0"/><line class="f02-tick" x1="1672.4" y1="457.2" x2="1496.2" y2="507.3"/><line class="f02-tick" x1="1721.8" y1="477.9" x2="1533.4" y2="522.7"/><line class="f02-tick" x1="1765.4" y1="500.0" x2="1566.2" y2="539.0"/><line class="f02-tick" x1="1802.9" y1="523.2" x2="1594.4" y2="556.2"/><line class="f02-tick" x1="1833.9" y1="547.4" x2="1617.8" y2="574.1"/><line class="f02-tick" x1="1858.3" y1="572.4" x2="1636.1" y2="592.5"/><line class="f02-tick" x1="1875.9" y1="597.9" x2="1649.4" y2="611.5"/><line class="f02-tick" x1="1886.5" y1="623.9" x2="1657.3" y2="630.7"/></g><rect class="f02-ring" x="660" y="560" width="600" height="180" pathLength="1" opacity=".7"/></svg></div>
+    <div class="f02-flare" id="f02-fl1" style="left:-160px;top:-230px"></div>
+    <div class="f02-flare" id="f02-fl2" style="left:420px;top:-300px"></div>
+    <div class="f02-flare" id="f02-fl3" style="left:980px;top:-300px"></div>
+    <div class="f02-flare" id="f02-fl4" style="left:1560px;top:-230px"></div>
+    <div class="f02-glass f02-panel" id="f02-left" style="left:80px;top:200px">
+      <div class="f02-label f02-ptitle">System boot</div><div class="f02-bl"><span>PITCH MESH</span><span class="f02-dots"></span><span class="f02-ok">ONLINE</span></div><div class="f02-bl"><span>CROWD FEED</span><span class="f02-dots"></span><span class="f02-ok">ONLINE</span></div><div class="f02-bl"><span>FLOODLIGHTS</span><span class="f02-dots"></span><span class="f02-ok">ONLINE</span></div><div class="f02-bl"><span>MARKET TYPE</span><span class="f02-dots"></span><span class="f02-bad">BINARY</span></div><div class="f02-bl"><span>OUTCOMES</span><span class="f02-dots"></span><span class="f02-bad">2</span></div><div class="f02-bl"><span>PRECISION</span><span class="f02-dots"></span><span class="f02-bad">NONE</span></div>
+    </div>
+    <div class="f02-glass f02-panel" id="f02-right" style="left:1400px;top:200px">
+      <div class="f02-label f02-ptitle">Signal</div><div class="f02-bars"><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div><div class="f02-bar"></div></div>
+      <div class="f02-bl" style="margin-top:18px"><span>LATENCY</span><span class="f02-dots"></span><span class="f02-ok">12ms</span></div>
+    </div>
+    <div class="f02-glass f02-board" id="f02-board">
+      <div class="f02-teams f02-label"><span>Home</span><span>Away</span></div>
+      <div class="f02-score f02-display" id="f02-score">? – ?<div class="f02-sr" id="f02-sr" data-layout-allow-overlap>? – ?</div><div class="f02-sc" id="f02-sc" data-layout-allow-overlap>? – ?</div></div>
+    </div>
+    <div class="f02-slice" id="f02-sl1" style="top:360px"></div><div class="f02-slice" id="f02-sl2" style="top:470px"></div>
+    <div class="f02-glass f02-pill f02-display" id="f02-yes" style="position:absolute">YES</div>
+    <div class="f02-glass f02-pill f02-display" id="f02-no" style="position:absolute">NO</div>
+    <div class="f02-strike" id="f02-strike"></div>
+    <div class="f02-bin f02-label" id="f02-bin">Binary markets · 2 outcomes · 0 nuance</div>
+
+  </div>
+  <div class="f02-fx" data-layout-allow-occlusion><div class="f02-grain" data-layout-allow-occlusion></div><div class="f02-scan" data-layout-allow-occlusion></div><div class="f02-vig" data-layout-allow-occlusion></div></div>
+</div>
+<script>
+(function(){
+
+const ID = "02-bootup";
+const D = 6;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rng = mulberry32(22);
+const R = (a,b)=>a+(b-a)*rng();
+const $ = (s)=>document.querySelector('#root[data-composition-id="'+ID+'"] '+s) || document.querySelector(s);
+const $$ = (s)=>Array.from(document.querySelectorAll(s));
+const tl = gsap.timeline({ paused: true });
+// film grain: jump the noise plate every 80ms (seeded, seek-safe)
+(function(){const g=$(".f02-grain");for(let t=0;t<D;t+=0.08){tl.set(g,{x:Math.round(R(-280,280)),y:Math.round(R(-280,280))},t);}})();
+// drifting particles
+function particles(container, n, opts){
+  opts = opts || {};
+  const host = $(container);
+  for(let i=0;i<n;i++){
+    const d = document.createElement("div");
+    d.className = "f02-dot";
+    const s = R(1.2, opts.big||3.6);
+    d.style.width = s+"px"; d.style.height = s+"px";
+    d.style.left = R(0,1920)+"px"; d.style.top = R(0,1080)+"px";
+    const c = rng()<0.55 ? "#7B62F6" : (rng()<0.5 ? "#00C805" : "#ffffff");
+    d.style.background = c; d.style.boxShadow = "0 0 "+(s*4)+"px "+c;
+    host.appendChild(d);
+    const a = R(0.25,0.9);
+    tl.fromTo(d,{opacity:0,y:0,x:0},{opacity:a,duration:R(0.4,1.2),ease:"sine.out"},R(0,0.8));
+    tl.to(d,{y:-R(opts.rise||40,(opts.rise||40)*3),x:R(-30,30),duration:D,ease:"none"},0);
+  }
+}
+
+
+particles("#f02-particles", 60, {rise:20});
+tl.fromTo("#f02-nebula",{opacity:.4},{opacity:1,duration:2},0);
+tl.fromTo("#f02-stad",{scale:1.25,y:80,opacity:0},{scale:1,y:0,opacity:1,duration:2.2,ease:"expo.out"},0);
+tl.to("#f02-stad",{scale:1.06,duration:3.8,ease:"sine.inOut"},2.2);
+tl.fromTo("#f02-stad .f02-ring",{strokeDashoffset:1},{strokeDashoffset:0,duration:1.4,stagger:.12,ease:"power2.out"},0.1);
+tl.fromTo("#f02-stad .f02-tick",{opacity:0},{opacity:1,duration:.02,stagger:.012},0.5);
+// floodlights flicker on, one after another
+["#f02-fl1","#f02-fl2","#f02-fl3","#f02-fl4"].forEach((f,i)=>{
+  const t = 0.35+i*.16;
+  tl.fromTo(f,{opacity:0,scale:.6},{opacity:1,scale:1,duration:.06},t);
+  tl.to(f,{opacity:.25,duration:.05},t+.08); tl.to(f,{opacity:1,duration:.05},t+.15);
+  tl.to(f,{opacity:.75,duration:2,ease:"sine.inOut"},t+.4);
+});
+// glass HUD panels unfold
+tl.fromTo("#f02-left",{x:-120,opacity:0,clipPath:"inset(0 0 100% 0 round 28px)"},{x:0,opacity:1,clipPath:"inset(0 0 0% 0 round 28px)",duration:.9,ease:"expo.out"},0.6);
+tl.fromTo("#f02-right",{x:120,opacity:0,clipPath:"inset(0 0 100% 0 round 28px)"},{x:0,opacity:1,clipPath:"inset(0 0 0% 0 round 28px)",duration:.9,ease:"expo.out"},0.75);
+tl.fromTo("#f02-left .f02-bl",{opacity:0,x:-14},{opacity:1,x:0,duration:.2,stagger:.3},1.0);
+$$("#f02-right .f02-bar").forEach((b,i)=>{
+  tl.fromTo(b,{scaleY:.05},{scaleY:R(.2,1),duration:.25,ease:"power2.out"},1.0+i*.02);
+  for(let t=1.4;t<D;t+=0.25){ tl.to(b,{scaleY:R(.12,1),duration:.22,ease:"sine.inOut"},t); }
+});
+// scoreboard boots
+tl.fromTo("#f02-board",{scaleY:0,opacity:0},{scaleY:1,opacity:1,duration:.55,ease:"expo.out"},0.9);
+tl.fromTo("#f02-score",{opacity:0,scaleX:1.35,filter:"blur(10px)"},{opacity:1,scaleX:1,filter:"blur(0px)",duration:.7,ease:"expo.out"},1.1);
+[1.25,1.32,2.1,2.9,3.95,4.7,4.78,5.3].forEach((t,i)=>{
+  const k=(i%3)+1;
+  tl.set("#f02-sr",{opacity:.9,x:-10*k},t); tl.set("#f02-sc",{opacity:.9,x:10*k},t);
+  tl.set("#f02-board",{skewX:(i%2?4:-4)},t);
+  tl.set("#f02-sl"+(i%2+1),{opacity:1,x:(i%2?30:-30)},t);
+  tl.set("#f02-sr",{opacity:0,x:0},t+.06); tl.set("#f02-sc",{opacity:0,x:0},t+.06);
+  tl.set("#f02-board",{skewX:0},t+.06); tl.set("#f02-sl"+(i%2+1),{opacity:0,x:0},t+.06);
+});
+// the only two answers: YES (~3.0) / NO (~3.9)
+tl.fromTo("#f02-yes",{opacity:0,y:30,scale:.8},{opacity:1,y:0,scale:1,duration:.5,ease:"back.out(2)"},2.95);
+tl.fromTo("#f02-no",{opacity:0,y:30,scale:.8},{opacity:1,y:0,scale:1,duration:.5,ease:"back.out(2)"},3.85);
+tl.fromTo("#f02-strike",{scaleX:0},{scaleX:1,duration:.45,ease:"power3.inOut"},4.7);
+tl.fromTo("#f02-bin",{opacity:0,y:10},{opacity:1,y:0,duration:.4},4.8);
+tl.to(["#f02-yes","#f02-no"],{opacity:.35,filter:"saturate(0)",duration:.5},5.0);
+
+window.__timelines["02-bootup"] = tl;
+})();
+</script>
+</template>

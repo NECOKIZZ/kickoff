@@ -1,0 +1,158 @@
+<template>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-500.woff2") format("woff2");font-weight:500}
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-600.woff2") format("woff2");font-weight:600}
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-700.woff2") format("woff2");font-weight:700}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-400.woff2") format("woff2");font-weight:400}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-600.woff2") format("woff2");font-weight:600}
+@font-face{font-family:"JetBrains Mono";src:url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");font-weight:500}
+
+#root{position:absolute;inset:0;overflow:hidden;color:#F5F4FF;font-family:"Inter",sans-serif}
+.f03-bg{position:absolute;inset:0;background:#05060A;overflow:hidden}
+.f03-nebula{position:absolute;inset:-10%;background:
+  radial-gradient(45% 40% at 50% 58%,rgba(78,60,181,.42),transparent 70%),
+  radial-gradient(30% 28% at 18% 22%,rgba(123,98,246,.18),transparent 70%),
+  radial-gradient(28% 26% at 84% 78%,rgba(0,200,5,.08),transparent 70%)}
+.f03-stage{position:absolute;inset:0}
+.f03-fx{position:absolute;inset:0;pointer-events:none}
+.f03-grain{position:absolute;left:-300px;top:-300px;width:2520px;height:1680px;opacity:.06;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");mix-blend-mode:overlay}
+.f03-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);opacity:.5}
+.f03-vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.78) 100%)}
+.f03-glass{position:absolute;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+  backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);
+  border:1px solid rgba(255,255,255,.18);border-radius:28px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),inset 0 0 40px rgba(123,98,246,.10),0 30px 80px rgba(0,0,0,.55)}
+.f03-label{font-family:"Inter",sans-serif;font-weight:600;font-size:16px;letter-spacing:.28em;text-transform:uppercase;color:#A6A3C2}
+.f03-mono{font-family:"JetBrains Mono",monospace;font-weight:500}
+.f03-display{font-family:"Clash Display",sans-serif;font-weight:600;letter-spacing:-.03em;line-height:.95}
+.f03-dot{position:absolute;border-radius:50%;background:#fff}
+
+
+.f03-cam{position:absolute;inset:0;perspective:1700px}
+.f03-plane{position:absolute;left:560px;top:190px;width:800px;height:640px}
+.f03-grid{position:absolute;left:70px;top:60px;display:grid;grid-template-columns:repeat(5,130px);grid-auto-rows:100px;gap:16px}
+.f03-tile{position:relative;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px;color:#F5F4FF;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 20px 40px rgba(0,0,0,.45)}
+.f03-axisx{position:absolute;left:70px;top:18px;width:714px;text-align:center}
+.f03-axisy{position:absolute;left:-150px;top:340px;width:300px;text-align:center;transform:rotate(-90deg)}
+.f03-sel{position:absolute;left:0;top:0;width:146px;height:116px;border:3px solid #b9a9ff;border-radius:24px;box-shadow:0 0 24px rgba(123,98,246,.9),inset 0 0 24px rgba(123,98,246,.6)}
+.f03-tag{position:absolute;padding:10px 18px;border-radius:999px;font-size:15px;white-space:nowrap}
+.f03-ripple{position:absolute;width:40px;height:40px;border-radius:50%;border:3px solid #00C805;box-shadow:0 0 30px #00C805}
+.f03-kicker{position:absolute;left:0;right:0;top:78px;text-align:center;font-size:18px;color:#b9a9ff}
+.f03-legend{position:absolute;left:1450px;top:760px;width:360px}
+.f03-lbar{height:10px;border-radius:5px;background:linear-gradient(90deg,#7B62F6,#00C805 35%,rgba(0,200,5,.25) 70%,rgba(255,255,255,.08));box-shadow:0 0 16px rgba(0,200,5,.4);transform-origin:0 50%}
+.f03-lrow{display:flex;justify-content:space-between;margin-top:10px;font-size:13px}
+.f03-shard{position:absolute;left:910px;top:500px;width:100px;height:100px;background:linear-gradient(135deg,rgba(255,255,255,.35),rgba(185,169,255,.08));border:1px solid rgba(255,255,255,.4)}
+
+</style>
+<div id="root" data-composition-id="03-shift" data-width="1920" data-height="1080" data-duration="8.4">
+  <div class="f03-bg clip" id="f03-bgclip" data-start="0" data-duration="8.4" data-track-index="0">
+    <div class="f03-nebula" id="f03-nebula"></div>
+    <div class="f03-stage" id="f03-particles"></div>
+  </div>
+  <div class="f03-stage" id="f03-stage">
+
+    <div class="f03-kicker f03-label" id="f03-kick">Proximity markets</div>
+    <div class="f03-cam"><div class="f03-plane" id="f03-plane">
+      <div class="f03-axisx f03-label" id="f03-ax">Away goals →</div>
+      <div class="f03-axisy f03-label" id="f03-ay">← Home goals</div>
+      <div class="f03-grid" id="f03-grid"><div class="f03-tile f03-display" id="f03-t00" data-h="0" data-a="0">0–0</div><div class="f03-tile f03-display" id="f03-t01" data-h="0" data-a="1">0–1</div><div class="f03-tile f03-display" id="f03-t02" data-h="0" data-a="2">0–2</div><div class="f03-tile f03-display" id="f03-t03" data-h="0" data-a="3">0–3</div><div class="f03-tile f03-display" id="f03-t04" data-h="0" data-a="4">0–4</div><div class="f03-tile f03-display" id="f03-t10" data-h="1" data-a="0">1–0</div><div class="f03-tile f03-display" id="f03-t11" data-h="1" data-a="1">1–1</div><div class="f03-tile f03-display" id="f03-t12" data-h="1" data-a="2">1–2</div><div class="f03-tile f03-display" id="f03-t13" data-h="1" data-a="3">1–3</div><div class="f03-tile f03-display" id="f03-t14" data-h="1" data-a="4">1–4</div><div class="f03-tile f03-display" id="f03-t20" data-h="2" data-a="0">2–0</div><div class="f03-tile f03-display" id="f03-t21" data-h="2" data-a="1">2–1</div><div class="f03-tile f03-display" id="f03-t22" data-h="2" data-a="2">2–2</div><div class="f03-tile f03-display" id="f03-t23" data-h="2" data-a="3">2–3</div><div class="f03-tile f03-display" id="f03-t24" data-h="2" data-a="4">2–4</div><div class="f03-tile f03-display" id="f03-t30" data-h="3" data-a="0">3–0</div><div class="f03-tile f03-display" id="f03-t31" data-h="3" data-a="1">3–1</div><div class="f03-tile f03-display" id="f03-t32" data-h="3" data-a="2">3–2</div><div class="f03-tile f03-display" id="f03-t33" data-h="3" data-a="3">3–3</div><div class="f03-tile f03-display" id="f03-t34" data-h="3" data-a="4">3–4</div><div class="f03-tile f03-display" id="f03-t40" data-h="4" data-a="0">4–0</div><div class="f03-tile f03-display" id="f03-t41" data-h="4" data-a="1">4–1</div><div class="f03-tile f03-display" id="f03-t42" data-h="4" data-a="2">4–2</div><div class="f03-tile f03-display" id="f03-t43" data-h="4" data-a="3">4–3</div><div class="f03-tile f03-display" id="f03-t44" data-h="4" data-a="4">4–4</div></div>
+      <div class="f03-sel" id="f03-sel"></div>
+      <div class="f03-ripple" id="f03-rip1"></div><div class="f03-ripple" id="f03-rip2"></div>
+      <div class="f03-glass f03-tag f03-label" id="f03-your" style="color:#fff;background:rgba(123,98,246,.55);border-color:rgba(185,169,255,.7)">Your call</div>
+      <div class="f03-glass f03-tag f03-mono" id="f03-stake" style="font-size:18px;color:#fff">STAKE · 25 USDC</div>
+    </div></div>
+    <div class="f03-shard" id="f03-sh0"></div><div class="f03-shard" id="f03-sh1"></div><div class="f03-shard" id="f03-sh2"></div><div class="f03-shard" id="f03-sh3"></div><div class="f03-shard" id="f03-sh4"></div><div class="f03-shard" id="f03-sh5"></div><div class="f03-shard" id="f03-sh6"></div><div class="f03-shard" id="f03-sh7"></div><div class="f03-shard" id="f03-sh8"></div><div class="f03-shard" id="f03-sh9"></div><div class="f03-shard" id="f03-sh10"></div><div class="f03-shard" id="f03-sh11"></div><div class="f03-shard" id="f03-sh12"></div><div class="f03-shard" id="f03-sh13"></div><div class="f03-shard" id="f03-sh14"></div><div class="f03-shard" id="f03-sh15"></div><div class="f03-shard" id="f03-sh16"></div><div class="f03-shard" id="f03-sh17"></div><div class="f03-shard" id="f03-sh18"></div><div class="f03-shard" id="f03-sh19"></div><div class="f03-shard" id="f03-sh20"></div><div class="f03-shard" id="f03-sh21"></div>
+    <div class="f03-legend" id="f03-legend"><div class="f03-label" style="color:#F5F4FF;margin-bottom:12px">Proximity field</div>
+      <div class="f03-lbar" id="f03-lbar"></div>
+      <div class="f03-lrow f03-label"><span>Exact</span><span>Close</span><span>Far</span></div></div>
+
+  </div>
+  <div class="f03-fx" data-layout-allow-occlusion><div class="f03-grain" data-layout-allow-occlusion></div><div class="f03-scan" data-layout-allow-occlusion></div><div class="f03-vig" data-layout-allow-occlusion></div></div>
+</div>
+<script>
+(function(){
+
+const ID = "03-shift";
+const D = 8;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rng = mulberry32(33);
+const R = (a,b)=>a+(b-a)*rng();
+const $ = (s)=>document.querySelector('#root[data-composition-id="'+ID+'"] '+s) || document.querySelector(s);
+const $$ = (s)=>Array.from(document.querySelectorAll(s));
+const tl = gsap.timeline({ paused: true });
+// film grain: jump the noise plate every 80ms (seeded, seek-safe)
+(function(){const g=$(".f03-grain");for(let t=0;t<D;t+=0.08){tl.set(g,{x:Math.round(R(-280,280)),y:Math.round(R(-280,280))},t);}})();
+// drifting particles
+function particles(container, n, opts){
+  opts = opts || {};
+  const host = $(container);
+  for(let i=0;i<n;i++){
+    const d = document.createElement("div");
+    d.className = "f03-dot";
+    const s = R(1.2, opts.big||3.6);
+    d.style.width = s+"px"; d.style.height = s+"px";
+    d.style.left = R(0,1920)+"px"; d.style.top = R(0,1080)+"px";
+    const c = rng()<0.55 ? "#7B62F6" : (rng()<0.5 ? "#00C805" : "#ffffff");
+    d.style.background = c; d.style.boxShadow = "0 0 "+(s*4)+"px "+c;
+    host.appendChild(d);
+    const a = R(0.25,0.9);
+    tl.fromTo(d,{opacity:0,y:0,x:0},{opacity:a,duration:R(0.4,1.2),ease:"sine.out"},R(0,0.8));
+    tl.to(d,{y:-R(opts.rise||40,(opts.rise||40)*3),x:R(-30,30),duration:D,ease:"none"},0);
+  }
+}
+
+
+particles("#f03-particles", 70, {rise:30});
+// scoreboard shatters: glass shards burst outward
+$$(".f03-shard").forEach((s,i)=>{
+  const a = (i/22)*Math.PI*2 + R(-.2,.2), dist = R(500,1100);
+  const pts = [[R(0,50),0],[100,R(20,80)],[R(10,90),100]].map(p=>p[0]+"% "+p[1]+"%").join(",");
+  s.style.clipPath = "polygon("+pts+")";
+  tl.fromTo(s,{x:0,y:0,rotation:0,scale:R(.8,2.2),opacity:1},
+    {x:Math.cos(a)*dist,y:Math.sin(a)*dist*.6,rotation:R(-360,360),scale:R(.3,1),opacity:0,duration:R(.7,1.1),ease:"expo.out"},0);
+});
+gsap.set("#f03-plane",{rotationX:28,transformOrigin:"50% 60%"});
+tl.fromTo("#f03-plane",{rotationY:-14,scale:.92},{rotationY:10,scale:1.04,duration:D,ease:"sine.inOut"},0);
+tl.fromTo("#f03-kick",{opacity:0,scaleX:1.4},{opacity:1,scaleX:1,duration:1,ease:"expo.out"},0.4);
+tl.fromTo(["#f03-ax","#f03-ay"],{opacity:0},{opacity:1,duration:.6},1.2);
+// tiles fly in from depth, centre-out
+const tilesEls = $$(".f03-tile");
+tilesEls.forEach(t=>{
+  const h=+t.dataset.h, a=+t.dataset.a, d=Math.abs(h-2)+Math.abs(a-2);
+  tl.fromTo(t,{opacity:0,z:-500,y:40},{opacity:1,z:0,y:0,duration:.8,ease:"expo.out"},0.45+d*.13);
+});
+// selector hunts, then locks on 2–1 ("Call the exact score" ~2.4s)
+const cell=(h,a)=>({x:70+a*146-8,y:60+h*116-8});
+const p0=cell(0,4), p1=cell(3,3), p2=cell(2,1);
+tl.fromTo("#f03-sel",{opacity:0,x:p0.x,y:p0.y},{opacity:1,duration:.2},2.0);
+tl.to("#f03-sel",{x:p1.x,y:p1.y,duration:.3,ease:"power3.inOut"},2.2);
+tl.to("#f03-sel",{x:p2.x,y:p2.y,duration:.35,ease:"power3.inOut"},2.55);
+tl.to("#f03-t21",{backgroundColor:"rgba(123,98,246,.85)",scale:1.12,boxShadow:"0 0 40px rgba(123,98,246,1),0 0 120px rgba(123,98,246,.6),inset 0 1px 0 rgba(255,255,255,.5)",duration:.35,ease:"back.out(2)"},2.9);
+tl.to("#f03-sel",{scale:1.12,opacity:.0,duration:.4},3.0);
+tl.fromTo("#f03-your",{opacity:0,x:cell(2,1).x+10,y:cell(2,1).y-40},{opacity:1,y:cell(2,1).y-58,duration:.4,ease:"back.out(2)"},3.0);
+// "Stake on it" (~3.8s)
+tl.fromTo("#f03-stake",{opacity:0,x:cell(2,1).x-30,y:cell(2,1).y-220},{opacity:1,y:cell(2,1).y+118,duration:.55,ease:"bounce.out"},3.7);
+// "land close… you still get paid" (~4.9s): proximity wave from 2–1
+const c21 = {x:cell(2,1).x+73-20, y:cell(2,1).y+58-20};
+["#f03-rip1","#f03-rip2"].forEach((r,i)=>{
+  tl.fromTo(r,{x:c21.x,y:c21.y,scale:0,opacity:1},{scale:28,opacity:0,duration:1.6,ease:"power2.out"},4.9+i*.45);
+});
+tilesEls.forEach(t=>{
+  const h=+t.dataset.h, a=+t.dataset.a, d=Math.abs(h-2)+Math.abs(a-1);
+  if(d===0) return;
+  const k = d===1?.55: d===2?.28: d===3?.1:0;
+  if(!k) { tl.to(t,{opacity:.35,duration:.4},5.0+d*.25); return; }
+  tl.to(t,{backgroundColor:"rgba(0,200,5,"+k+")",borderColor:"rgba(0,200,5,"+(k+.2)+")",
+    boxShadow:"0 0 "+(60*k)+"px rgba(0,200,5,"+k+"),inset 0 1px 0 rgba(255,255,255,.3)",color:"#ffffff",duration:.5,ease:"power2.out"},4.9+d*.28);
+});
+tl.fromTo("#f03-legend",{opacity:0,y:20},{opacity:1,y:0,duration:.5},5.3);
+tl.fromTo("#f03-lbar",{scaleX:0},{scaleX:1,duration:.8,ease:"power3.out"},5.4);
+
+window.__timelines["03-shift"] = tl;
+})();
+</script>
+</template>

@@ -1,0 +1,41 @@
+{
+  "provider": "kokoro",
+  "speed": 1,
+  "lines": [
+    {
+      "id": "01",
+      "text": "Every match... is a question."
+    },
+    {
+      "id": "02",
+      "text": "Until now, there were only two answers. Right... or wrong."
+    },
+    {
+      "id": "03",
+      "text": "Kickoff changes the question. Call the exact score. Stake on it. And if you land close... you still get paid."
+    },
+    {
+      "id": "04",
+      "text": "The nearer you land, the bigger your share of the pool."
+    },
+    {
+      "id": "05",
+      "text": "Send your AI one line... and it plays every matchweek for you."
+    },
+    {
+      "id": "06",
+      "text": "Climb the board. Chase the season's pool."
+    },
+    {
+      "id": "07",
+      "text": "Kickoff. Beat the pack. Keep the stack."
+    }
+  ],
+  "bgm": {
+    "mode": "retrieve",
+    "query": "dark cinematic synthwave, pulsing bass, futuristic, tension build, trailer",
+    "blob": "Kickoff is the future of the match: call the exact score, and close still pays.",
+    "arc": "Signal → Old world → The shift → Proof → Agents → Climb → Lockup"
+  },
+  "voice": "am_onyx"
+}

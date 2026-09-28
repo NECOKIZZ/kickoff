@@ -1,0 +1,120 @@
+<template>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-500.woff2") format("woff2");font-weight:500}
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-600.woff2") format("woff2");font-weight:600}
+@font-face{font-family:"Clash Display";src:url("assets/fonts/ClashDisplay-700.woff2") format("woff2");font-weight:700}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-400.woff2") format("woff2");font-weight:400}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-600.woff2") format("woff2");font-weight:600}
+@font-face{font-family:"JetBrains Mono";src:url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");font-weight:500}
+
+#root{position:absolute;inset:0;overflow:hidden;color:#F5F4FF;font-family:"Inter",sans-serif}
+.f01-bg{position:absolute;inset:0;background:#05060A;overflow:hidden}
+.f01-nebula{position:absolute;inset:-10%;background:
+  radial-gradient(45% 40% at 50% 58%,rgba(78,60,181,.42),transparent 70%),
+  radial-gradient(30% 28% at 18% 22%,rgba(123,98,246,.18),transparent 70%),
+  radial-gradient(28% 26% at 84% 78%,rgba(0,200,5,.08),transparent 70%)}
+.f01-stage{position:absolute;inset:0}
+.f01-fx{position:absolute;inset:0;pointer-events:none}
+.f01-grain{position:absolute;left:-300px;top:-300px;width:2520px;height:1680px;opacity:.06;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");mix-blend-mode:overlay}
+.f01-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);opacity:.5}
+.f01-vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.78) 100%)}
+.f01-glass{position:absolute;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+  backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);
+  border:1px solid rgba(255,255,255,.18);border-radius:28px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),inset 0 0 40px rgba(123,98,246,.10),0 30px 80px rgba(0,0,0,.55)}
+.f01-label{font-family:"Inter",sans-serif;font-weight:600;font-size:16px;letter-spacing:.28em;text-transform:uppercase;color:#A6A3C2}
+.f01-mono{font-family:"JetBrains Mono",monospace;font-weight:500}
+.f01-display{font-family:"Clash Display",sans-serif;font-weight:600;letter-spacing:-.03em;line-height:.95}
+.f01-dot{position:absolute;border-radius:50%;background:#fff}
+
+
+.f01-cam{position:absolute;inset:0;perspective:1300px}
+.f01-plane{position:absolute;left:260px;top:250px;width:1400px;height:900px;filter:drop-shadow(0 0 10px rgba(123,98,246,.9)) drop-shadow(0 0 30px rgba(123,98,246,.5))}
+.f01-line{stroke-dasharray:1;stroke-dashoffset:1}
+.f01-sweep{position:absolute;left:0;top:0;width:1920px;height:3px;background:linear-gradient(90deg,transparent,#b9a9ff 30%,#fff 50%,#b9a9ff 70%,transparent);box-shadow:0 0 24px 6px rgba(123,98,246,.8)}
+.f01-sweeptrail{position:absolute;left:0;top:-220px;width:1920px;height:220px;background:linear-gradient(0deg,rgba(123,98,246,.28),transparent)}
+.f01-hud{position:absolute;top:64px;font-size:15px}
+.f01-q{position:absolute;left:0;right:0;top:170px;text-align:center;font-size:400px;font-weight:700;
+  background:linear-gradient(180deg,#ffffff 10%,#b9a9ff 55%,#7B62F6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 30px rgba(123,98,246,.9)) drop-shadow(0 0 90px rgba(123,98,246,.6))}
+.f01-qr,.f01-qc{position:absolute;left:0;right:0;top:170px;text-align:center;font-size:400px;font-weight:700;mix-blend-mode:screen;opacity:0}
+.f01-qr{color:#ff2d55}.f01-qc{color:#22d3ee}
+.f01-livedot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#00C805;box-shadow:0 0 12px #00C805;margin-right:10px;vertical-align:middle}
+
+</style>
+<div id="root" data-composition-id="01-signal" data-width="1920" data-height="1080" data-duration="5.4">
+  <div class="f01-bg clip" id="f01-bgclip" data-start="0" data-duration="5.4" data-track-index="0">
+    <div class="f01-nebula" id="f01-nebula"></div>
+    <div class="f01-stage" id="f01-particles"></div>
+  </div>
+  <div class="f01-stage" id="f01-stage">
+
+    <div class="f01-cam"><div class="f01-plane" id="f01-plane"><svg viewBox="-20 -20 1090 720" width="100%" height="100%" fill="none" stroke="#7B62F6" stroke-width="3"><g class="f01-mesh" stroke-width="1" opacity=".22"><line x1="0" y1="0" x2="0" y2="680"/><line x1="75" y1="0" x2="75" y2="680"/><line x1="150" y1="0" x2="150" y2="680"/><line x1="225" y1="0" x2="225" y2="680"/><line x1="300" y1="0" x2="300" y2="680"/><line x1="375" y1="0" x2="375" y2="680"/><line x1="450" y1="0" x2="450" y2="680"/><line x1="525" y1="0" x2="525" y2="680"/><line x1="600" y1="0" x2="600" y2="680"/><line x1="675" y1="0" x2="675" y2="680"/><line x1="750" y1="0" x2="750" y2="680"/><line x1="825" y1="0" x2="825" y2="680"/><line x1="900" y1="0" x2="900" y2="680"/><line x1="975" y1="0" x2="975" y2="680"/><line x1="1050" y1="0" x2="1050" y2="680"/><line x1="0" y1="0" x2="1050" y2="0"/><line x1="0" y1="68" x2="1050" y2="68"/><line x1="0" y1="136" x2="1050" y2="136"/><line x1="0" y1="204" x2="1050" y2="204"/><line x1="0" y1="272" x2="1050" y2="272"/><line x1="0" y1="340" x2="1050" y2="340"/><line x1="0" y1="408" x2="1050" y2="408"/><line x1="0" y1="476" x2="1050" y2="476"/><line x1="0" y1="544" x2="1050" y2="544"/><line x1="0" y1="612" x2="1050" y2="612"/><line x1="0" y1="680" x2="1050" y2="680"/></g><rect x="0" y="0" width="1050" height="680" class="f01-line" pathLength="1"/><line x1="525" y1="0" x2="525" y2="680" class="f01-line" pathLength="1"/><circle cx="525" cy="340" r="91.5" class="f01-line" pathLength="1"/><rect x="0" y="138.4" width="165" height="403.2" class="f01-line" pathLength="1"/><rect x="885" y="138.4" width="165" height="403.2" class="f01-line" pathLength="1"/><rect x="0" y="248.4" width="55" height="183.2" class="f01-line" pathLength="1"/><rect x="995" y="248.4" width="55" height="183.2" class="f01-line" pathLength="1"/><path d="M165 267 A91.5 91.5 0 0 1 165 413" class="f01-line" pathLength="1"/><path d="M885 267 A91.5 91.5 0 0 0 885 413" class="f01-line" pathLength="1"/><circle cx="525" cy="340" r="5" fill="#7B62F6" class="f01-spot"/></svg></div></div>
+    <div class="f01-sweep" id="f01-sweep"><div class="f01-sweeptrail"></div></div>
+    <div class="f01-hud f01-label f01-mono" style="left:80px">KICKOFF // SIGNAL ACQUIRED</div>
+    <div class="f01-hud f01-label f01-mono" style="right:80px"><span class="f01-livedot" id="f01-live"></span>LIVE FEED · MATCHDAY</div>
+    <div class="f01-qr f01-display" id="f01-qr" data-layout-allow-overlap>?</div><div class="f01-qc f01-display" id="f01-qc" data-layout-allow-overlap>?</div>
+    <div class="f01-q f01-display" id="f01-q">?</div>
+
+  </div>
+  <div class="f01-fx" data-layout-allow-occlusion><div class="f01-grain" data-layout-allow-occlusion></div><div class="f01-scan" data-layout-allow-occlusion></div><div class="f01-vig" data-layout-allow-occlusion></div></div>
+</div>
+<script>
+(function(){
+
+const ID = "01-signal";
+const D = 5;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rng = mulberry32(11);
+const R = (a,b)=>a+(b-a)*rng();
+const $ = (s)=>document.querySelector('#root[data-composition-id="'+ID+'"] '+s) || document.querySelector(s);
+const $$ = (s)=>Array.from(document.querySelectorAll(s));
+const tl = gsap.timeline({ paused: true });
+// film grain: jump the noise plate every 80ms (seeded, seek-safe)
+(function(){const g=$(".f01-grain");for(let t=0;t<D;t+=0.08){tl.set(g,{x:Math.round(R(-280,280)),y:Math.round(R(-280,280))},t);}})();
+// drifting particles
+function particles(container, n, opts){
+  opts = opts || {};
+  const host = $(container);
+  for(let i=0;i<n;i++){
+    const d = document.createElement("div");
+    d.className = "f01-dot";
+    const s = R(1.2, opts.big||3.6);
+    d.style.width = s+"px"; d.style.height = s+"px";
+    d.style.left = R(0,1920)+"px"; d.style.top = R(0,1080)+"px";
+    const c = rng()<0.55 ? "#7B62F6" : (rng()<0.5 ? "#00C805" : "#ffffff");
+    d.style.background = c; d.style.boxShadow = "0 0 "+(s*4)+"px "+c;
+    host.appendChild(d);
+    const a = R(0.25,0.9);
+    tl.fromTo(d,{opacity:0,y:0,x:0},{opacity:a,duration:R(0.4,1.2),ease:"sine.out"},R(0,0.8));
+    tl.to(d,{y:-R(opts.rise||40,(opts.rise||40)*3),x:R(-30,30),duration:D,ease:"none"},0);
+  }
+}
+
+
+particles("#f01-particles", 110, {rise:30});
+gsap.set("#f01-plane",{rotationX:66,transformOrigin:"50% 50%"});
+tl.fromTo("#f01-nebula",{opacity:0},{opacity:1,duration:2.2,ease:"sine.inOut"},0);
+tl.fromTo("#f01-plane",{scale:.78,rotationZ:-10,y:120},{scale:1.02,rotationZ:3,y:40,duration:D,ease:"sine.inOut"},0);
+tl.fromTo("#f01-plane .f01-mesh",{opacity:0},{opacity:.22,duration:1.6},0.3);
+tl.fromTo("#f01-plane .f01-line",{strokeDashoffset:1},{strokeDashoffset:0,duration:1.6,stagger:0.14,ease:"power2.inOut"},0.35);
+tl.fromTo("#f01-plane .f01-spot",{scale:0,transformOrigin:"50% 50%"},{scale:1,duration:.4,ease:"back.out(3)"},1.6);
+tl.fromTo("#f01-sweep",{y:120,opacity:0},{y:1000,opacity:1,duration:2.3,ease:"power1.inOut"},0.15);
+tl.to("#f01-sweep",{opacity:0,duration:.4},2.45);
+tl.fromTo(".f01-hud",{opacity:0,y:-10},{opacity:1,y:0,duration:.6,stagger:.15},0.5);
+tl.fromTo("#f01-live",{opacity:1},{opacity:.15,duration:.35,repeat:6,yoyo:true,ease:"steps(1)"},0.6);
+// the question mark lands on "question" (~3.1s)
+tl.fromTo("#f01-q",{opacity:0,scale:1.5,filter:"blur(30px) drop-shadow(0 0 30px rgba(123,98,246,.9))"},
+  {opacity:1,scale:1,filter:"blur(0px) drop-shadow(0 0 30px rgba(123,98,246,.9))",duration:.7,ease:"expo.out"},3.0);
+[3.02,3.12,3.55,4.3].forEach((t,i)=>{
+  tl.set("#f01-qr",{opacity:.85,x:-14-i*2},t); tl.set("#f01-qc",{opacity:.85,x:14+i*2},t);
+  tl.set("#f01-qr",{opacity:0,x:0},t+.07); tl.set("#f01-qc",{opacity:0,x:0},t+.07);
+});
+tl.to("#f01-q",{scale:1.06,duration:1.3,ease:"sine.inOut"},3.7);
+
+window.__timelines["01-signal"] = tl;
+})();
+</script>
+</template>

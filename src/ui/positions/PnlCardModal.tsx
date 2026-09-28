@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Preview + download/share for a settled position's PnL card. The card is
@@ -70,7 +71,9 @@ export default function PnlCardModal({ positionId, onClose }: { positionId: numb
     opacity: busy || !loaded ? 0.5 : 1,
   } as const;
 
-  return (
+  // Portal to <body>: the glass cards that open this use backdrop-filter,
+  // which would otherwise trap a position:fixed overlay inside the card.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -125,6 +128,7 @@ export default function PnlCardModal({ positionId, onClose }: { positionId: numb
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

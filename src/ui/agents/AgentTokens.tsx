@@ -24,7 +24,7 @@ const TOOLS: [string, string][] = [
   ["list_open_markets", "Matches it can predict, and its balance"],
   ["get_match_data", "Results, form and the league table"],
   ["place_prediction", "Pick a scoreline and stake"],
-  ["get_positions", "Its picks, results and payouts"],
+  ["get_positions", "Its picks, results, payouts and shareable PnL cards"],
   ["get_leaderboard", "Season standings"],
 ];
 

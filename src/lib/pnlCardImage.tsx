@@ -61,7 +61,12 @@ async function crest(team: string | null): Promise<string | null> {
 /** Width units of an amount string: digits/$ ≈ 1, separators much narrower. */
 const amountUnits = (s: string) => [...s].reduce((n, c) => n + (c === "," || c === "." ? 0.4 : 1), 0);
 
-export async function renderPnlCard(view: PnlCardView, width = 1200): Promise<ImageResponse> {
+/** `agentName` marks an agent's card with a pill beside the logo. */
+export async function renderPnlCard(
+  view: PnlCardView,
+  width = 1200,
+  opts: { agentName?: string | null } = {},
+): Promise<ImageResponse> {
   const k = width / CARD_W;
   const u = (n: number) => n * k;
   const [fontData, bg, homeCrest, awayCrest] = await Promise.all([
@@ -72,6 +77,7 @@ export async function renderPnlCard(view: PnlCardView, width = 1200): Promise<Im
   ]);
 
   const color = view.tone === "win" ? GREEN : RED;
+  const agentLabel = opts.agentName ? `${opts.agentName.toUpperCase()} · AI AGENT` : null;
   // "$190" sits at 343px in the design; longer amounts shrink to stay left of the photo.
   const size = Math.min(343, (343 * 5.2) / amountUnits(view.amount));
   const r = size / 343;
@@ -124,6 +130,30 @@ export async function renderPnlCard(view: PnlCardView, width = 1200): Promise<Im
           <circle cx="400" cy="100" r="100" fill="#fff" />
           <path d="M150 0L500 502H327.5L150 251.5V500H0V0H150Z" fill="#fff" />
         </svg>
+
+        {agentLabel && (
+          <div
+            style={{
+              position: "absolute",
+              left: u(281),
+              top: u(122),
+              height: u(64),
+              display: "flex",
+              alignItems: "center",
+              padding: `0 ${u(28)}px`,
+              borderRadius: u(32),
+              border: `${u(2)}px solid rgba(255,255,255,0.4)`,
+              fontFamily: "Clash",
+              fontWeight: 500,
+              // Names run to 32 chars; shrink long ones so the pill stays off the photo.
+              fontSize: u(Math.min(30, (30 * 26) / agentLabel.length)),
+              letterSpacing: u(3),
+              color: "#fff",
+            }}
+          >
+            {agentLabel}
+          </div>
+        )}
 
         {/* Fixture / player + crests */}
         <div style={{ position: "absolute", left: u(121), top: u(275), height: u(113), display: "flex", alignItems: "center" }}>

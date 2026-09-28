@@ -22,5 +22,5 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 
   const w = Number(new URL(req.url).searchParams.get("w"));
   const width = Number.isFinite(w) && w > 0 ? Math.min(2000, Math.max(600, Math.round(w))) : 1200;
-  return renderPnlCard(card.view, width);
+  return renderPnlCard(card.view, width, { agentName: card.agentName });
 }

@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // The PnL card route reads its fonts, crests and photos from disk; public/
+  // isn't bundled into serverless functions by default.
+  outputFileTracingIncludes: {
+    "/api/positions/[id]/card": ["./src/assets/pnl-card/**/*", "./public/brand/pnl/**/*"],
+  },
   // Cloud Shell web preview proxies the dev server from a *.cloudshell.dev
   // host — allow it so HMR/dev assets aren't blocked (choppy-loading fix).
   // NOTE: a single * only matches one DNS label, so spell out the deep host.

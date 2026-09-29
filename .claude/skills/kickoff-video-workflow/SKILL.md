@@ -24,7 +24,8 @@ If those skills aren't installed: `npx hyperframes skills`. They are a reference
 
 1. Read `kickoff-video-product` — status (testnet, Score Markets only) and the claims list bind every script.
 2. Read `kickoff-video-brand` — theme, fonts, logo, voice.
-3. Motion craft: `kickoff-video-motion` is planned but **not written yet** (it will be derived from the reference videos). Until it exists, follow the site's motion signature in the brand skill and the HyperFrames motion rules; don't invent a house style.
+3. Read `kickoff-video-motion` — beat-locked editing, kinetic type, transitions, camera drift, whitespace. Its numbers are starting values until calibrated against the reference videos.
+4. Ready-to-fill prompt for the user: `prompt-template.md` (next to this file).
 
 ## Where things live
 
@@ -37,14 +38,15 @@ If those skills aren't installed: `npx hyperframes skills`. They are a reference
 
 1. **Brief.** One line each: purpose, audience, platform + aspect ratio, length, single takeaway, CTA. Default takeaway for launch content: *closeness pays.*
 2. **Script + storyboard** as beats with timings and on-screen text, using only lines/claims allowed by `kickoff-video-product`. One idea per beat. Show the storyboard to the user before building anything long (>15s) — see `hyperframes-studio` §0 "talk before you build".
-3. **Build scene by scene**: one sub-composition per scene, one paused GSAP timeline registered on `window.__timelines`, deterministic (no `Math.random`, `Date.now`, infinite repeats). Pull reusable named visuals (charts, transitions, glass, grain) from the registry before hand-building: `npx hyperframes catalog <word>` (see `hyperframes-registry`).
-4. **Gate every scene** before moving on:
+3. **Music, then beats.** Get the track into `assets/`, tag it `data-timeline-role="music"`, run `npx hyperframes beats .`, and copy the beat times into the composition (details in `kickoff-video-motion` §1). Do this before building scenes so timing is designed to the grid, not retrofitted.
+4. **Build scene by scene**: one sub-composition per scene, one paused GSAP timeline registered on `window.__timelines`, deterministic (no `Math.random`, `Date.now`, infinite repeats). Pull reusable named visuals (charts, transitions, glass, grain) from the registry before hand-building: `npx hyperframes catalog <word>` (see `hyperframes-registry`).
+5. **Gate every scene** before moving on:
    - `npx hyperframes check` — lint + runtime validation + layout (JS errors, missing assets, contrast).
    - `npx hyperframes snapshot` — inspect real frames at the key moment of each beat. Look for: wrong font fallback, logo below 80px, text clipped or in a safe-zone margin, low contrast, off-palette color, crowded frames.
    - Optionally `node <hyperframes-animation>/scripts/animation-map.mjs <dir>` to audit dead time and stagger consistency.
-5. **Testnet check.** Confirm a "Testnet · play money" label or end-card line is on screen, and no forbidden claim slipped into copy or a mockup.
-6. **Render**: `npx hyperframes render -o out/<slug>-<ratio>.mp4` from the project directory. Draft renders are quick (a 10s 1080p clip took ~15s on 4 cores); iterate freely, render finals last.
-7. **Hand-off**: report the file path, duration, resolution, and anything you weren't able to verify (audio, fonts).
+6. **Testnet check.** Confirm a "Testnet · play money" label or end-card line is on screen, and no forbidden claim slipped into copy or a mockup.
+7. **Render**: `npx hyperframes render -o out/<slug>-<ratio>.mp4` from the project directory. Draft renders are quick (a 10s 1080p clip took ~15s on 4 cores); iterate freely, render finals last.
+8. **Hand-off**: report the file path, duration, resolution, and anything you weren't able to verify (audio, fonts).
 
 ## Formats
 

@@ -1,90 +1,92 @@
 ---
 name: kickoff-video-motion
-description: Motion and timing rules for Kickoff videos in HyperFrames — beat-locked editing, kinetic type, coordinated element movement with generous whitespace, scene transitions (wipe, zoom-through, push, whip pan), camera drift, and the render-and-inspect loop. Use for any Kickoff video build, alongside kickoff-video-brand and kickoff-video-product.
+description: Motion and timing rules for Kickoff videos in HyperFrames — phrase-based beat sync, fast blur-resolve entrances, sticker kinetic type, card choreography with reflow, fast transitions (iris, diagonal wipe, blur-dissolve, match cut), and the render-and-inspect loop. Calibrated from the user's reference video. Use for any Kickoff video build, alongside kickoff-video-brand and kickoff-video-product.
 ---
 
 # Kickoff video motion
 
-**Provenance — read this.** These rules come from a described production method for a set of HyperFrames videos (one HTML file, one GSAP timeline, music-first beat sync, real product UI, render → inspect frames → fix). They are **not yet measured from the reference videos themselves**. Numbers marked *(start value)* are sensible starting points to calibrate, not facts. When reference videos are analysed, update this file from the measurements.
+**Provenance.** Calibrated against the user's reference video (a 15s SDK launch spot made with HyperFrames); full measurements in `reference-analysis.md` next to this file. Numbers below are measured unless marked *(judgement)*. When the user adds another reference, analyse it the same way and update both files.
 
-HyperFrames' own skills hold the implementation recipes; this file says **which to use and how Kickoff wants them combined.** Load `hyperframes`, `hyperframes-core` and `hyperframes-animation` first. Determinism rules (single paused timeline registered on `window.__timelines`, no `Math.random`/`Date.now`, no infinite loops, transforms + opacity for motion) are non-negotiable and live in `hyperframes-core`.
+HyperFrames' own skills hold the implementation recipes; this file says **which to use and how Kickoff wants them combined.** Load `hyperframes-core` and `hyperframes-animation` first. Determinism rules (single paused timeline on `window.__timelines`, no `Math.random`/`Date.now`, no infinite loops) are non-negotiable.
 
-## 1. Music first, then beats — everything lands on the grid
+## 0. The feel in one paragraph
 
-The tight feel comes from editing to the music, not from easing alone.
+Fast, crisp, light and airy. Things arrive in 4–6 frames and resolve from blur; nothing floats in slowly. Each musical phrase does five quick things, then **holds still for a breath**, then a hard hit changes the scene. Product UI sits on one side, short sticker-label words on the other, lots of empty space, and when something new arrives everything already on screen shifts together to make room.
 
-1. Start from a real track in `assets/` (`<audio id="music" data-timeline-role="music" src="assets/music.mp3">` — without that attribute/id `beats` refuses to run).
-2. Run `npx hyperframes beats .` → writes `beats/assets/<file>.json`: `{ "version":1, "audio":..., "beats":[{ "time": 0.499, "strength": 0.989 }, ...] }` (verified). It also reports BPM and flags "uncertain" when confidence is low — if uncertain, listen for it, or hand-set the grid.
-3. **Copy the beat times into the composition as a constant array** (`const BEATS = [...]`). Don't fetch JSON at render time.
-4. Rank beats by `strength`. Use the strong ones (or every 4th beat, a "bar") for **scene changes** and the hero moments; use every beat / every other beat for **word and card entrances**.
-5. Never place an entrance at an arbitrary time. Every `tl.to/fromTo` start is `BEATS[i]` plus a named offset. Write a tiny helper (`at(i, offset=0)`) so this is enforced by structure.
-6. **Where on the beat:** an impact (slam, snap, hit) should *arrive* on the beat — start the tween slightly before so peak velocity/landing hits the beat time. Transitions should *resolve* on the beat, not begin on it. *(start value: start entrances 0.05–0.15s early; transitions 0.25–0.5s long ending on the beat)*.
-7. If the video has a beat drop or a musical build, put the hero reveal (Score-Market grid, tagline, logo) there. Fade the music out over the final ~1s (`data-fade-out`).
-8. Optional hits: `media-use` has whoosh / impact / key-press SFX — place them on the same beat as the visual they belong to, quietly under the music.
+## 1. Music → phrases → beats
 
-Music licensing: the repo has no music. The user supplies a track they have rights to; never ship an unlicensed track.
+1. The track goes in `assets/` as `<audio id="music" data-timeline-role="music" src="assets/music.mp3">`. Run `npx hyperframes beats .` → `beats/assets/<file>.json` (`beats: [{time, strength}]`). If it reports "uncertain", snap to the evident grid and drop off-grid hits.
+2. Copy beat times into the composition as constants (`const PULSE = …; const hit = (phrase) => …; const at = (phrase, pulse) => …`). Never time an element by an arbitrary number.
+3. **Find the phrase structure**: the strongest beats (strength ≈ 1) mark phrase starts; in the reference, every 8 pulses (≈2.3s at 210 BPM).
+4. **Per phrase: pulses 0–5 act, pulses 6–7 rest.** Scene changes and transitions land exactly on the phrase hit. One new thing per pulse (a word, a card, a state change). During the rest, only ambient drift and particles move.
+5. Impacts *arrive* on the pulse: start ~1–2 frames (0.03–0.06s) early so the sharp frame lands on the beat.
+6. A scene is usually 1–2 phrases. A 30s video at ~2.3s phrases is about 13 phrases, so about 6–7 scenes.
+7. Music: the user supplies a licensed track. If none exists, synthesise a placeholder with the same phrase shape (hits, 5 pulses of rhythm, 3 pulses of drop-out) and say it's a placeholder.
 
-## 2. Kinetic type
+## 2. Entrances: fast, from blur
 
-- **At most 2–3 words on screen at once.** Plain language. No em dashes.
-- **Every word or card enters differently** within a scene: scale-slam, side-snap, rise, drop. Never the same entrance twice in a row. Recipes: `rules/kinetic-beat-slam.md`, `rules/waterfall-entry.md`, `rules/spring-pop-entrance.md`, `rules/gradient-text-sweep.md`, and the named text effects in `adapters/animate-text.md`.
-- Use the brand type (Fraunces headlines, Clash Display labels). Fraunces slams look best at very large sizes with the tight tracking in the brand skill. **Never a monospace font.**
-- Words are one idea per beat: "Closeness. / Matters." beats a sentence. Use the real site lines from the brand skill.
-- Numbers count up on beat (`rules/counting-dynamic-scale.md`, blueprint `dataviz-countup`): e.g. a +232% that ticks then locks.
+| Element | From | To | Duration | Ease |
+|---|---|---|---|---|
+| Sticker word | opacity 0, `blur(12px)`, scale 1.08, rotation −3°, x −30px | sharp, scale 1, resting tilt ±1–2° | **0.13–0.16s**, then tilt settles over ~0.3s | `power3.out` |
+| Card | y +120% of frame (off-screen), rotation −12° | resting tilt ±2–4° | **~0.3s** | `back.out(1.3)` |
+| Hero letters | each from a different offset, scale ~2, `skewX(−15°)`, opacity 0.4, `blur(8px)` | set | ~0.25s each, **0.1s stagger** | `expo.out` |
+| Pill / badge | scale 0.7, opacity 0 | 1 | ~0.2s | `back.out(2)` |
+| State change (button text/colour) | — | — | ≤0.15s crossfade on the click pulse | `power2.out` |
+| Stamp badge | rotation −40°, scale 0 | rotation −8°, scale 1 | ~0.3s | `back.out(2.5)` |
 
-## 3. Coordinated movement, generous whitespace
+Exits are faster than entrances *(judgement: ~0.12s)*, or objects simply get covered by the next transition. Don't fade things out one by one at the end of a scene.
 
-This is the difference between "smooth" and "busy".
+## 3. Sticker kinetic type
 
-- **One primary mover per beat.** One thing takes the eye; everything else supports it. Never let three elements animate independently at equal weight.
-- **Group choreography.** Related elements share a direction, an ease, and a duration, and are offset by a fixed small stagger (*start value: 50–100ms; cap a group at ~0.5s total*, as `hyperframes-animation` also does). They enter as one gesture and leave as one gesture.
-- **One ease family for the whole video.** Entrances `power4.out` (the site's `cubic-bezier(0.22,1,0.36,1)`), repositioning `power2.inOut`, no bouncy defaults unless it's a deliberate slam. Exits are faster than entrances.
-- **Shared axes.** Elements travel along the layout's grid lines; don't scatter arbitrary directions. If a scene pushes left, the next scene's content arrives from the right, continuing the same motion.
-- **Whitespace is a design element.** Compose on a strict grid with wide margins *(start value: ≥ 8% of frame on each side; content block occupying roughly a third to a half of the frame; one focal element)*. Emptiness holds attention on the mover. Don't fill space because it's there. Follow `hyperframes-creative/references/video-composition.md` on scale, then subtract.
-- **Hold time.** After an element lands, let it sit for a beat before the next thing moves so the eye can read it. A slam needs its stillness.
+- Each word is its own white label: background `#FFFFFF`, padding ~0.1em 0.28em, radius 6–8px, shadow `0 8px 24px rgba(17,18,16,.08)`, tilt from a fixed table (e.g. −2°, 1.5°, −1°, 2°), never random.
+- **Clash Display 700**, ink colour, modest size (≈ 80–96px at 1080p). Max 2 lines × 2 words on screen. Plain language, no em dashes.
+- A word can take the accent (purple label, white text) once per scene for the key word.
+- The next word starts overlapping the previous one and slides into its slot as it sharpens.
+- Big headline reveals (the product name, the tagline) use **Fraunces 700** with the per-letter hero entrance, not stickers.
 
-## 4. Transitions — always a real one, never a plain fade
+## 4. Layout, whitespace, reflow
 
-Choose from `hyperframes-animation/transitions/` (route via `catalog.md`; read only the file you need):
+- Background: canvas `#EDEAE0` (light theme) with a faint dot grid (`radial-gradient` dots, 2px, ~32px spacing, ~6% ink). Cards `#F7F5F0`/white with soft, wide, low-opacity shadows. A dark "hero" scene (ink `#111210`) is allowed once, as contrast.
+- **UI on one side, words on the other**, alternating between scenes. The UI card is ~25–35% of frame width. Margins ≥ ~8% *(judgement)*; leave large empty areas.
+- **Reflow:** when an element enters, the group that's already on screen moves and/or scales on the *same pulse* (0.35–0.45s `power3.inOut`) to rebalance. Example: the product card slides from centre to the right and shrinks to 0.8 as the headline stickers arrive left. Build this with a wrapper per group and tween the wrapper.
+- Slow drift on the world wrapper *(judgement: ~1.5% scale or ~20px across a scene, `none` ease)* so holds never look frozen.
 
-| Move | Use for | Look in |
-|---|---|---|
-| **Push** | Continuous flow scene to scene; default connective tissue | `css-push.md` |
-| **Wipe / cover** | A clean editorial reveal, brand-colored panel sweeps | `css-cover.md`, `css-radial.md` |
-| **Zoom-through** | Diving *into* something (e.g. into the grid or a card) | `css-scale.md` |
-| **Whip pan with blur** | High-energy beat changes; push plus directional smear | `css-push.md` + `rules/motion-blur-streak.md`, `css-blur.md` |
-| **Shader transitions** | The 1–2 centerpiece moments only (hero reveal, CTA) | `hyperframes-creative/references/beat-direction.md` |
+## 5. Transitions — fast, on the phrase hit, never plain fades
 
-Rules: transitions **resolve on a strong beat**; 15s video → 3–4 transitions, and reserve the most dramatic for the hero moment; match outgoing/incoming velocity direction (see "Velocity-matched transitions" in `beat-direction.md`); avoid the entries the catalog says not to use (star iris, tilt-shift, lens flare, hinge/door). Hard cuts on consecutive strong beats are fine for rapid word sequences.
+| Type | Use | Duration | Notes |
+|---|---|---|---|
+| **Iris** | Into the dark hero scene | ~0.17s | Circle `clip-path` or scaled ink disc from a frame edge |
+| **Diagonal wipe** | Section change | ~0.25s | Ink panel skewed ~−15° with a purple leading edge; outgoing covered, incoming revealed as it exits |
+| **Blur-dissolve** | Dark → light return | ~0.25s | Next scene already in place under `blur(20px)`, resolves as it fades up |
+| **Match cut / collapse** | Into the end card | ~0.3s | The scene's cards scale/converge into the logo mark at centre |
 
-## 5. Camera: nothing sits still
+Recipes live in `hyperframes-animation/transitions/` (`css-radial.md`, `css-cover.md`, `css-blur.md`) and `rules/card-morph-anchor.md`. Put the most dramatic one (iris) on the hero reveal. A 30s video uses about 5–6 transitions, all different.
 
-Every scene has a slow continuous drift under the main choreography, so static frames still feel alive. Use `rules/multi-phase-camera.md` (pull-back / focus / push plus micro-drift) or `rules/viewport-change.md` (a single `.world` wrapper). *(start value: 2–4% scale change or 20–40px translation across the scene, `sine.inOut` or linear — subtle enough that it's felt, not seen)*. Drift the whole `.world`, not individual elements, so relative layout stays locked. For a dive into the product, `rules/coordinate-target-zoom.md`.
+## 6. Show the product doing the thing
 
-## 6. Show the real product doing the thing
+Faithful HTML recreations of Kickoff's Score Market UI as floating cards, not stock visuals. Every demo is **a cursor click causing a visible state change on a pulse**:
 
-Build faithful HTML recreations of Kickoff's Score Market UI in brand styling, not stock visuals. The action should be *performed*, using `blueprints/cursor-ui-demo.md` and `rules/cursor-click-ripple.md`:
+- The grid card: the cursor clicks **2–1**, the cell fills purple, a ring ripple spreads.
+- The stake card: `10 USDC` → cursor clicks **Stake** → button flips to **"✓ Staked"**, and a "Locks at kickoff" badge pops.
+- Full time: a **"FT 2–1" stamp** rotates onto the card.
+- Result cards (exact / close / wrong, from the product skill's worked example) fly in one per pulse; the "close" card gets the accent ring and a stamp.
+- Season Accumulator: a card whose counter and segment bar fill on pulses.
+- End card: cards collapse into the logo mark → mark slides left as "Kickoff" reveals → tagline → CTA pill (accent) + testnet pill → confetti.
 
-- A **cursor** clicks a cell on the **5×5 concentration grid**; the cell outlines in green/accent and the pool heat shifts.
-- The **stake** is entered and confirmed; **worked-example** rows resolve (A exact, B close, C loses) with numbers counting in. Label "illustrative example" and keep the testnet tag (see product skill).
-- The **live PnL line** draws (`rules/svg-path-draw.md`) with goal markers popping on beat.
-- The **Season pool** ticks up (`counting-dynamic-scale`).
+Label example numbers as illustrative, keep the testnet tag visible, never show Player Perps or live-looking fake data.
 
-Never show fabricated live data as real; never show Player Perps.
+## 7. Ambient details (sparingly)
 
-## 7. Render, look, fix — usually 2–3 rounds
+- **Confetti burst** on 1–2 payoff moments (the stake confirm, the end card): ~30 small squares in ink/purple/green, deterministic index-seeded ballistic paths (`hyperframes-animation/rules/particle-burst.md`).
+- Tiny sparkle glyphs (✦) near a key word; a hand-drawn underline (`rules/svg-path-draw.md`) under one word per video.
 
-1. `npx hyperframes check .` — fix every error (layout, overlap, contrast, missing assets).
-2. Render a draft. Pull stills at **each beat that carries a scene change or hero moment**, plus mid-transition frames:
-   `ffmpeg -ss <t> -i out/video.mp4 -frames:v 1 out/f_<t>.png`
-   (or `npx hyperframes snapshot`). **Look at them.** Check: fonts correct, overlaps, cropped text, safe margins, whitespace, one accent color, word count ≤ 3, transition mid-frames not muddy, testnet tag present.
-3. Check timing against `BEATS`: at each hero beat time, the frame must show the intended landing pose.
-4. Fix, re-render, repeat. Show the user the final file path plus what you couldn't verify (you cannot hear audio or judge feel — state that).
+## 8. Render, look, fix — 2–3 rounds
 
-## 8. Kickoff hard rules recap
+1. `npx hyperframes check .` and fix every error. A wall of low-contrast warnings usually means a stuck overlay (check wipes and irises end off-screen or at opacity 0).
+2. Render, then pull stills at every phrase hit **and mid-transition**: `ffmpeg -ss <t> -i out/v.mp4 -frames:v 1 f.png`, tiled into contact sheets. Blank mid-transition frames mean an opaque scene background is hiding the outgoing scene: keep `.scene` backgrounds transparent and paint the background on the root.
+3. Compare against the reference numbers: are entrances resolved within ~5 frames? Is there a visible hold at the end of each phrase? At most 4 words? Is UI on one side and words on the other?
+4. Fix and re-render. Tell the user what you couldn't verify (audio and feel).
 
-One accent color per video · brand fonts only · ≤ 3 words at a time · every beat has an owner · real transitions · slow drift always · testnet label always · no Player Perps · no invented payouts.
+## 9. Hard rules recap
 
-## To calibrate later (from the reference videos)
-
-Measure and replace the *(start value)* numbers: typical scene length in beats; entrance durations and eases; stagger spacing; overshoot amounts; drift magnitude; margin/whitespace ratio; which transition types appear and how long; hold durations; how much sits on screen at once. Frame-by-frame analysis with ffmpeg scene detection and stills can supply most of this.
+One accent · brand fonts only · ≤ 4 sticker words at a time · every pulse has an owner, then a breath · fast blur-resolve entrances · a different real transition at each phrase hit · UI and words on opposite sides with reflow · testnet tag always · no Player Perps · no invented payouts.

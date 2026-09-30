@@ -1,6 +1,12 @@
-# Reference analysis: the "Gloam × Tempo" SDK launch video
+# Reference analysis (craft notes)
 
-The user's chosen reference for the feel of Kickoff videos. 15s, 30fps, light theme. Measured frame by frame with ffmpeg (4fps overview plus 30fps close-ups) and `hyperframes beats` on its audio, 2026-09-29. The video itself is not in the repo (third-party content); these notes are the record.
+> **How to use this file.** These are measurements of another creator's videos, kept to learn **craft**: timing, easing, how effects and demos are built. They are not a template. Don't reuse their stories, copy, props (ledgers, payslips, redaction, phones receiving pay) or scene order. Their product is about privacy, and Kickoff's is about openness, so hiding motifs are off-brand. Translate each technique through the idea pass and visual language in `SKILL.md`. The user's own words: the references are there "to expand your horizon and show you what is possible", "not for you to copy them verbatim".
+>
+> **The creator's own workflow**, as the user relayed it: a plain-words storyboard with rough timings; a real brand kit (fonts, colours, logo, real product screens); music first, then `npx hyperframes beats` so every scene change and word lands on a beat; kinetic type where each word enters differently, cards that slam in, a cursor clicking through the product, real transitions (wipe, zoom-through, push, whip pan with blur); `npx hyperframes check`; render, pull stills with ffmpeg, fix, render again (2–3 rounds). Their tips: one accent colour, at most 2–3 words on screen, sync to the music, show the actual product doing the thing. Kickoff's workflow skill already follows this; the idea pass is our addition.
+
+# Reference 1: the "Gloam × Tempo" SDK launch video
+
+The first of the user's reference videos for the feel of Kickoff videos. 15s, 30fps, light theme. Measured frame by frame with ffmpeg (4fps overview plus 30fps close-ups) and `hyperframes beats` on its audio, 2026-09-29. The video itself is not in the repo (third-party content); these notes are the record.
 
 ## Rhythm: phrases, not just beats
 

@@ -38,7 +38,7 @@ If those skills aren't installed: `npx hyperframes skills`. They are a reference
 ## Process
 
 1. **Brief.** One line each: purpose, audience, platform + aspect ratio, length, single takeaway, CTA. Default takeaway for launch content: *closeness pays.*
-2. **Script + storyboard** as beats with timings and on-screen text, using only lines/claims allowed by `kickoff-video-product`. One idea per beat. Show the storyboard to the user before building anything long (>15s) — see `hyperframes-studio` §0 "talk before you build".
+2. **Idea pass, then script + storyboard.** First the idea-pass table from `kickoff-video-motion` §1 (product truth → football image → device → technique), with 1–2 signature devices only Kickoff could use. Then beats with timings and on-screen text, using only lines/claims allowed by `kickoff-video-product`. Borrow craft from the reference videos, never their content. One idea per beat. Show the storyboard to the user before building anything long (>15s) — see `hyperframes-studio` §0 "talk before you build".
 3. **Music, then beats.** Get the track into `assets/`, tag it `data-timeline-role="music"`, run `npx hyperframes beats .`, and copy the beat times into the composition (details in `kickoff-video-motion` §1). Do this before building scenes so timing is designed to the grid, not retrofitted.
 4. **Build scene by scene**: one sub-composition per scene, one paused GSAP timeline registered on `window.__timelines`, deterministic (no `Math.random`, `Date.now`, infinite repeats). Pull reusable named visuals (charts, transitions, glass, grain) from the registry before hand-building: `npx hyperframes catalog <word>` (see `hyperframes-registry`).
 5. **Gate every scene** before moving on:

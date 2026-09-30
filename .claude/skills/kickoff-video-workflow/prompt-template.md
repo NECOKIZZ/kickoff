@@ -14,8 +14,12 @@ Audience: [football fans on X | crypto-curious | ...]
 The one thing viewers should remember: [Closeness pays: you can be wrong and still win.]
 CTA: [Join the waitlist at kickoff.cash]
 
-Style: same as videos/kickoff-launch-v2 (cream + purple, sticker words, floating cards).
-      [or: dark (ink + green)]  One accent only.
+Look: [Matchday (light, cream + purple, like videos/kickoff-launch-v2) | Floodlight (dark, cinematic, ink + green)]
+      One accent only. Kickoff's own football imagery (scoreboard, pitch lines, match clock,
+      stake slip); borrow craft from the reference videos, never their content.
+
+Start with the idea pass (kickoff-video-motion §1): product truth → football image → device →
+technique, with 1–2 signature devices only Kickoff could use. Show it with the storyboard.
 Project folder: videos/[slug]/
 Assets I've put in it: [assets/music.mp3, ...]  (brand logos/crests: copy from public/brand)
 Music: assets/music.mp3. Run `npx hyperframes beats` first and put every scene change
@@ -23,11 +27,11 @@ and word entrance on the beat grid.
 
 Storyboard (adjust freely, tell me what you change):
 (one row per musical phrase, ~2.3s each; a scene is usually 1–2 phrases)
-1. [0-4.6s]   [yes/no card, cursor clicks Yes; card slides aside; "Yes or no?" "Too blunt." stickers]
-2. [4.6-9.1s] [iris to dark: "Proximity Markets." letter slam; feature pills]
-3. [9.1-13.7s][grid card, cursor clicks 2-1; stake card flies in; Stake -> "✓ Staked" + confetti]
-4. [...]      [...]
-5. [last]     [cards collapse into the logo; tagline; waitlist + "Testnet · play money" pills]
+1. [0-4.6s]   [split-flap scoreboard flips to "YES / NO"; it jams; "Too blunt."]
+2. [4.6-9.1s] [centre-circle iris to floodlit dark: "Proximity Markets." letter slam]
+3. [9.1-13.7s][grid on a pitch; cursor taps 2-1; the stake slip prints; "✓ Staked"]
+4. [...]      [match clock runs; score flips 2-0 -> 2-1; distances draw; winners light up]
+5. [last]     [everything collapses into the ball / logo; tagline; waitlist + "Testnet · play money"]
 
 Process: check with `npx hyperframes check .` and fix everything; render a draft;
 pull stills at each scene change and look at them; fix overlaps, spacing and timing;

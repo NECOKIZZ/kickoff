@@ -8,7 +8,9 @@ Motion-design videos for Kickoff, made with [HyperFrames](https://github.com/hey
 |---|---|
 | `kickoff-launch-v2/` | **The approved house style.** 30s launch video: cream + purple, sticker words, floating product cards, phrase-synced cuts. Use it as the reference implementation. |
 | `kickoff-launch/` | v1 (dark theme, slower motion). Kept for comparison only. |
-| `tools/placeholder-music.py` | Generates a licence-free draft track in the reference's phrase shape. |
+| `kickoff-walkthrough/` | 89s product walkthrough: real kickoff.cash captures in a browser frame, AI voiceover (George), captions, house-style recreations for the steps that need a login. |
+| `tools/placeholder-music.py` | Generates a licence-free draft track in the reference's phrase shape (`out.wav [seconds]`). |
+| `tools/redeem-invite.mjs`, `tools/capture-pages.mjs` | Redeem an invite code headlessly, then capture the gated app pages at 2× for walkthroughs. |
 | `setup.sh` | One-time environment setup (FFmpeg, headless Chrome, HyperFrames skills). |
 
 The skills (loaded automatically by Claude Code in this repo):

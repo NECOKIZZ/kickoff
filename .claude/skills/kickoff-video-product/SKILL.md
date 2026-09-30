@@ -5,12 +5,13 @@ description: Kickoff.cash product facts and claim rules for videos — what Scor
 
 # Kickoff product facts for video
 
-Every fact below comes from the repo (`src/ui/docs/DocsPage.tsx`, `packages/engine`, `src/lib/leaderboard.ts`, `contracts/`). Re-check against the code before publishing anything time-sensitive. The public docs page (`/docs`) is the canonical wording.
+Every fact below comes from the repo (`src/ui/docs/DocsPage.tsx`, `packages/engine`, `src/lib/leaderboard.ts`, `contracts/`). Re-check against the code before publishing anything time-sensitive. **The live public docs page (kickoff.cash/docs) is the canonical wording**. Last synced with it on 2026-09-30.
 
 ## Status — read first
 
 - **Testnet, play money.** Kickoff runs on testnet with test USDC. Every video must make this clear (a persistent "Testnet · play money" tag or an end-card line). Never imply real winnings, real deposits, or a mainnet launch. Mainnet is "a config change, not a rebuild, and will be announced" — do not date it.
-- **Score Markets only.** Player Perps (FPL-points markets) exist in the code and docs but are **not live**. Do not show, mention, or tease them: no player-points UI, no "Player Perps" text, no player-card carousel.
+- **Score Markets only.** Player Perps (FPL-points markets) are **paused** (the docs say they "return later on the same engine"). Do not show, mention, or tease them: no player-points UI, no "Player Perps" text, no player-card carousel.
+- **Kickoff runs itself**: every Premier League fixture is listed automatically (about a week before kickoff, grouped by gameweek), results settle automatically, and **AI agents** can stake alongside people on the same terms.
 - Access is by **waitlist and invite code**, opening in waves. The CTA is the waitlist / "Enter the markets", not "sign up and deposit".
 - Positioning: "The first proximity market on Robinhood Chain." Don't claim any Robinhood partnership or endorsement — only that it runs on the chain.
 
@@ -24,7 +25,7 @@ Kickoff is a prediction market for football where you're paid for **how close yo
 2. **Close still pays.** It isn't yes/no. Payouts scale with how close you land: 2-1 when it ends 2-0 still earns.
 3. **Split the pool.** At full time the pool splits by stake × accuracy. Nail it exactly and you take the biggest share.
 
-Market life: **Listed → Open → Locked (at kickoff) → Settled.** Rules are frozen when a market opens — what you see when you stake is what settles.
+Market life: **Listed (automatically) → Open → Locked (at kickoff) → Settled (within minutes of full time).** Rules are frozen when a market opens (stake, fee rate, accuracy exponent, shown in the app as e.g. "fixed $10" and "γ=3"). What you see when you stake is what settles.
 
 ## Scoring: distance
 
@@ -67,12 +68,12 @@ Losing stakes $30, 10% fee $3, dividend pool $27. **A ≈ +$23.23 (+232%). B ≈
 
 - Fee is **10% of losing stakes only**. Winners' stakes are never touched; voided markets take nothing; no deposit, withdrawal, or per-trade fees.
 - The take splits: **5% platform, 5% Season Accumulator.**
-- The **Season Accumulator** is a season-long prize pool funded by every settled market, visible live on the leaderboard, paid at season end to the top of the season leaderboard (held in an on-chain vault; winners claim their own share).
+- The **Season Accumulator** is a season-long prize pool funded by every settled market, visible live on the leaderboard, paid at season end to the top of the season leaderboard (the leaderboard page says **the top 10 split it by rank**; held in an on-chain vault; winners claim their own share). To enter the rankings a trader needs at least 5 settled markets. Say "5% of the losing stakes"; the leaderboard page's shorthand "5% of every settled pool" is less precise.
 - **Leaderboard** rewards sustained accuracy, not one lucky hit: geometric mean of per-market precision scores, times a log-dampened volume multiplier, with an eligibility gate.
 
 ## Fairness points (for a "why it's fair" cut, not the launch video)
 
-No house on the other side — your counterparty is the pool. Void + full refund if fewer than two entries, all entries equally distant, or the fixture is abandoned. Results cross-checked across independent data sources with a finality delay; disputes hold the market instead of settling wrongly. Settlement is deterministic integer arithmetic, replayable from recorded positions.
+No house on the other side — your counterparty is the pool. Void + full refund if fewer than two entries, all entries equally distant, or the fixture is abandoned. Results cross-checked across independent data sources; a market settles as soon as two sources report the same final score, usually within minutes (no cooling-off window). If they disagree or go quiet, the market is held for review instead of settling wrongly. Settlement is deterministic integer arithmetic, replayable from recorded positions.
 
 ## Product UI worth showing (Score Markets)
 
@@ -80,9 +81,14 @@ No house on the other side — your counterparty is the pool. Void + full refund
 - **Live PnL chart** — your position if the match ended now, KO→FT, with dashed goal markers like "12' ARS", green line, dashed breakeven.
 - **Gameweek rail** — chips per gameweek with state dots (live / open / finished), matches below.
 - **Season board** — live accumulator pool on top, cumulative leaderboard below.
+- **AI agents (My Agent)** — each account can run one agent that predicts and stakes automatically: *Managed* (write a short `soul.md` describing how it should think; Kickoff runs it each matchday with season results, form and table) or *Bring your own AI* (Claude, ChatGPT, OpenClaw or your own bot reads `kickoff.cash/llms.txt` and connects). Same markets, same stake, one pick per market, an agent badge on the leaderboard; it stakes only from the balance you fund it with, and only you can withdraw or pause it.
 - **Sign-in** — email, Google, or wallet; email users get an embedded wallet automatically, no seed phrase. Stakes in USDC.
 
 Build these as faithful HTML recreations in the brand styling; don't show fake numbers as if they were live data.
+
+## Live data caveat
+
+As of 2026-09-30 the live testnet has very little activity (one settled market, a $0.50 Season pot, an empty leaderboard). When filming the real app, frame real screens honestly; don't imply volume that isn't there, and carry explanations with recreations clearly styled as illustrations.
 
 ## Claims: allowed / forbidden
 

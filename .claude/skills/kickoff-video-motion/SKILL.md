@@ -1,11 +1,11 @@
 ---
 name: kickoff-video-motion
-description: Motion and timing rules for Kickoff videos in HyperFrames — phrase-based beat sync, fast blur-resolve entrances, sticker kinetic type, card choreography with reflow, fast transitions (iris, diagonal wipe, blur-dissolve, match cut), and the render-and-inspect loop. Calibrated from the user's reference video. Use for any Kickoff video build, alongside kickoff-video-brand and kickoff-video-product.
+description: Motion and timing rules for Kickoff videos in HyperFrames — phrase-based beat sync, fast blur-resolve entrances, sticker kinetic type, card choreography with reflow, fast transitions (iris, diagonal wipe, blur-dissolve, blur whip, match cut), live illustration of product functionality (UI state machines, problem-to-solution on one object, toggle proofs), story structure, and the render-and-inspect loop. Calibrated from the user's reference videos. Use for any Kickoff video build, alongside kickoff-video-brand and kickoff-video-product.
 ---
 
 # Kickoff video motion
 
-**Provenance.** Calibrated against the user's reference video (a 15s SDK launch spot made with HyperFrames); full measurements in `reference-analysis.md` next to this file. Numbers below are measured unless marked *(judgement)*. When the user adds another reference, analyse it the same way and update both files.
+**Provenance.** Calibrated against the user's reference videos (reference 1: a 15s SDK launch spot; reference 2: a 20s payroll launch by the same creator, both made with HyperFrames); full measurements in `reference-analysis.md` next to this file. Numbers below are measured unless marked *(judgement)*. When the user adds another reference, analyse it the same way and update both files.
 
 HyperFrames' own skills hold the implementation recipes; this file says **which to use and how Kickoff wants them combined.** Load `hyperframes-core` and `hyperframes-animation` first. Determinism rules (single paused timeline on `window.__timelines`, no `Math.random`/`Date.now`, no infinite loops) are non-negotiable.
 
@@ -20,8 +20,10 @@ Fast, crisp, light and airy. Things arrive in 4–6 frames and resolve from blur
 3. **Find the phrase structure**: the strongest beats (strength ≈ 1) mark phrase starts; in the reference, every 8 pulses (≈2.3s at 210 BPM).
 4. **Per phrase: pulses 0–5 act, pulses 6–7 rest.** Scene changes and transitions land exactly on the phrase hit. One new thing per pulse (a word, a card, a state change). During the rest, only ambient drift and particles move.
 5. Impacts *arrive* on the pulse: start ~1–2 frames (0.03–0.06s) early so the sharp frame lands on the beat.
-6. A scene is usually 1–2 phrases. A 30s video at ~2.3s phrases is about 13 phrases, so about 6–7 scenes.
-7. Music: the user supplies a licensed track. If none exists, synthesise a placeholder with the same phrase shape (hits, 5 pulses of rhythm, 3 pulses of drop-out) and say it's a placeholder.
+6. **Flams:** when a hit is doubled (~0.1s apart), land the main impact on the first and a secondary settle (badge, pill, stamp) on the second.
+7. **Follow the build.** If the track gets denser in its last third (hits every ~1s instead of every phrase), put the demo's climax, the proof moment and the end card there, and cut faster to match.
+8. A scene is usually 1–2 phrases. A 30s video at ~2.3s phrases is about 13 phrases, so about 6–7 scenes.
+9. Music: the user supplies a licensed track. If none exists, synthesise a placeholder with the same phrase shape (hits, 5 pulses of rhythm, 3 pulses of drop-out) and say it's a placeholder.
 
 ## 2. Entrances: fast, from blur
 
@@ -51,6 +53,35 @@ Exits are faster than entrances *(judgement: ~0.12s)*, or objects simply get cov
 - **Reflow:** when an element enters, the group that's already on screen moves and/or scales on the *same pulse* (0.35–0.45s `power3.inOut`) to rebalance. Example: the product card slides from centre to the right and shrinks to 0.8 as the headline stickers arrive left. Build this with a wrapper per group and tween the wrapper.
 - Slow drift on the world wrapper *(judgement: ~1.5% scale or ~20px across a scene, `none` ease)* so holds never look frozen.
 
+## 4b. Live illustration: the product does the thing, on the beat
+
+This is what the user likes most. Explanations are **state changes on a faithful product card**, one step per pulse, never a static screenshot with a caption.
+
+- **Populate:** rows, cells or entries appear one per pulse (or a fast 0.08–0.12s stagger within a pulse for 5+ items), each with a short blur-resolve. Headers and badges ("12 people", "2 entries") pop on the next pulse.
+- **Problem → solution on the same object.** Show the pain on a UI card first, then transform *that card* on the next phrase hit, row by row (one row per pulse), while an inverted sticker lands the turn ("Not anymore."). Don't cut to a different "after" screen.
+- **State machine on one card:** idle → cursor click (ripple) → loading (spinner + label change, e.g. "Paying…") → per-row status flips with a live counter ("3 of 12 paid") and a filling progress bar → done state (✓ label, button colour change) + confetti. Every transition is on a pulse; counters tick in integer steps.
+- **Inputs that feel real:** a file chip dropping in, a "Reading…" line with a spinner, a toggle switching, a value flipping. The cursor causes each change.
+- **Proof by toggle:** a segmented control ("You see | The public sees", or "Your pick | The crowd") that the cursor clicks, sliding in a second card beside the first so the viewer compares the two views side by side.
+- **Annotate sparingly:** one hand-drawn arrow from a sticker to the UI element it describes (`rules/svg-path-draw.md`, drawn in ~0.3s), or a scribble underline under one key sticker word.
+
+Kickoff equivalents:
+- *Problem → solution:* a Yes/No market card whose two buttons break apart and re-form into the 5×5 scoreline grid.
+- *Populate:* the concentration grid heating up cell by cell as stakes arrive, with "Pool $…" and "entries" counters ticking.
+- *State machine:* Pick 2–1 → "Stake 10 USDC" → spinner "Staking…" → "✓ Staked" → "Locks at kickoff".
+- *Settlement:* participant rows resolve one per pulse with their distance and "Won / Lost", "n of 5 settled", then payouts count up. Use the worked example.
+- *Proof by toggle:* "Your pick | The pool" showing your cell versus the crowd heatmap.
+
+## 4c. Story structure (launch / feature videos)
+
+1. **Problem on the product UI** (1–2 phrases) with question stickers.
+2. **Flip** on a hit: an inverted-sticker answer plus the same UI transforming.
+3. **Hero** (dark, per-letter name slam, subline, pills).
+4. **Demo** as a state machine (2 phrases), climaxing with confetti.
+5. **Proof** (toggle or before/after comparison), in the music's densest part.
+6. **End card:** logo (+ partner), product name + inverted "is live." sticker on the next hit, subline, pills (domain + accent status pill such as "Live on testnet"), confetti, stamp.
+
+Sticker variants: white (default), accent (purple, the key word) and **inverted** (ink background, white text) for answers and emphasis ("Not anymore.", "is live."). Use at most one inverted sticker per phrase.
+
 ## 5. Transitions — fast, on the phrase hit, never plain fades
 
 | Type | Use | Duration | Notes |
@@ -59,6 +90,7 @@ Exits are faster than entrances *(judgement: ~0.12s)*, or objects simply get cov
 | **Diagonal wipe** | Section change | ~0.25s | Ink panel skewed ~−15° with a purple leading edge; outgoing covered, incoming revealed as it exits |
 | **Blur-dissolve** | Dark → light return | ~0.25s | Next scene already in place under `blur(20px)`, resolves as it fades up |
 | **Match cut / collapse** | Into the end card | ~0.3s | The scene's cards scale/converge into the logo mark at centre |
+| **Blur whip** | Between two light scenes | ~0.2s | Outgoing scene blurs out with a slight zoom (~0.1s); incoming resolves from blur (~0.1s) with content already animating in |
 
 Recipes live in `hyperframes-animation/transitions/` (`css-radial.md`, `css-cover.md`, `css-blur.md`) and `rules/card-morph-anchor.md`. Put the most dramatic one (iris) on the hero reveal. A 30s video uses about 5–6 transitions, all different.
 
@@ -89,4 +121,4 @@ Label example numbers as illustrative, keep the testnet tag visible, never show 
 
 ## 9. Hard rules recap
 
-One accent · brand fonts only · ≤ 4 sticker words at a time · every pulse has an owner, then a breath · fast blur-resolve entrances · a different real transition at each phrase hit · UI and words on opposite sides with reflow · testnet tag always · no Player Perps · no invented payouts.
+One accent · brand fonts only · explain by state changes on real-looking UI · ≤ 4 sticker words at a time · every pulse has an owner, then a breath · fast blur-resolve entrances · a different real transition at each phrase hit · UI and words on opposite sides with reflow · testnet tag always · no Player Perps · no invented payouts.

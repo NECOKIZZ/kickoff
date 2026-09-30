@@ -14,18 +14,20 @@ Audience: [football fans on X | crypto-curious | ...]
 The one thing viewers should remember: [Closeness pays: you can be wrong and still win.]
 CTA: [Join the waitlist at kickoff.cash]
 
-Theme: [light (cream + purple) | dark (ink + green)]  — one accent only.
+Style: same as videos/kickoff-launch-v2 (cream + purple, sticker words, floating cards).
+      [or: dark (ink + green)]  One accent only.
 Project folder: videos/[slug]/
 Assets I've put in it: [assets/music.mp3, ...]  (brand logos/crests: copy from public/brand)
 Music: assets/music.mp3. Run `npx hyperframes beats` first and put every scene change
 and word entrance on the beat grid.
 
 Storyboard (adjust freely, tell me what you change):
-1. [0-3s]   [yes/no is blunt: "Yes or no?" then it breaks apart]
-2. [3-6s]   ["Closeness matters." one word per beat]
-3. [6-9s]   [5x5 grid; a cursor clicks 2-1; the cell lights up]
-4. [9-12s]  [worked example: exact +232%, close +38%, wrong loses. Labelled illustrative]
-5. [12-15s] [logo lockup, "Beat the pack, keep the stack.", waitlist, "Testnet · play money", music fades]
+(one row per musical phrase, ~2.3s each; a scene is usually 1–2 phrases)
+1. [0-4.6s]   [yes/no card, cursor clicks Yes; card slides aside; "Yes or no?" "Too blunt." stickers]
+2. [4.6-9.1s] [iris to dark: "Proximity Markets." letter slam; feature pills]
+3. [9.1-13.7s][grid card, cursor clicks 2-1; stake card flies in; Stake -> "✓ Staked" + confetti]
+4. [...]      [...]
+5. [last]     [cards collapse into the logo; tagline; waitlist + "Testnet · play money" pills]
 
 Process: check with `npx hyperframes check .` and fix everything; render a draft;
 pull stills at each scene change and look at them; fix overlaps, spacing and timing;
@@ -35,5 +37,5 @@ what you could not verify.
 
 Notes
 - Leave the storyboard out and Claude will propose one first (and should show it before building anything over ~15s).
-- The music must be a track you have rights to. Without it Claude will build to a generated click grid and say so.
+- The music must be a track you have rights to. Without it Claude generates a placeholder with `videos/tools/placeholder-music.py` and says so.
 - Player Perps, real-money claims and payout promises are refused by the product skill; if you ask for them Claude should push back.

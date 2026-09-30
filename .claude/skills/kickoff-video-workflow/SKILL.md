@@ -49,6 +49,20 @@ If those skills aren't installed: `npx hyperframes skills`. They are a reference
 7. **Render**: `npx hyperframes render -o out/<slug>-<ratio>.mp4` from the project directory. Draft renders are quick (a 10s 1080p clip took ~15s on 4 cores); iterate freely, render finals last.
 8. **Hand-off**: report the file path, duration, resolution, and anything you weren't able to verify (audio, fonts).
 
+## Product walkthroughs (real app + voiceover)
+
+Reference implementation: `videos/kickoff-walkthrough/` (89s, George voice, approved script in `vo.txt`). Recipe:
+
+1. **Access.** Most of the app is behind the invite gate (`/markets`, `/leaderboard`, `/positions`, `/agent`). Ask the user for an invite code, then `node videos/tools/redeem-invite.mjs <CODE> <scratch>/state.json <scratch>/shots`. Keep `state.json` out of the repo. Staking, positions and My Agent also need a Privy email login, which can't be done headlessly: show those steps as house-style recreations with an "Illustration" pill, or ask the user to screen-record them.
+2. **Look before scripting.** Screenshot every page and read the live `/docs`: live data can be sparse, and the site can be ahead of `kickoff-video-product` (update that skill first). Ask how to handle thin data rather than implying volume.
+3. **Script + voice.** Write the VO per section (one line per section in `vo.txt`), show it with voice samples (`npx hyperframes tts "<text>" -v <voice>`; George = `bm_george`, Michael = `am_michael`, Heart = `af_heart`), and get approval. Spell out what TTS mispronounces: "U S D C", "A I", "two, one", "kickoff dot cash". In a `while read` loop, give `npx` `< /dev/null` or it swallows the rest of the file.
+4. **Timing.** Use each clip's duration (ffprobe) plus a ~0.8s gap for section starts, and `ffmpeg -af silencedetect=noise=-35dB:d=0.12` to get the phrase starts for captions (they line up with the script's commas and full stops).
+5. **Capture.** `node videos/tools/capture-pages.mjs <state.json> videos/<slug>/assets/shots` (2× screenshots + element boxes). Paint out anything off-limits with `ffmpeg … drawbox=…:t=fill` (the docs sidebar and Player Perps section) so no camera move can reveal it. Find edges (e.g. where a dark section starts) by sampling pixel rows, and keep camera regions inside them.
+6. **Compose.** Real captures sit in a floating browser frame (URL bar and testnet pill); a `cam(region)` helper turns a CSS-pixel region into `x/y/scale` for the shot; rings and cursors live inside the shot so they track zooms. Move them with `x`/`y`, never `left`/`top` (lint blocks those). Phrase captions are one element per phrase, toggled with `tl.set` (seek-safe).
+7. **Audio.** Music bed `data-volume` ≈ 0.3, VO ≈ 1.35 → voice ≈ −19 dB mean, bed ~14 dB under, ≈ −16 LUFS overall. Check with `volumedetect` on a voice window and a gap window (avoid the placeholder track's silent "breath" pulses), and `ebur128` for the total.
+
+**GSAP gotcha:** a `fromTo` applies its *from* values when the timeline is built, so a later `fromTo` on an element that's already visible earlier (the browser frame re-entering) corrupts every earlier frame. Pass `immediateRender: false` on any `fromTo` that isn't the element's first appearance.
+
 ## Formats
 
 | Use | Size | Notes |

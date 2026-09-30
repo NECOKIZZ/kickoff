@@ -45,3 +45,32 @@ No plain fades, no slow pushes.
 ## What this means for Kickoff
 
 Kickoff's cream theme (#F7F5F0 / #EDEAE0, ink #111210, purple #7B62F6) maps almost one to one onto the reference palette. Sticker words in Clash Display 700; hero reveals in Fraunces 700. The product demo equivalent is the Score Market grid: pick a cell → Stake → "✓ Staked", and at full time the result cards fan in.
+
+---
+
+# Reference 2: the "Gloam Payroll" launch video
+
+Same creator, same visual system as reference 1 (20s, 30fps, light theme, one dark hero scene). Analysed 2026-09-30 the same way (4fps overview, 30fps close-ups, `hyperframes beats`). What it adds is mostly **live illustration of the product's functionality**.
+
+## Rhythm
+
+- Same phrase grid: strong hits every 2.29s (0.84, 3.12, 5.39, 7.67, 9.96, 12.25, 14.56), pulse ~0.28s.
+- **Flams:** many hits are doubled ~0.1s apart (5.39/5.50, 7.67/7.79, 9.96/10.08, 12.25/12.35). Put the main impact on the first and a secondary settle (a badge, a pill) on the second.
+- **The track builds.** From ~11.4s hits come every 0.85–1.4s instead of every 2.29s. The demo's climax (all paid + confetti), the proof toggle and the end card all sit in that denser final third, so the edit speeds up with the music.
+
+## Story structure (20s)
+
+1. **Problem, shown on the product UI** (0–3.1): stickers "Paying your team onchain?" with a "Public ledger" card filling with names and amounts, one row per pulse. Inverted sticker "Everyone sees" + "who got what." with a scribble underline.
+2. **Flip on the hit** (3.1–5.3): "Not anymore." (inverted sticker) and **the same card redacts row by row**, one row per pulse: names become black bars, amounts ●●●●●, a green "Private transfer" tag appears. The before/after is a state change on one object.
+3. **Hero** (5.4–7.5): iris to dark; logo mark + "Payroll" per-letter slam; subline; pills pop.
+4. **Demo as a state machine** (7.5–12): the Payroll card goes empty → "team.csv" chip → "Reading team.csv…" → five rows populate with a "12 people" badge ("Upload / a list." stickers) → the cursor clicks "Pay 12 privately" → button spinner "Paying privately" → Status column flips "Ready → ✓ Paid" row by row while "n of 12 paid" counts up and a progress bar fills → "✓ 12 paid privately" + confetti. A hand-drawn arrow runs from the "at once." sticker to the button.
+5. **Proof by toggle** (12.2–15.8): blur-whip into a "You see | The public sees" segmented control over "Your payroll" (names + amounts). The cursor clicks "The public sees", and a second card slides in beside it showing only redacted "Private transfer" rows. "Nobody sees / who got what." then "Not even / your wallet."
+6. **End card** (15.9–20): diagonal wipe in navy; logo + partner name; "Payroll" (blur-in) + inverted "is live." on the next hit; subline; pills ("gloam.trade", green "Live on Tempo testnet"); confetti; smiley stamp.
+
+## Transition added
+
+- **Blur whip** (~0.2s): the whole outgoing scene blurs out with a slight zoom (~0.1s), and the incoming scene resolves from blur (~0.1s) with its content already animating in. Good between two light scenes where an iris or wipe would be too loud.
+
+## No 3D flips here
+
+Neither reference so far uses 3D card flips. Those are expected in the remaining reference videos.

@@ -73,4 +73,46 @@ Same creator, same visual system as reference 1 (20s, 30fps, light theme, one da
 
 ## No 3D flips here
 
-Neither reference so far uses 3D card flips. Those are expected in the remaining reference videos.
+This one has no 3D. See reference 3.
+
+---
+
+# Reference 3: "PAYDAY" (Gloam Payroll, cinematic cut)
+
+Same product as reference 2, but a **dark, cinematic 40s version**: big white type instead of stickers, real 3D depth, a narrative with fewer, bigger hits. Analysed 2026-09-30 (2fps overview, 15fps close-ups, `hyperframes beats`).
+
+## Rhythm
+
+- The music isn't on a steady phrase grid (detector: ~235 BPM, low confidence). Strong hits cluster at the story's turns: 8.07 (hard cut to "Not anymore."), 10.15–11.0 (logo), 33.1 (stats), 36.0–37.5 (end card). **Big moments sit on the big hits; in between, the camera and UI keep moving continuously.** This is the model for longer (30–60s) cuts.
+
+## Look
+
+- Near-black background with faint drifting dust particles and a vignette. A diegetic **HUD in the top-right corner, "PAYDAY 09:00:05"**, ticks up throughout, a running clock that anchors the story.
+- Type: huge grotesk, white, tight tracking (~9% of frame height), either centred or bottom-left, revealed line by line. No sticker labels.
+- Light streaks sweep diagonally across the frame at the open and the close (~1s).
+- One accent: green, used for the "good" state (outlines, "0 salaries exposed").
+
+## 3D and depth (measured)
+
+| Moment | What happens | Timing |
+|---|---|---|
+| Payslip ticket (0–1.5) | A perforated payslip card floats tilted in 3D (rotateY ≈ −15°, rotateX ≈ 8°), drifting slowly | continuous |
+| **Object through type** (2.8–3.4) | "PAYDAY." slams in; the ticket starts small and far *behind* the letters, flies forward rotating and ends *in front*, covering the "D" | ~0.5s flight, settle to −5° |
+| Tilted ledger + camera flight (4–7.5) | A "Public ledger" table in perspective (rotateX ≈ 25°, rotateY ≈ −10°). The camera glides across it; a connector line draws from one row to another and a box outlines the amount: "Romeo can see what Robin earns." | ~3.5s drift |
+| **Pull-back reveal** (7.5) | The camera pulls out fast to show a wall of tiled ledgers: "So can everyone else." | ~0.5s |
+| **Y-axis card flip** (11.8–12.2) | The hero title swings away on the Y axis (to ≈ 70° with blur); the product dashboard swings in from edge-on (≈ −80°) to −20°, then keeps flattening to ≈ −8° over ~0.4s (tilt-to-flatten) | ~0.35s swing + 0.4s settle |
+| **Phone arc** (24–26) | Five phone mockups in a shallow 3D arc (outer ones angled ≈ ±18° towards the centre, centre one closest). Screens light up left to right, one per ~0.3s: lock screen "09:00", notification "You got paid privately · 4,200 PathUSD" | 5 × 0.3s |
+| **Type zoom-through** (27.3) | "Everyone sees only their own." scales up past the camera into the next scene | ~0.3s |
+
+## Transitions and devices
+
+- **Theme flash:** the only light frame is the turn: a hard cut to white "Not anymore." (8.0) with a green line tracing the frame border. Then back to dark, where the green border **shrinks into a card, then into the glowing logo mark** (9–10.5). One continuous shape carries you from the problem to the product.
+- **Text scramble/decode** between phrases: the old line breaks into random glyphs (~0.1s); the new line decodes left to right (~0.4s). Used for "H16 → Payroll" and "No wallet… → Claim links for anyone." (HyperFrames `rules/hacker-flip-3d.md`.)
+- **Row-by-row redaction on a toggle** (20–23.5): "You see | The public sees"; after the click each row morphs into "Private transfer ●●●●●" with a green outline, one per pulse; the last row's number scrambles.
+- **Name marquee** (28): "No names." over a row of names sliding by, each covered by a box as it passes. "No amounts.": a "6,000" morphs into a ●●●●● pill.
+- **Stats finale** (32–35): stacked count-ups: "4 → 5 people paid", "16,423 → 24,400 PathUSD", "1 → 0 salaries exposed" (the 0 in green). A green outline draws around the stack, then shrinks into the logo mark: the same shape-morph used at the start.
+- **End card:** logo glow → "Payroll is live." decodes → partner lockup → subline → pills; a light streak crosses.
+
+## Product demo
+
+The real app dashboard (tilted, then flat): drop "team.csv" → "Reading…" → rows populate while the total counts 0 → 6,000 → 15,000 → 24,400 → click "Pay 5 people privately" → a "Paying Yomi… Paying Robin…" header advances while row statuses cycle Waiting → Sending → Paid → a "5 people paid privately" success panel. Big left type: "Upload your team." then "Pay everyone at once." Also shown: **the recipient's side** (the phones), meaning the outcome from the other party's point of view.

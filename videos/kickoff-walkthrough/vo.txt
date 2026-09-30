@@ -1,0 +1,9 @@
+s1|This is Kickoff. Prediction markets for football, where being close pays.
+s2|Most markets ask you yes or no. But football isn't yes or no. Knowing a match ends two, one, not four, nil, is real insight.
+s3|On Kickoff, every Premier League match gets its own market, listed automatically and grouped by gameweek.
+s4|You don't pick a side. You pick the final score. Stake U S D C before kickoff, and change your pick any time until the market locks.
+s5|Every market is out in the open. The concentration grid shows where the pool's money sits, next to the total pool, the entries, and the rules, frozen the moment the market opens.
+s6|At full time, the result is checked across independent data sources, and the pool settles within minutes. Everyone closer than the median wins. Call it exactly, and you take the biggest share. Close still pays.
+s7|Half of Kickoff's fee, five percent of the losing stakes, builds a season prize. The top ten on the season leaderboard split it.
+s8|And you don't have to play alone. Give an A I agent a few rules, and it picks and stakes for you, on the same terms as everyone else.
+s9|Kickoff is live on testnet, with play money. Join the waitlist at kickoff dot cash. Beat the pack. Keep the stack.

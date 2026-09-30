@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Kickoff · Floodlight</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-italic-400.woff2") format("woff2"); font-weight: 400; font-style: italic; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-600.woff2") format("woff2"); font-weight: 600; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-700.woff2") format("woff2"); font-weight: 700; }
+      :root { --ink: #111210; --tile: #1c1d1a; --tile2: #242521; --chalk: #f7f5f0; --muted: #8a8e81; --green: #00c805; --canvas: #edeae0; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--chalk); font-family: "Clash Display", sans-serif; }
+      .layer { position: absolute; inset: 0; }
+      .abs { position: absolute; }
+      .in { opacity: 0; }
+      .serif { font-family: "Fraunces", serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+      .serif span, .hero span { display: inline-block; }
+      .italic { font-family: "Fraunces", serif; font-style: italic; font-weight: 400; }
+      .led { font-weight: 700; color: var(--green); text-shadow: 0 0 18px rgba(0, 200, 5, 0.55), 0 0 2px rgba(0, 200, 5, 0.9); font-variant-numeric: tabular-nums; }
+      .cap { font-weight: 600; font-size: 22px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+
+      /* backdrop */
+      #beams { position: absolute; inset: 0; pointer-events: none; }
+      .beam { position: absolute; top: -120px; width: 520px; height: 1500px; transform-origin: 50% 0; background: linear-gradient(to bottom, rgba(247, 245, 240, 0.22), rgba(247, 245, 240, 0.05) 55%, transparent 80%); clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); filter: blur(6px); opacity: 0; }
+      #beamL { left: -120px; } #beamR { right: -120px; }
+      .lamp { position: absolute; top: -60px; width: 260px; height: 120px; border-radius: 50%; background: radial-gradient(closest-side, rgba(247, 245, 240, 0.55), transparent); opacity: 0; }
+      #lampL { left: 10px; } #lampR { right: 10px; }
+      #dust { position: absolute; inset: 0; }
+      #dust i { position: absolute; left: 0; top: 0; width: 3px; height: 3px; border-radius: 50%; background: rgba(247, 245, 240, 0.5); display: block; }
+      #vign { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55)); pointer-events: none; }
+      #flash { position: absolute; inset: 0; background: var(--canvas); opacity: 0; }
+      #bloom { position: absolute; left: 460px; top: 40px; width: 1000px; height: 1000px; border-radius: 50%; background: radial-gradient(closest-side, rgba(247, 245, 240, 0.5), transparent); opacity: 0; }
+
+      /* HUD */
+      #hudL { left: 72px; top: 52px; display: flex; align-items: center; gap: 14px; font-weight: 600; font-size: 22px; letter-spacing: 0.14em; color: rgba(247, 245, 240, 0.7); }
+      #hudL img { width: 26px; height: 26px; }
+      #hudR { right: 72px; top: 50px; font-weight: 700; font-size: 26px; letter-spacing: 0.12em; }
+      #testnet { left: 72px; bottom: 48px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(247, 245, 240, 0.72); padding: 10px 18px; border: 1px solid rgba(247, 245, 240, 0.16); border-radius: 999px; }
+      .gdot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); display: block; }
+
+      /* split-flap boards */
+      .board { position: absolute; display: flex; justify-content: center; }
+      .tile { position: relative; background: linear-gradient(180deg, var(--tile2) 0 49.6%, #0c0d0b 49.6% 50.4%, var(--tile) 50.4% 100%); border-radius: 10px; perspective: 500px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+      .face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--chalk); transform-origin: 50% 50%; opacity: 0; }
+      .face.g { color: var(--green); text-shadow: 0 0 22px rgba(0, 200, 5, 0.5); }
+      .face::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: rgba(0, 0, 0, 0.55); }
+      .face.first { opacity: 1; }
+
+      /* S1 */
+      #q1 { left: 0; right: 0; top: 610px; text-align: center; font-size: 64px; color: rgba(247, 245, 240, 0.82); }
+
+      /* S2 — pitch plane */
+      #stage2 { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 760px 360px; }
+      #planeWrap { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 760px 560px; }
+      #plane { position: absolute; left: 260px; top: 210px; width: 1000px; height: 700px; transform-style: preserve-3d; transform-origin: 50% 55%; }
+      #pitch { position: absolute; left: 0; top: 0; width: 1000px; height: 700px; overflow: visible; }
+      #pitch .ln { fill: none; stroke: rgba(247, 245, 240, 0.28); stroke-width: 3; }
+      #grid2 { position: absolute; left: 220px; top: 70px; display: grid; grid-template-columns: repeat(5, 104px); gap: 10px; }
+      .cell { position: relative; width: 104px; height: 104px; border-radius: 12px; background: rgba(247, 245, 240, 0.06); border: 1px solid rgba(247, 245, 240, 0.1); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 24px; color: rgba(247, 245, 240, 0.75); overflow: hidden; }
+      .cell .heat { position: absolute; inset: 0; background: var(--green); opacity: 0; }
+      .cell span { position: relative; }
+      #resRing { position: absolute; width: 124px; height: 124px; border-radius: 16px; border: 4px solid var(--green); box-shadow: 0 0 30px rgba(0, 200, 5, 0.7), inset 0 0 20px rgba(0, 200, 5, 0.4); opacity: 0; }
+      .tok { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: var(--ink); border: 3px solid var(--green); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px; color: var(--chalk); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6); opacity: 0; }
+      #arrows { position: absolute; left: 0; top: 0; width: 1000px; height: 700px; overflow: visible; }
+      #arrows path { fill: none; stroke: var(--chalk); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 6 12; opacity: 0.9; }
+      .dlab { position: absolute; font-weight: 700; font-size: 30px; color: var(--chalk); background: rgba(17, 18, 16, 0.85); padding: 4px 10px; border-radius: 8px; opacity: 0; white-space: nowrap; }
+      .axis { position: absolute; font-weight: 600; font-size: 22px; letter-spacing: 0.16em; color: rgba(247, 245, 240, 0.68); opacity: 0; }
+      #pickTag { position: absolute; left: 1280px; top: 440px; }
+      #title2 { left: 1280px; top: 180px; font-size: 104px; line-height: 1.12; }
+      #counters { left: 1280px; top: 470px; display: flex; gap: 64px; }
+      .ctr .cap { margin-bottom: 8px; }
+      .ctr .led { font-size: 92px; line-height: 1; }
+      #lockPill { left: 1280px; top: 800px; }
+      .pill { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: 26px; letter-spacing: 0.08em; text-transform: uppercase; padding: 14px 24px; border-radius: 999px; border: 2px solid rgba(247, 245, 240, 0.18); background: rgba(28, 29, 26, 0.9); white-space: nowrap; }
+      .pill.g { border-color: var(--green); color: var(--green); box-shadow: 0 0 22px rgba(0, 200, 5, 0.35); }
+      .pill.solid { background: var(--green); color: var(--ink); border-color: var(--green); }
+
+      /* S3 — scoreboard */
+      #flipStage { position: absolute; inset: 0; perspective: 2200px; }
+      #s3 .row { position: absolute; left: 0; right: 0; top: 330px; display: flex; align-items: center; justify-content: center; gap: 22px; }
+      #s3 .row img { width: 120px; height: 120px; object-fit: contain; }
+      #s3 .dash { font-weight: 700; font-size: 110px; color: rgba(247, 245, 240, 0.6); width: 60px; text-align: center; }
+      #clock { left: 0; right: 0; top: 580px; text-align: center; font-size: 110px; }
+      #ticker { left: 0; right: 0; top: 760px; display: flex; justify-content: center; gap: 16px; }
+      #sources { left: 0; right: 0; top: 880px; display: flex; justify-content: center; gap: 16px; }
+
+      /* S4 — ladder */
+      #ladder { left: 1150px; top: 210px; width: 680px; }
+      .rung { position: relative; height: 84px; margin-bottom: 14px; border-radius: 16px; background: rgba(28, 29, 26, 0.92); border: 2px solid rgba(247, 245, 240, 0.08); display: grid; grid-template-columns: 80px 120px 1fr 190px; align-items: center; padding: 0 22px; opacity: 0; }
+      .rung .t { width: 50px; height: 50px; border-radius: 50%; border: 3px solid var(--green); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px; }
+      .rung .pk { font-family: "Fraunces", serif; font-weight: 700; font-size: 44px; }
+      .rung .d { font-weight: 600; font-size: 26px; color: rgba(247, 245, 240, 0.7); }
+      .rung .pay { text-align: right; font-weight: 700; font-size: 46px; opacity: 0; }
+      .rung .pay.win { color: var(--green); text-shadow: 0 0 16px rgba(0, 200, 5, 0.5); }
+      .rung .pay.lose { color: var(--muted); }
+      #median { left: 1120px; top: 0; width: 740px; height: 0; border-top: 4px dashed var(--chalk); transform-origin: left center; opacity: 0; }
+      #medLab { left: 1000px; top: 0; font-size: 18px; padding: 8px 14px; }
+      #say4 { left: 150px; top: 880px; font-size: 76px; }
+      #illus { left: 1150px; top: 740px; font-size: 18px; padding: 8px 16px; color: var(--muted); }
+      .coin { position: absolute; left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px rgba(0, 200, 5, 0.8); opacity: 0; }
+
+      /* wipe */
+      #wipeLine { position: absolute; top: -40px; left: 0; width: 6px; height: 1160px; background: var(--chalk); box-shadow: 0 0 30px 6px rgba(0, 200, 5, 0.6); opacity: 0; }
+
+      /* S6 — no house + donut */
+      #s6 { clip-path: inset(0 100% 0 0); }
+      #hero6 { left: 150px; top: 330px; font-size: 180px; }
+      #sub6 { left: 160px; top: 560px; font-size: 76px; color: rgba(247, 245, 240, 0.6); }
+      #donut { left: 1170px; top: 300px; width: 480px; height: 480px; overflow: visible; }
+      #donut circle { fill: none; stroke-width: 44; }
+      #dc { left: 1170px; top: 300px; width: 480px; height: 480px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      #dc .led { font-size: 64px; }
+      .dl { position: absolute; font-weight: 700; font-size: 24px; letter-spacing: 0.1em; white-space: nowrap; opacity: 0; }
+
+      /* S7 — season wall */
+      #wallStage { position: absolute; inset: 0; perspective: 1800px; perspective-origin: 960px 300px; }
+      #wall { position: absolute; left: 260px; top: 380px; width: 1400px; height: 480px; transform-style: preserve-3d; transform-origin: 50% 40%; display: grid; grid-template-columns: repeat(5, 260px); gap: 22px 25px; }
+      .fx { position: relative; height: 220px; border-radius: 18px; background: rgba(28, 29, 26, 0.95); border: 2px solid rgba(247, 245, 240, 0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+      .fx .crests { display: flex; align-items: center; gap: 18px; }
+      .fx img { width: 70px; height: 70px; object-fit: contain; }
+      .fx .vs { font-weight: 600; font-size: 22px; color: var(--muted); }
+      .fx .ft { font-weight: 700; font-size: 20px; letter-spacing: 0.14em; color: rgba(247, 245, 240, 0.6); }
+      #pot { left: 610px; top: 110px; width: 700px; text-align: center; }
+      #pot .cap { margin-bottom: 14px; }
+      #potBar { margin: 0 auto; width: 640px; height: 26px; border-radius: 13px; background: rgba(247, 245, 240, 0.08); overflow: hidden; }
+      #potFill { width: 100%; height: 100%; background: var(--green); box-shadow: 0 0 22px rgba(0, 200, 5, 0.7); transform-origin: left center; }
+      #potN { margin-top: 12px; font-size: 30px; }
+
+      /* S8 — iris ring */
+      #s8 { clip-path: circle(0px at 50% 50%); }
+      #ring8 { left: 960px; top: 540px; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 4px solid var(--chalk); box-shadow: 0 0 24px rgba(0, 200, 5, 0.6); opacity: 0; }
+
+      /* S9 — end card */
+      #mark { left: 885px; top: 330px; width: 150px; height: 151px; }
+      #word { left: 1060px; top: 318px; font-size: 168px; clip-path: inset(0 100% 0 0); }
+      #sub9 { left: 0; right: 0; top: 560px; text-align: center; font-size: 30px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; color: rgba(247, 245, 240, 0.7); }
+      #pills9 { left: 0; right: 0; top: 680px; display: flex; justify-content: center; gap: 18px; }
+      #conf { position: absolute; inset: 0; pointer-events: none; }
+      #conf i { position: absolute; left: 0; top: 0; width: 12px; height: 18px; border-radius: 2px; opacity: 0; display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="45" data-width="1920" data-height="1080">
+      <audio id="music" data-timeline-role="music" src="assets/music.mp3" data-start="0" data-duration="45"></audio>
+
+      <!-- backdrop -->
+      <div id="beams"><div id="beamL" class="beam"></div><div id="beamR" class="beam"></div><div id="lampL" class="lamp"></div><div id="lampR" class="lamp"></div></div>
+      <div id="dust"></div>
+      <div id="flash"></div>
+      <div id="bloom"></div>
+
+      <!-- HUD -->
+      <div id="hudL" class="abs in"><img src="assets/logo-white.svg" alt="" />GW4 · ARS v LIV</div>
+      <div id="hudR" class="abs in"><span id="hudClock">PRE-MATCH</span></div>
+
+      <!-- S1: the yes/no board -->
+      <div id="s1" class="layer">
+        <div id="b1" class="board" style="left: 0; right: 0; top: 330px"></div>
+        <div id="q1" class="abs italic in">Will Arsenal win?</div>
+        <div id="lab1" class="board" style="left: 0; right: 0; top: 740px"></div>
+        <div id="lab1b" class="board" style="left: 0; right: 0; top: 740px"></div>
+      </div>
+
+      <div id="flipStage">
+        <!-- S2: the pitch -->
+        <div id="s2" class="layer in">
+          <div id="stage2">
+            <div id="planeWrap">
+              <div id="plane">
+                <svg id="pitch" viewBox="0 0 1000 700">
+                  <rect id="pOuter" class="ln" x="20" y="20" width="960" height="660" rx="8" />
+                  <line id="pHalf" class="ln" x1="500" y1="20" x2="500" y2="680" />
+                  <circle id="pCirc" class="ln" cx="500" cy="350" r="120" />
+                  <rect id="pLock" x="200" y="50" width="600" height="600" rx="18" fill="none" stroke="#00C805" stroke-width="5" />
+                </svg>
+                <div id="grid2"></div>
+                <div id="resRing"></div>
+                <svg id="arrows" viewBox="0 0 1000 700"></svg>
+                <div id="toks"></div>
+                <div id="dlabs"></div>
+                <div class="axis" id="axH" style="left: 150px; top: 40px">ARS ↓</div>
+                <div class="axis" id="axA" style="left: 700px; top: 26px">LIV →</div>
+              </div>
+            </div>
+          </div>
+          <div id="title2" class="abs serif"><div id="t2a"></div><div id="t2b" style="color: var(--green)"></div></div>
+          <div id="counters" class="abs">
+            <div class="ctr in" id="c1"><div class="cap">Pool</div><div class="led" id="poolV">$0</div></div>
+            <div class="ctr in" id="c2"><div class="cap">Entries</div><div class="led" id="entV">0</div></div>
+          </div>
+          <div id="lab2" class="board" style="left: 1280px; top: 700px; justify-content: flex-start"></div>
+          <div id="lockPill" class="abs"><span id="lockP" class="pill g in"><i class="gdot"></i>Locked at kickoff</span></div>
+          <!-- S4 ladder lives on the same layer so the grid can stay beside it -->
+          <div id="ladder" class="abs"></div>
+          <div id="median" class="abs"></div>
+          <span id="medLab" class="pill abs in">Median</span>
+          <span id="illus" class="pill abs in">Illustrative · five $10 stakes</span>
+          <div id="say4" class="abs italic in">Close still pays.</div>
+          <div id="say4b" class="abs italic in" style="left: 150px; top: 880px; font-size: 76px">Exact pays most.</div>
+          <div id="coins"></div>
+        </div>
+
+        <!-- S3: scoreboard -->
+        <div id="s3" class="layer in">
+          <div class="row">
+            <img src="assets/crests/arsenal.webp" alt="" />
+            <div id="bHome" class="board" style="position: relative"></div>
+            <div id="sH" class="board" style="position: relative"></div>
+            <div class="dash">–</div>
+            <div id="sA" class="board" style="position: relative"></div>
+            <div id="bAway" class="board" style="position: relative"></div>
+            <img src="assets/crests/liverpool.webp" alt="" />
+          </div>
+          <div id="clock" class="abs led in">0'</div>
+          <div id="ticker" class="abs">
+            <span id="g1" class="pill in">23' · ARS</span><span id="g2" class="pill in">58' · LIV</span><span id="g3" class="pill in">81' · ARS</span>
+          </div>
+          <div id="sources" class="abs">
+            <span id="src1" class="pill in">Source A · 2–1 ✓</span><span id="src2" class="pill in">Source B · 2–1 ✓</span><span id="settled" class="pill solid in">Settled</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="wipeLine"></div>
+
+      <!-- S6: no house + donut -->
+      <div id="s6" class="layer">
+        <div id="hero6" class="abs serif"></div>
+        <div id="sub6" class="abs italic in">Just the pool.</div>
+        <svg id="donut" class="abs" viewBox="0 0 480 480">
+          <circle cx="240" cy="240" r="190" stroke="rgba(247,245,240,0.07)" />
+          <circle id="arc90" cx="240" cy="240" r="190" stroke="#00C805" transform="rotate(-90 240 240)" />
+          <circle id="arcP" cx="240" cy="240" r="190" stroke="#6b6f63" transform="rotate(-90 240 240)" />
+          <circle id="arcS" cx="240" cy="240" r="190" stroke="#F7F5F0" transform="rotate(-90 240 240)" />
+        </svg>
+        <div id="dc" class="abs"><div class="cap">Losing stakes</div><div class="led in" id="dcV">100%</div></div>
+        <div id="dl1" class="dl" style="left: 1470px; top: 800px; color: var(--green)">Winners 90%</div>
+        <div id="dl2" class="dl" style="left: 1000px; top: 300px; color: var(--muted)">Platform 5%</div>
+        <div id="dl3" class="dl" style="left: 1250px; top: 238px; color: var(--chalk)">Season 5%</div>
+      </div>
+
+      <!-- S7: the season -->
+      <div id="s7" class="layer in">
+        <div id="pot" class="abs"><div class="cap">Season pot</div><div id="potBar"><div id="potFill"></div></div><div id="potN" class="led">0 markets settled</div></div>
+        <div id="wallStage"><div id="wall"></div></div>
+        <div id="lab7" class="board" style="left: 0; right: 0; top: 920px"></div>
+        <div id="coins7"></div>
+      </div>
+
+      <!-- S8: the line -->
+      <div id="s8" class="layer"><div id="b8" class="board" style="left: 0; right: 0; top: 400px"></div></div>
+      <div id="ring8" class="abs"></div>
+
+      <!-- S9: end card -->
+      <div id="s9" class="layer">
+        <img id="mark" class="abs in" src="assets/logo-white.svg" alt="Kickoff" />
+        <div id="word" class="abs serif">Kickoff</div>
+        <div id="sub9" class="abs in">Proximity markets for football</div>
+        <div id="pills9" class="abs"><span id="p91" class="pill solid in">Join the waitlist</span><span id="p92" class="pill in">kickoff.cash</span><span id="p93" class="pill in"><i class="gdot"></i>Testnet · play money</span></div>
+      </div>
+      <div id="conf"></div>
+
+      <div id="vign"></div>
+      <div id="testnet" class="abs in"><i class="gdot"></i>Testnet · play money</div>
+    </div>
+
+    <script>
+      // ── Grid: the track is authored at 128 BPM, 24 bars of 1.875s (videos/tools/matchday-track.py).
+      // `hyperframes beats` onsets sit on its 16th grid (91–94% within 30ms), so we use the exact grid.
+      const B = 60 / 128, BAR = 4 * B;
+      const at = (bar, beat = 0, off = 0) => bar * BAR + beat * B + off;
+      const E = -0.03;
+      const h = (i, s) => { const v = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return v - Math.floor(v); };
+      const $ = (s) => document.querySelector(s);
+      const tl = gsap.timeline({ paused: true });
+      const show = (s, t) => tl.set(s, { opacity: 1 }, t);
+      const hide = (s, t) => tl.set(s, { opacity: 0 }, t);
+
+      // ── split-flap board: states [{t, text, g}] → deterministic per-tile flips
+      function board(sel, n, w, hgt, fs, states, stagger = 0.04, gap = 12, reveal = false) {
+        const el = $(sel); el.style.gap = gap + "px";
+        if (reveal) { tl.set(el, { opacity: 0 }, 0); tl.fromTo(el, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.15, ease: "power3.out", immediateRender: false }, states[0].t - 0.12); }
+        for (let i = 0; i < n; i++) {
+          const tile = document.createElement("div"); tile.className = "tile";
+          tile.style.width = w + "px"; tile.style.height = hgt + "px"; el.appendChild(tile);
+          const blank = document.createElement("div"); blank.className = "face first"; tile.appendChild(blank);
+          let cur = blank, curCh = " ";
+          states.forEach((st) => {
+            const ch = (st.text[i] || " ");
+            const g = !!st.g;
+            if (ch === curCh && !st.force) return;
+            const f = document.createElement("div"); f.className = "face" + (g ? " g" : "");
+            f.style.fontSize = fs + "px"; f.textContent = ch === " " ? "" : ch; tile.appendChild(f);
+            const tt = st.t + i * (st.stagger ?? stagger), k = st.sp ?? 1;
+            tl.to(cur, { rotationX: -90, duration: 0.07 * k, ease: "power2.in" }, tt);
+            tl.set(cur, { opacity: 0 }, tt + 0.07 * k);
+            tl.fromTo(f, { rotationX: 90, opacity: 1 }, { rotationX: 0, opacity: 1, duration: 0.13 * k, ease: k < 1 ? "power2.out" : "back.out(1.7)", immediateRender: false }, tt + 0.07 * k);
+            cur = f; curCh = ch;
+          });
+        }
+        return el;
+      }
+      const pad = (s, n) => { const l = Math.floor((n - s.length) / 2); return (" ".repeat(l) + s).padEnd(n, " "); };
+      const letters = (sel, text) => { $(sel).innerHTML = [...text].map((c) => `<span class="in">${c === " " ? "&nbsp;" : c}</span>`).join(""); return [...document.querySelectorAll(sel + " span")]; };
+      const OFF = [[-260, -160], [220, -120], [0, -220], [300, 100], [-240, 150], [180, -200], [-160, -180], [260, 180], [-300, 40], [120, 220]];
+      const slam = (els, t, stag = 0.05) => els.forEach((el, i) => {
+        const [x, y] = OFF[i % OFF.length];
+        tl.fromTo(el, { opacity: 0, x, y, scale: 2, skewX: -15, filter: "blur(8px)" }, { opacity: 1, x: 0, y: 0, scale: 1, skewX: 0, filter: "blur(0px)", duration: 0.28, ease: "expo.out" }, t + i * stag + E);
+      });
+      const rise = (s, t, d = 0.16) => tl.fromTo(s, { opacity: 0, y: 24, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: d, ease: "power3.out" }, t + E);
+      const pop = (s, t, rot = 0) => tl.fromTo(s, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, rotation: rot, duration: 0.2, ease: "back.out(2)" }, t + E);
+      // Changing text (counters, clocks) is a pure function of time, evaluated by one driver
+      // tween at the end, so any seek order renders the right value.
+      const SEG = {};
+      const count = (s, a, b, t, d, fmt, lin = false) => (SEG[s] ??= []).push({ t, d, a, b, fmt, lin });
+      const textAt = (s, t, text) => (SEG[s] ??= []).push({ t, d: 0, text });
+
+      // ── backdrop: floodlights + dust (deterministic drift for the whole piece)
+      tl.to(["#beamL", "#beamR", "#lampL", "#lampR"], { opacity: 1, duration: 1.4, ease: "power2.out" }, 0.1);
+      tl.fromTo("#beamL", { rotation: -34 }, { rotation: -18, duration: 45, ease: "sine.inOut" }, 0);
+      tl.fromTo("#beamR", { rotation: 34 }, { rotation: 18, duration: 45, ease: "sine.inOut" }, 0);
+      const dust = $("#dust");
+      for (let i = 0; i < 38; i++) {
+        const d = document.createElement("i"); dust.appendChild(d);
+        const x0 = h(i, 1) * 1920, y0 = h(i, 2) * 1080, s = 0.5 + h(i, 3) * 1.4;
+        tl.set(d, { scale: s, opacity: 0.15 + h(i, 4) * 0.45 }, 0);
+        tl.fromTo(d, { x: x0, y: y0 }, { x: x0 + (h(i, 5) - 0.5) * 220, y: y0 - 80 - h(i, 6) * 160, duration: 45, ease: "none" }, 0);
+      }
+
+      // ═════ S1 · bars 0–4 · the yes/no board, then the shuffle into 2–1 ═════
+      const shuffle = [];
+      const GLY = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789";
+      for (let k = 0; k < 22; k++) {
+        const t = at(3, 0, 0.02) + k * 0.075;
+        shuffle.push({ t, text: [...Array(7)].map((_, i) => GLY[Math.floor(h(i * 31 + k, 9) * GLY.length)]).join(""), stagger: 0.012, sp: 0.3 });
+      }
+      board("#b1", 7, 150, 210, 150, [
+        { t: at(1, 0, E), text: "YES  NO" },
+        ...shuffle,
+        { t: at(4, 0, -0.2), text: "  2–1  ", g: true, stagger: 0.01, sp: 0.6 },
+      ], 0.05, 14);
+      tl.fromTo("#b1", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, at(0, 2));
+      show("#hudL", at(0, 1)); show("#hudR", at(0, 1));
+      tl.fromTo(["#hudL", "#hudR"], { y: -12 }, { y: 0, duration: 0.4, ease: "power3.out" }, at(0, 1));
+      rise("#q1", at(1, 2));
+      board("#lab1", 10, 56, 76, 50, [{ t: at(2, 2, E), text: "TOO BLUNT." }], 0.03, 6, true);
+      tl.to(["#q1", "#lab1"], { opacity: 0, filter: "blur(10px)", duration: 0.15 }, at(3, 0));
+      tl.fromTo("#b1", { scale: 1 }, { scale: 1.12, duration: BAR, ease: "power2.in" }, at(3));
+      tl.to("#b1", { scale: 1, duration: 0.3, ease: "expo.out" }, at(4));
+      tl.to(["#beamL", "#beamR"], { opacity: 0.4, duration: BAR, ease: "power2.in" }, at(3));
+      // the drop: one light frame
+      tl.set("#flash", { opacity: 1 }, at(4, 0, -0.01));
+      tl.to("#flash", { opacity: 0, duration: 0.3, ease: "power2.out" }, at(4, 2));
+      tl.set(["#beamL", "#beamR"], { opacity: 1 }, at(4, 2));
+      board("#lab1b", 15, 56, 76, 50, [{ t: at(4, 1, E), text: "CALL THE SCORE." }], 0.025, 6, true);
+
+      // ═════ S2 · bars 5–8 · the pitch, the grid, the crowd ═════
+            const grid = $("#grid2");
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+        const el = document.createElement("div"); el.className = "cell"; el.id = `c${r}${c}`;
+        el.innerHTML = `<div class="heat"></div><span>${r === 4 ? "4+" : r}–${c === 4 ? "4+" : c}</span>`; grid.appendChild(el);
+      }
+      const CX = (c) => 220 + c * 114 + 52, CY = (r) => 70 + r * 114 + 52;
+      $("#resRing").style.left = CX(1) - 62 + "px"; $("#resRing").style.top = CY(2) - 62 + "px";
+      // board1 hands over: tiles fall away, the grid assembles around 2–1
+      tl.to(["#b1", "#lab1b"], { opacity: 0, scale: 0.4, y: 120, filter: "blur(8px)", duration: 0.3, ease: "power3.in" }, at(5, 0, -0.2));
+      show("#s2", at(5, 0, -0.05));
+      tl.fromTo("#plane", { rotationX: 0, scale: 0.9 }, { rotationX: 52, scale: 1, duration: 0.9, ease: "power3.inOut" }, at(5, 1));
+      const order = []; for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) order.push([r, c, Math.hypot(r - 2, c - 1)]);
+      order.sort((a, b) => a[2] - b[2]).forEach(([r, c], k) => {
+        tl.fromTo(`#c${r}${c}`, { opacity: 0, scale: 0.4, filter: "blur(6px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.25, ease: "back.out(1.6)" }, at(5, 0) + k * 0.018);
+      });
+      tl.fromTo("#c21 .heat", { opacity: 0 }, { opacity: 0.55, duration: 0.2 }, at(5, 0));
+      const drawLn = (s, t, d = 0.6) => { const el = $(s); const L = el.getTotalLength(); el.style.strokeDasharray = L; tl.fromTo(el, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: d, ease: "power2.inOut" }, t); };
+      drawLn("#pOuter", at(5, 2)); drawLn("#pHalf", at(5, 2, 0.1), 0.4); drawLn("#pCirc", at(5, 2, 0.2), 0.5);
+      $("#pLock").style.strokeDasharray = $("#pLock").getTotalLength(); $("#pLock").style.strokeDashoffset = $("#pLock").getTotalLength();
+      tl.to(["#axH", "#axA"], { opacity: 1, duration: 0.3 }, at(5, 3));
+      tl.fromTo("#stage2", { scale: 1 }, { scale: 1.035, duration: at(8) - at(5), ease: "none" }, at(5));
+      slam(letters("#t2a", "Proximity"), at(5, 2), 0.04);
+      slam(letters("#t2b", "Markets."), at(5, 3), 0.04);
+      // the five entries (the docs' worked example), one per beat
+      const PICKS = [["A", 2, 1], ["B", 1, 0], ["C", 3, 1], ["D", 1, 1], ["E", 0, 2]];
+      const toks = $("#toks");
+      PICKS.forEach(([n, r, c], i) => {
+        const el = document.createElement("div"); el.className = "tok"; el.id = "tok" + n; el.textContent = n;
+        el.style.left = CX(c) + 38 + "px"; el.style.top = CY(r) - 38 + "px"; toks.appendChild(el);
+        const t = i < 4 ? at(6, i) : at(7, 0);
+        tl.fromTo(el, { opacity: 0, scale: 2.6, y: -40 }, { opacity: 1, scale: 1, y: 0, duration: 0.24, ease: "back.out(1.8)" }, t + E);
+        tl.to(`#c${r}${c} .heat`, { opacity: n === "A" ? 0.55 : 0.28, duration: 0.2 }, t);
+        tl.fromTo(`#c${r}${c}`, { scale: 1.08 }, { scale: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, t);
+        count("#poolV", i * 10, (i + 1) * 10, t, 0.25, (v) => "$" + v);
+        count("#entV", i, i + 1, t, 0.2, (v) => "" + v);
+      });
+      pop("#c1", at(6, 0, -0.1)); pop("#c2", at(6, 0, -0.05));
+      board("#lab2", 9, 50, 70, 44, [{ t: at(7, 1, E), text: "ONE POOL." }, { t: at(7, 3, E), text: "NO HOUSE." }], 0.03, 6, true);
+
+      // ═════ S3 · bars 8–11 · kickoff, the match, full time ═════
+      tl.to("#pLock", { strokeDashoffset: 0, duration: 0.25, ease: "power2.out" }, at(8, 0, -0.05));
+      pop("#lockP", at(8, 0));
+      textAt("#hudClock", at(8, 0), "0'");
+      // flip: pitch swings away, scoreboard swings in and flattens
+      tl.to("#s2", { rotationY: 70, opacity: 0, filter: "blur(10px)", duration: 0.3, ease: "power3.in" }, at(8, 1));
+      show("#s3", at(8, 1, 0.28));
+      tl.fromTo("#s3", { rotationY: -80, filter: "blur(10px)" }, { rotationY: -12, filter: "blur(0px)", duration: 0.3, ease: "expo.out", immediateRender: false }, at(8, 1, 0.28));
+      tl.to("#s3", { rotationY: 0, duration: 0.45, ease: "power2.out" }, at(8, 1, 0.58));
+      board("#bHome", 3, 110, 160, 104, [{ t: at(8, 2, -0.1), text: "ARS" }], 0.05, 10);
+      board("#bAway", 3, 110, 160, 104, [{ t: at(8, 2, -0.05), text: "LIV" }], 0.05, 10);
+      const g1 = at(9, 0), g2 = at(9, 2), g3 = at(9, 3), ft = at(10, 0);
+      board("#sH", 1, 130, 180, 130, [{ t: at(8, 2), text: "0" }, { t: g1 + E, text: "1", g: true }, { t: g1 + 0.35, text: "1", force: true }, { t: g3 + E, text: "2", g: true }]);
+      board("#sA", 1, 130, 180, 130, [{ t: at(8, 2), text: "0" }, { t: g2 + E, text: "1", g: true }, { t: g2 + 0.35, text: "1", force: true }]);
+      show("#clock", at(8, 2));
+      const mins = (v) => v + "'";
+      [["#clock"], ["#hudClock"]].forEach(([s]) => {
+        count(s, 0, 23, at(8, 2), g1 - at(8, 2), mins, true);
+        count(s, 23, 58, g1, g2 - g1, mins, true);
+        count(s, 58, 81, g2, g3 - g2, mins, true);
+        count(s, 81, 90, g3, ft - 0.15 - g3, mins, true);
+      });
+      pop("#g1", g1); pop("#g2", g2); pop("#g3", g3);
+      textAt("#clock", ft, "FT"); textAt("#hudClock", ft, "FT");
+      tl.fromTo("#clock", { scale: 1.5 }, { scale: 1, duration: 0.3, ease: "expo.out", immediateRender: false }, ft);
+      pop("#src1", at(10, 1)); pop("#src2", at(10, 2)); pop("#settled", at(10, 3), -3);
+
+      // ═════ S2 again · bar 11 · distances drawn like a tactics board ═════
+      tl.to("#s3", { scale: 0.86, opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power3.in" }, at(11, 0, -0.3));
+      tl.set("#s2", { rotationY: 0, filter: "blur(0px)" }, at(11, 0, -0.3));
+      tl.fromTo("#s2", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out", immediateRender: false }, at(11, 0, -0.12));
+      tl.to(["#lockP", "#lab2"], { opacity: 0, duration: 0.1 }, at(11, 0, -0.3));
+      tl.to("#stage2", { scale: 1.32, x: 150, y: -20, duration: 0.5, ease: "power3.inOut" }, at(11, 0, -0.1));
+      tl.to("#stage2", { scale: 1, x: 0, y: 0, duration: 0.45, ease: "power3.inOut" }, at(12, 0, E));
+      tl.fromTo("#resRing", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, at(11, 0));
+      const arrows = $("#arrows"), dlabs = $("#dlabs");
+      const DIST = { B: "1.25", C: "1.50", D: "5.50", E: "7.75" };
+      PICKS.slice(1).forEach(([n, r, c], i) => {
+        const x1 = CX(c), y1 = CY(r), x2 = CX(1), y2 = CY(2);
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+        const bend = 60 * (i % 2 ? 1 : -1);
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", `M${x1},${y1} Q${mx - (dy / len) * bend},${my + (dx / len) * bend} ${x2 + (-dx / len) * 60},${y2 + (-dy / len) * 60}`);
+        arrows.appendChild(p);
+        const L = p.getTotalLength();
+        p.style.strokeDasharray = `${L}`; p.style.strokeDashoffset = `${L}`;
+        const t = at(11, 1) + i * 0.23;
+        tl.to(p, { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, t);
+        tl.set(p, { strokeDasharray: "6 12" }, t + 0.36);
+        const lab = document.createElement("div"); lab.className = "dlab"; lab.textContent = DIST[n];
+        lab.style.left = x1 - 52 + "px"; lab.style.top = y1 + 30 + "px"; dlabs.appendChild(lab);
+        pop(lab, t + 0.2);
+      });
+      const exact = document.createElement("div"); exact.className = "dlab"; exact.textContent = "0.00 · EXACT";
+      exact.style.left = CX(1) + 34 + "px"; exact.style.top = CY(2) - 86 + "px"; exact.style.color = "#00C805"; dlabs.appendChild(exact);
+      pop(exact, at(11, 3, 0.1));
+      tl.to(["#title2", "#counters"], { opacity: 0, filter: "blur(8px)", duration: 0.2 }, at(11, 0, -0.1));
+
+      // ═════ S4 · bars 12–13 (break) · the ranking and the median ═════
+      tl.to("#planeWrap", { x: -300, scale: 0.84, duration: 0.45, ease: "power3.inOut" }, at(12, 0, E));
+      tl.to("#plane", { opacity: 0.55, duration: 0.45 }, at(12, 0));
+      const ladder = $("#ladder");
+      const PAY = { A: ["+232%", "win"], B: ["+38%", "win"], C: ["−100%", "lose"], D: ["−100%", "lose"], E: ["−100%", "lose"] };
+      const DL = { A: "0.00", B: "1.25", C: "1.50", D: "5.50", E: "7.75" };
+      PICKS.forEach(([n, r, c], i) => {
+        const el = document.createElement("div"); el.className = "rung"; el.id = "rg" + n;
+        el.innerHTML = `<div class="t">${n}</div><div class="pk">${r}–${c}</div><div class="d">distance ${DL[n]}</div><div class="pay ${PAY[n][1]}" id="py${n}">${PAY[n][0]}</div>`;
+        ladder.appendChild(el);
+        const t = i < 4 ? at(12, i) : at(13, 0);
+        tl.fromTo(el, { opacity: 0, x: 60, filter: "blur(10px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.16, ease: "power3.out" }, t + E);
+      });
+      const RUNG = (i) => 210 + i * 98 + 42; // screen y of rung centre
+      tl.set("#median", { y: RUNG(2) }, 0); tl.set("#medLab", { y: RUNG(2) - 24 }, 0);
+      tl.fromTo("#median", { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.35, ease: "power2.inOut", immediateRender: false }, at(13, 1));
+      pop("#medLab", at(13, 1, 0.2));
+      tl.to(["#rgA", "#rgB"], { borderColor: "rgba(0,200,5,0.9)", boxShadow: "0 0 26px rgba(0,200,5,0.35)", duration: 0.2 }, at(13, 2));
+      tl.to(["#rgC", "#rgD", "#rgE"], { opacity: 0.45, duration: 0.25 }, at(13, 2));
+      rise("#say4", at(13, 2), 0.25);
+
+      // ═════ S5 · bars 14–15 (drop 2) · the pool pays out ═════
+      tl.fromTo("#flash", { opacity: 0.22 }, { opacity: 0, duration: 0.35, immediateRender: false }, at(14, 0));
+      const coins = $("#coins");
+      for (let i = 0; i < 27; i++) {
+        const el = document.createElement("div"); el.className = "coin"; coins.appendChild(el);
+        const from = 2 + (i % 3), to = i % 5 === 0 ? 1 : 0; // losers → winners (A takes most)
+        const x0 = 1150 + 55, y0 = RUNG(from), x1 = 1150 + 55, y1 = RUNG(to);
+        const t0 = at(14, 0) + (i % 9) * 0.035;
+        const o = { p: 0 }; const arc = 140 + h(i, 7) * 160, sx = (h(i, 8) - 0.5) * 60;
+        tl.to(o, { p: 1, duration: 0.55, ease: "power1.inOut", onUpdate: () => {
+          const p = o.p; const x = x0 + sx * Math.sin(Math.PI * p) - arc * Math.sin(Math.PI * p), y = y0 + (y1 - y0) * p;
+          el.style.transform = `translate(${x}px, ${y}px)`; el.style.opacity = p <= 0 || p >= 1 ? 0 : 1;
+        } }, t0);
+      }
+      const payIn = (n, t) => { tl.fromTo(`#py${n}`, { opacity: 0, scale: 1.6, filter: "blur(8px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.2, ease: "expo.out" }, t + E); };
+      payIn("A", at(14, 1)); count("#pyA", 0, 232, at(14, 1), 0.4, (v) => "+" + v + "%");
+      payIn("B", at(14, 2)); count("#pyB", 0, 38, at(14, 2), 0.3, (v) => "+" + v + "%");
+      ["C", "D", "E"].forEach((n) => payIn(n, at(14, 3)));
+      pop("#illus", at(14, 3));
+      tl.to("#say4", { opacity: 0, filter: "blur(10px)", duration: 0.12 }, at(15, 2, -0.1));
+      rise("#say4b", at(15, 2), 0.2);
+      tl.fromTo("#rgA", { scale: 1 }, { scale: 1.05, duration: 0.25, ease: "back.out(2)", immediateRender: false }, at(15, 0));
+      tl.to("#rgA", { scale: 1, duration: 0.4 }, at(15, 1));
+
+      // ═════ S6 · bars 16–17 · halfway-line wipe → no house, 90 / 5 / 5 ═════
+      tl.set("#wipeLine", { opacity: 1, x: -20 }, at(16, 0, -0.32));
+      tl.to("#wipeLine", { x: 1940, duration: 0.32, ease: "power2.inOut" }, at(16, 0, -0.32));
+      tl.fromTo("#s6", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.32, ease: "power2.inOut", immediateRender: false }, at(16, 0, -0.32));
+      tl.fromTo("#flipStage", { clipPath: "inset(0 0 0 0%)" }, { clipPath: "inset(0 0 0 100%)", duration: 0.32, ease: "power2.inOut", immediateRender: false }, at(16, 0, -0.32));
+      hide("#wipeLine", at(16, 0, 0.01));
+      tl.to("#s2", { opacity: 0, duration: 0.2 }, at(16, 0, -0.05));
+      slam(letters("#hero6", "No house."), at(16, 0), 0.05);
+      rise("#sub6", at(16, 2), 0.25);
+      const C = 2 * Math.PI * 190;
+      const arc = (s, from, to, t, d) => { tl.set(s, { strokeDasharray: `0 ${C}`, strokeDashoffset: -from * C }, 0); tl.to(s, { strokeDasharray: `${(to - from) * C} ${C}`, duration: d, ease: "power2.out" }, t); };
+      arc("#arc90", 0, 0.9, at(17, 0, E), 0.45); arc("#arcP", 0.9, 0.95, at(17, 1, E), 0.2); arc("#arcS", 0.95, 1.0, at(17, 2, E), 0.2);
+      rise("#dcV", at(16, 3)); pop("#dl1", at(17, 0, 0.1)); pop("#dl2", at(17, 1, 0.05)); pop("#dl3", at(17, 2, 0.05));
+      tl.fromTo("#arcS", { strokeWidth: 44 }, { strokeWidth: 62, duration: 0.2, yoyo: true, repeat: 1, immediateRender: false }, at(17, 3));
+
+      // ═════ S7 · bars 18–19 · every match feeds the season ═════
+      tl.to("#s6", { opacity: 0, scale: 1.1, filter: "blur(12px)", duration: 0.25, ease: "power3.in" }, at(18, 0, -0.25));
+      show("#testnet", at(5, 0)); // on from the first product frame
+      show("#s7", at(18, 0, -0.05));
+      const FIX = [["arsenal", "liverpool"], ["man-city", "chelsea"], ["man-united", "tottenham"], ["newcastle", "aston-villa"], ["brighton", "west-ham"], ["everton", "fulham"], ["brentford", "crystal-palace"], ["nottingham-forest", "bournemouth"], ["wolves", "sunderland"], ["leeds", "burnley"]];
+      const wall = $("#wall");
+      FIX.forEach(([a, b], i) => {
+        const el = document.createElement("div"); el.className = "fx"; el.id = "fx" + i;
+        el.innerHTML = `<div class="crests"><img src="assets/crests/${a}.webp" alt="" /><span class="vs">v</span><img src="assets/crests/${b}.webp" alt="" /></div><div class="ft">Settled</div>`;
+        wall.appendChild(el);
+      });
+      tl.fromTo("#wall", { rotationX: 24, rotationY: -6, scale: 1.9, y: 80 }, { rotationX: 18, rotationY: -4, scale: 1, y: 0, duration: 0.55, ease: "power3.inOut" }, at(18, 0, -0.05));
+      tl.fromTo("#wall", { rotationY: -4 }, { rotationY: 4, duration: 2 * BAR, ease: "none", immediateRender: false }, at(18, 0, 0.5));
+      rise("#pot", at(18, 0, 0.1), 0.25);
+      tl.set("#potFill", { scaleX: 0 }, 0);
+      const coins7 = $("#coins7");
+      FIX.forEach((_, i) => {
+        const t = at(18, 1) + i * (B / 2);
+        const col = i % 5, row = Math.floor(i / 5);
+        const x0 = 260 + col * 285 + 130, y0 = 380 + row * 242 + 60, x1 = 960, y1 = 170;
+        const el = document.createElement("div"); el.className = "coin"; coins7.appendChild(el);
+        const o = { p: 0 };
+        tl.to(o, { p: 1, duration: 0.42, ease: "power2.in", onUpdate: () => {
+          const p = o.p; const x = x0 + (x1 - x0) * p, y = y0 + (y1 - y0) * p - Math.sin(Math.PI * p) * 120;
+          el.style.transform = `translate(${x}px, ${y}px)`; el.style.opacity = p <= 0 || p >= 1 ? 0 : 1;
+        } }, t);
+        tl.to(`#fx${i}`, { borderColor: "rgba(0,200,5,0.8)", duration: 0.15 }, t);
+        tl.to("#potFill", { scaleX: (i + 1) / 10, duration: 0.18, ease: "power2.out" }, t + 0.42);
+        textAt("#potN", t + 0.42, `${i + 1} market${i ? "s" : ""} settled`);
+      });
+      board("#lab7", 15, 50, 70, 44, [{ t: at(19, 1), text: "TOP 10 SPLIT IT" }], 0.02, 6, true);
+
+      // ═════ S8 · bars 20–21 · centre-circle iris → the line ═════
+      tl.set("#ring8", { opacity: 1 }, at(20, 0, -0.25));
+      tl.fromTo("#ring8", { scale: 1 }, { scale: 60, opacity: 0, duration: 0.4, ease: "power2.in", immediateRender: false }, at(20, 0, -0.25));
+      tl.fromTo("#s8", { clipPath: "circle(0px at 50% 50%)" }, { clipPath: "circle(1200px at 50% 50%)", duration: 0.3, ease: "power2.in", immediateRender: false }, at(20, 0, -0.25));
+      tl.to("#s7", { opacity: 0, scale: 0.94, duration: 0.25, ease: "power2.in" }, at(20, 0, -0.25));
+      hide("#hudL", at(20, 0)); hide("#hudR", at(20, 0));
+      board("#b8", 8, 180, 250, 180, [
+        { t: at(20, 0, E), text: "BEAT THE" },
+        { t: at(20, 2, E), text: pad("PACK.", 8) },
+        { t: at(21, 0, E), text: "KEEP THE" },
+        { t: at(21, 2, E), text: pad("STACK.", 8), g: true },
+      ], 0.035, 16);
+      tl.fromTo("#b8", { scale: 1 }, { scale: 1.06, duration: 2 * BAR - 0.3, ease: "power1.in" }, at(20));
+
+      // ═════ S9 · bar 22 → 45s · the final hit ═════
+      tl.to("#b8", { scale: 0.08, opacity: 0, filter: "blur(10px)", duration: 0.28, ease: "power3.in", immediateRender: false }, at(22, 0, -0.28));
+      tl.fromTo("#bloom", { opacity: 0.9, scale: 0.4 }, { opacity: 0, scale: 1.6, duration: 0.9, ease: "power2.out" }, at(22, 0));
+      tl.fromTo("#mark", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" }, at(22, 0));
+      tl.to("#mark", { x: -300, duration: 0.45, ease: "power3.inOut" }, at(22, 1, E));
+      tl.fromTo("#word", { clipPath: "inset(0 100% 0 0)", x: -300 }, { clipPath: "inset(0 0% 0 0)", x: -300, duration: 0.45, ease: "power3.inOut" }, at(22, 1, E));
+      rise("#sub9", at(22, 2));
+      pop("#p91", at(22, 3)); pop("#p92", at(23, 0)); pop("#p93", at(23, 1));
+      hide("#testnet", at(22, 0));
+      tl.fromTo("#s9", { scale: 1 }, { scale: 1.025, duration: 45 - at(22), ease: "none" }, at(22));
+      // ticker-tape burst on the final hit
+      const conf = $("#conf"); const COL = ["#00C805", "#F7F5F0", "#00C805", "#6b6f63"];
+      for (let i = 0; i < 44; i++) { const el = document.createElement("i"); el.style.background = COL[i % 4]; conf.appendChild(el); }
+      const bits = [...conf.children]; const cb = { v: 0 };
+      tl.to(cb, { v: 2.2, duration: 2.2, ease: "none", onUpdate: () => {
+        const t = cb.v;
+        bits.forEach((el, i) => {
+          if (t <= 0) { el.style.opacity = 0; return; }
+          const ang = -Math.PI / 2 + (h(i, 1) - 0.5) * 2.6, sp = 900 + h(i, 2) * 1100;
+          const x = 960 + Math.cos(ang) * sp * t * 0.6, y = 470 + Math.sin(ang) * sp * t * 0.6 + 0.5 * 1500 * t * t;
+          el.style.transform = `translate(${x}px, ${y}px) rotate(${(h(i, 3) - 0.5) * 1400 * t}deg) scaleY(${0.4 + Math.abs(Math.sin(t * 9 + i))})`;
+          el.style.opacity = t < 1.6 ? 1 : Math.max(0, 1 - (t - 1.6) / 0.6);
+        });
+      } }, at(22, 0));
+      // text driver
+      const INIT = {}; Object.keys(SEG).forEach((k) => { INIT[k] = $(k).textContent; SEG[k].sort((a, b) => a.t - b.t); });
+      const clock = { t: 0 };
+      tl.fromTo(clock, { t: 0 }, { t: 45, duration: 45, ease: "none", onUpdate: () => {
+        const T = clock.t;
+        for (const k in SEG) {
+          let seg = null; for (const g of SEG[k]) if (g.t <= T) seg = g;
+          let out = INIT[k];
+          if (seg) {
+            if (seg.text !== undefined) out = seg.text;
+            else { const p = Math.min(1, Math.max(0, (T - seg.t) / seg.d)); const e = seg.lin ? p : 1 - (1 - p) * (1 - p); out = seg.fmt(Math.round(seg.a + (seg.b - seg.a) * e)); }
+          }
+          const el = $(k); if (el.textContent !== out) el.textContent = out;
+        }
+      } }, 0);
+      tl.set({}, {}, 45);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

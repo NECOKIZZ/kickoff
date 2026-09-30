@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Kickoff launch</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-italic-400.woff2") format("woff2"); font-weight: 400; font-style: italic; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-600.woff2") format("woff2"); font-weight: 600; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-700.woff2") format("woff2"); font-weight: 700; }
+
+      :root {
+        --ink: #111210;
+        --card: #1c1d1a;
+        --chalk: #f7f5f0;
+        --muted: #6b6f63;
+        --green: #00c805;
+        --hair: rgba(247, 245, 240, 0.1);
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--chalk); font-family: "Clash Display", sans-serif; }
+
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .cam, .world { position: absolute; inset: 0; }
+      #s2, #s3, #s4, #s5, #s6, #s7 { opacity: 0; }
+      #s1 { z-index: 1; } #s2 { z-index: 2; } #s3 { z-index: 3; } #s4 { z-index: 4; }
+      #s5 { z-index: 5; } #s6 { z-index: 6; } #s7 { z-index: 7; }
+
+      .serif { font-family: "Fraunces", serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+      .eyebrow { font-family: "Clash Display", sans-serif; font-weight: 700; font-size: 32px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--green); }
+      .muted { color: var(--muted); }
+      .in { opacity: 0; }
+      .w { display: inline-block; }
+      .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+      /* S1 */
+      .s1-row { display: flex; gap: 56px; align-items: baseline; font-size: 230px; }
+      .s1-row .or { font-style: italic; font-weight: 400; color: var(--muted); }
+      #strike { position: absolute; left: 330px; right: 330px; top: 548px; height: 10px; background: var(--green); transform: scaleX(0); transform-origin: left center; }
+
+      /* S2 */
+      .s2-line { font-size: 190px; text-align: center; }
+      #neq { margin-top: 64px; font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 48px; letter-spacing: 0.06em; color: var(--muted); display: flex; gap: 28px; }
+
+      /* S3 */
+      .s3-big { font-size: 280px; }
+      .s3-big .ch { display: inline-block; }
+      #matters { font-size: 150px; color: var(--green); margin-top: 24px; }
+
+      /* S4 — Score Markets grid */
+      .s4-left { position: absolute; left: 170px; top: 300px; width: 760px; }
+      .match { display: flex; align-items: center; gap: 18px; margin-top: 30px; font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 38px; }
+      .match img { height: 64px; width: 64px; object-fit: contain; }
+      .match .v { color: var(--muted); font-size: 32px; }
+      .s4-title { font-size: 128px; margin-top: 56px; }
+      #grid { position: absolute; left: 1100px; top: 236px; width: 620px; height: 620px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+      .cell { position: relative; border-radius: 14px; background: var(--card); border: 1px solid var(--hair); display: flex; align-items: center; justify-content: center; font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 30px; color: rgba(247, 245, 240, 0.72); overflow: hidden; }
+      .cell .heat { position: absolute; inset: 0; background: var(--chalk); opacity: 0; }
+      .cell span { position: relative; }
+      .axis { position: absolute; font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 24px; letter-spacing: 0.16em; color: var(--muted); }
+      #pick { position: absolute; left: 1100px; top: 236px; width: 115.2px; height: 115.2px; border-radius: 14px; background: var(--green); border: 3px solid var(--green); opacity: 0; display: flex; align-items: center; justify-content: center; font-family: "Clash Display", sans-serif; font-weight: 700; font-size: 34px; color: var(--ink); }
+      #ripple { position: absolute; width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--green); opacity: 0; }
+      #cursor { position: absolute; left: 0; top: 0; width: 56px; height: 56px; opacity: 0; }
+      #stake { position: absolute; left: 1100px; top: 890px; display: flex; gap: 16px; }
+      .pill { font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 30px; padding: 16px 28px; border-radius: 999px; border: 1px solid var(--hair); background: var(--card); }
+      .pill.accent { background: var(--green); color: var(--ink); border-color: var(--green); font-weight: 700; }
+
+      /* S5 — full time + worked example */
+      #ft { position: absolute; left: 0; right: 0; top: 190px; display: flex; flex-direction: column; align-items: center; }
+      #score { font-size: 300px; margin-top: 10px; }
+      #rows { position: absolute; left: 410px; width: 1100px; top: 330px; display: flex; flex-direction: column; gap: 22px; }
+      .row { display: grid; grid-template-columns: 220px 1fr 300px; align-items: center; padding: 26px 44px; border-radius: 20px; background: var(--card); border: 2px solid var(--hair); }
+      .row .p { font-family: "Fraunces", serif; font-weight: 700; font-size: 64px; letter-spacing: -0.02em; }
+      .row .l { font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 40px; color: rgba(247, 245, 240, 0.72); }
+      .row .r { font-family: "Clash Display", sans-serif; font-weight: 700; font-size: 60px; text-align: right; }
+      .row .r.win { color: var(--green); }
+      .row .r.lose { color: var(--muted); }
+      #still { position: absolute; left: 0; right: 0; top: 800px; text-align: center; font-family: "Fraunces", serif; font-style: italic; font-weight: 400; font-size: 64px; }
+      .footnote { position: absolute; right: 170px; bottom: 60px; font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 26px; letter-spacing: 0.08em; color: var(--muted); }
+
+      /* S6 — season */
+      #pct { font-size: 360px; color: var(--green); }
+      #s6sub { font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 46px; margin-top: 20px; color: rgba(247, 245, 240, 0.8); }
+      #segs { display: flex; gap: 14px; margin-top: 70px; }
+      #segs i { display: block; width: 88px; height: 14px; border-radius: 7px; background: var(--hair); }
+      #segs i b { display: block; width: 100%; height: 100%; border-radius: 7px; background: var(--green); transform: scaleX(0); transform-origin: left center; }
+
+      /* S7 — end card */
+      .lockup { display: flex; align-items: center; gap: 34px; }
+      .lockup img { width: 118px; height: 118px; }
+      .lockup .serif { font-size: 132px; }
+      .tag1 { font-size: 104px; margin-top: 90px; text-align: center; }
+      .tag2 { font-size: 104px; margin-top: 8px; text-align: center; color: rgba(247, 245, 240, 0.35); }
+      #cta { margin-top: 70px; font-size: 36px; padding: 22px 44px; }
+
+      /* Global overlays */
+      #wipe { position: absolute; inset: 0; background: var(--green); z-index: 50; opacity: 0; }
+      #testnet { position: absolute; left: 170px; bottom: 60px; z-index: 60; opacity: 0; display: flex; align-items: center; gap: 14px; font-family: "Clash Display", sans-serif; font-weight: 600; font-size: 26px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      #testnet i { width: 12px; height: 12px; border-radius: 50%; background: var(--green); display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
+      <audio id="music" data-timeline-role="music" src="assets/music.mp3" data-start="0" data-duration="30" data-fade-out="1"></audio>
+
+      <!-- S1 · Yes or no? -->
+      <div id="s1" class="scene"><div class="cam"><div class="world">
+        <div class="center"><div class="s1-row serif">
+          <span id="yes" class="w in">Yes</span><span id="or" class="w in or">or</span><span id="no" class="w in">no?</span>
+        </div></div>
+        <div id="strike"></div>
+      </div></div></div>
+
+      <!-- S2 · Football isn't binary -->
+      <div id="s2" class="scene"><div class="cam"><div class="world"><div class="center">
+        <div class="s2-line serif"><span id="fb" class="w">Football</span> <span id="isnt" class="w in">isn't</span></div>
+        <div class="s2-line serif" style="color: var(--green)"><span id="binary" class="w in">binary.</span></div>
+        <div id="neq" class="in"><span>2–1</span><span>≠</span><span>4–0</span></div>
+      </div></div></div></div>
+
+      <!-- S3 · Closeness matters -->
+      <div id="s3" class="scene"><div class="cam"><div class="world"><div class="center">
+        <div id="closeness" class="s3-big serif"></div>
+        <div id="matters" class="serif in">matters.</div>
+      </div></div></div></div>
+
+      <!-- S4 · Score Markets grid -->
+      <div id="s4" class="scene"><div class="cam"><div class="world">
+        <div class="s4-left">
+          <div id="eb4" class="eyebrow in">Score Markets</div>
+          <div id="match" class="match in"><img src="assets/arsenal.webp" alt="" />ARS <span class="v">v</span> CHE<img src="assets/chelsea.webp" alt="" /></div>
+          <div class="s4-title serif"><div id="t4a" class="in">Pick a</div><div id="t4b" class="in">scoreline.</div></div>
+        </div>
+        <div class="axis in" id="axh" style="left: 1100px; top: 186px">AWAY GOALS →</div>
+        <div class="axis in" id="axv" style="left: 1030px; top: 856px; transform: rotate(-90deg); transform-origin: left top">HOME GOALS →</div>
+        <div id="grid"></div>
+        <div id="pick" data-layout-allow-overlap data-layout-allow-occlusion>2–1</div>
+        <div id="ripple"></div>
+        <svg id="cursor" viewBox="0 0 24 24"><path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#F7F5F0" stroke="#111210" stroke-width="1.4" stroke-linejoin="round" /></svg>
+        <div id="stake">
+          <div id="st1" class="pill in">Your pick 2–1</div>
+          <div id="st2" class="pill accent in">10 USDC staked</div>
+          <div id="st3" class="pill in">Locks at kickoff</div>
+        </div>
+      </div></div></div>
+
+      <!-- S5 · Full time -->
+      <div id="s5" class="scene"><div class="cam"><div class="world">
+        <div id="ft"><div id="eb5" class="eyebrow in">Full time</div><div id="score" class="serif in">2–1</div></div>
+        <div id="rows">
+          <div id="rA" class="row in"><div class="p">2–1</div><div class="l">Exact</div><div class="r win" id="vA">+0%</div></div>
+          <div id="rB" class="row in"><div class="p">1–0</div><div class="l">Close</div><div class="r win" id="vB">+0%</div></div>
+          <div id="rC" class="row in"><div class="p">1–1</div><div class="l">Wrong winner</div><div class="r lose" id="vC">0%</div></div>
+        </div>
+        <div id="still" class="in">Close still pays.</div>
+        <div id="fn5" class="footnote in">Illustrative example · $10 stakes</div>
+      </div></div></div>
+
+      <!-- S6 · Season Accumulator -->
+      <div id="s6" class="scene"><div class="cam"><div class="world"><div class="center">
+        <div id="eb6" class="eyebrow">Season Accumulator</div>
+        <div id="pct" class="serif in">0%</div>
+        <div id="s6sub" class="in">of every losing pool builds the season prize</div>
+        <div id="segs"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+      </div></div></div></div>
+
+      <!-- S7 · End card -->
+      <div id="s7" class="scene"><div class="cam"><div class="world"><div class="center">
+        <div class="lockup"><img id="logo" src="assets/logo-white.svg" alt="Kickoff" /><div id="word" class="serif">Kickoff</div></div>
+        <div id="tag1" class="tag1 serif in">Beat the pack,</div>
+        <div id="tag2" class="tag2 serif in">keep the stack.</div>
+        <div id="cta" class="pill accent in">Join the waitlist · kickoff.cash</div>
+      </div></div></div></div>
+
+      <div id="wipe"></div>
+      <div id="testnet"><i></i>Testnet · play money</div>
+    </div>
+
+    <script>
+      // Beat grid from `npx hyperframes beats` (assets/music.mp3, 120 BPM), spurious
+      // off-grid hits dropped and gaps filled from the 0.5s grid. Index = beat number.
+      const BEATS = [0.0, 0.499, 0.998, 1.509, 2.009, 2.508, 2.995, 3.506, 4.005, 4.505, 5.004, 5.503, 6.002, 6.502, 7.001, 7.5, 8.011, 8.499, 9.009, 9.509, 10.019, 10.507, 10.995, 11.505, 12.005, 12.504, 13.003, 13.502, 14.013, 14.501, 15, 15.499, 16.022, 16.498, 17.009, 17.508, 17.995, 18.506, 19.006, 19.505, 20.004, 20.503, 21.002, 21.502, 22.013, 22.5, 22.999, 23.499, 24.021, 24.509, 25.008, 25.507, 26.006, 26.5, 27.005, 27.5, 28.003, 28.5, 29.0, 29.5, 30.0];
+      const at = (i, off = 0) => BEATS[i] + off;
+      const HIT = -0.06; // impacts start just before the beat so they land on it
+      const OUT = "power4.out"; // site ease: cubic-bezier(0.22, 1, 0.36, 1)
+
+      // Build the 5x5 grid (rows = home goals, cols = away goals). Heat = illustrative stake share.
+      const HEAT = [
+        [0.10, 0.08, 0.05, 0.03, 0.02],
+        [0.26, 0.30, 0.12, 0.05, 0.02],
+        [0.22, 0.34, 0.18, 0.06, 0.02],
+        [0.10, 0.14, 0.08, 0.04, 0.02],
+        [0.04, 0.05, 0.03, 0.02, 0.02],
+      ];
+      const grid = document.getElementById("grid");
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+        const el = document.createElement("div");
+        el.className = "cell in";
+        el.innerHTML = `<div class="heat"></div><span>${r === 4 ? "4+" : r}–${c === 4 ? "4+" : c}</span>`;
+        grid.appendChild(el);
+      }
+      const CELL = (620 - 4 * 12) / 5; // 114.4
+      const cellXY = (r, c) => ({ x: 1100 + c * (CELL + 12), y: 236 + r * (CELL + 12) });
+      const P = cellXY(2, 1);
+      const pick = document.getElementById("pick");
+      pick.style.left = P.x + "px"; pick.style.top = P.y + "px";
+      pick.style.width = CELL + "px"; pick.style.height = CELL + "px";
+
+      // Closeness, letter by letter.
+      document.getElementById("closeness").innerHTML = [..."Closeness"].map((ch) => `<span class="ch in">${ch}</span>`).join("");
+
+      const tl = gsap.timeline({ paused: true });
+      const show = (sel, t) => tl.set(sel, { opacity: 1 }, t);
+      const hide = (sel, t) => tl.set(sel, { opacity: 0 }, t);
+      const drift = (scene, t0, t1, to = 1.035) =>
+        tl.fromTo(`${scene} .world`, { scale: 1 }, { scale: to, duration: t1 - t0, ease: "none" }, t0);
+
+      // ── S1 · 0–4s ───────────────────────────────────────────────────────
+      drift("#s1", 0, 4);
+      tl.fromTo("#yes", { opacity: 0, x: -180 }, { opacity: 1, x: 0, duration: 0.45, ease: OUT }, at(1, HIT));
+      tl.fromTo("#or", { opacity: 0, y: -140, rotation: -8 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: "back.out(1.6)" }, at(2, HIT));
+      tl.fromTo("#no", { opacity: 0, scale: 1.9 }, { opacity: 1, scale: 1, duration: 0.35, ease: "expo.out" }, at(3, HIT));
+      tl.to("#strike", { scaleX: 1, duration: 0.3, ease: "power3.inOut" }, at(4, -0.15));
+      tl.to(["#yes", "#or", "#no"], { opacity: 0.25, duration: 0.3, ease: "power2.out" }, at(4, 0.1));
+      // whip pan left → S2 lands on beat 8
+      tl.to("#s1 .cam", { x: -1500, filter: "blur(40px)", duration: 0.28, ease: "power3.in" }, at(8, -0.3));
+      show("#s2", at(8, -0.02)); hide("#s1", at(8, 0.02));
+      tl.fromTo("#s2 .cam", { x: 1500, filter: "blur(40px)" }, { x: 0, filter: "blur(0px)", duration: 0.34, ease: "power3.out" }, at(8, -0.02));
+
+      // ── S2 · 4–8s ───────────────────────────────────────────────────────
+      drift("#s2", at(8), 8.1);
+      tl.fromTo("#isnt", { opacity: 0, y: -120 }, { opacity: 1, y: 0, duration: 0.4, ease: OUT }, at(9, HIT));
+      tl.fromTo("#binary", { opacity: 0, scale: 1.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "expo.out" }, at(10, HIT));
+      tl.fromTo("#neq", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: OUT }, at(12, HIT));
+      // push up → S3 on beat 16
+      tl.to("#s2 .cam", { y: -1080, duration: 0.45, ease: "power3.inOut" }, at(16, -0.45));
+      show("#s3", at(16, -0.45));
+      tl.fromTo("#s3 .cam", { y: 1080 }, { y: 0, duration: 0.45, ease: "power3.inOut" }, at(16, -0.45));
+      hide("#s2", at(16, 0.02));
+
+      // ── S3 · 8–12s ──────────────────────────────────────────────────────
+      tl.fromTo("#s3 .world", { scale: 1 }, { scale: 1.09, duration: 12 - at(16), ease: "power1.in" }, at(16)); // tension push under the riser
+      tl.fromTo("#closeness .ch", { opacity: 0, y: 160 }, { opacity: 1, y: 0, duration: 0.5, ease: OUT, stagger: 0.035 }, at(16, -0.2));
+      tl.fromTo("#matters", { opacity: 0, y: -90, rotation: 4 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: "back.out(1.4)" }, at(18, HIT));
+      // zoom through → S4 on the drop (beat 24)
+      tl.to("#s3 .cam", { scale: 7, opacity: 0, filter: "blur(12px)", duration: 0.4, ease: "power3.in" }, at(24, -0.4));
+      show("#s4", at(24, -0.12));
+      tl.fromTo("#s4 .cam", { scale: 0.72, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "expo.out" }, at(24, -0.12));
+      hide("#s3", at(24, 0.05));
+
+      // ── S4 · 12–18s ─────────────────────────────────────────────────────
+      drift("#s4", at(24), 18.1, 1.03);
+      show("#testnet", at(24)); tl.fromTo("#testnet", { y: 20 }, { y: 0, duration: 0.5, ease: OUT }, at(24));
+      tl.fromTo("#grid .cell", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: OUT, stagger: { each: 0.018, grid: [5, 5], from: "center" } }, at(24, HIT));
+      tl.fromTo(["#axh", "#axv"], { opacity: 0 }, { opacity: 1, duration: 0.4 }, at(25));
+      HEAT.flat().forEach((h, i) => tl.to(`#grid .cell:nth-child(${i + 1}) .heat`, { opacity: h, duration: 0.8, ease: "power2.out" }, at(25) + i * 0.012));
+      tl.fromTo("#eb4", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.45, ease: OUT }, at(25, HIT));
+      tl.fromTo("#match", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.45, ease: OUT }, at(25, 0.02));
+      tl.fromTo("#t4a", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.5, ease: OUT }, at(26, HIT));
+      tl.fromTo("#t4b", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.5, ease: OUT }, at(27, HIT));
+      // cursor glides in, clicks 2–1 on beat 29
+      const cx = P.x + CELL * 0.55, cy = P.y + CELL * 0.5;
+      tl.fromTo("#cursor", { opacity: 0, x: 1820, y: 1000 }, { opacity: 1, x: cx, y: cy, duration: 0.85, ease: "power3.inOut" }, at(27, 0.1));
+      tl.to("#cursor", { scale: 0.82, duration: 0.08, ease: "power2.in", transformOrigin: "10% 10%" }, at(29, -0.08));
+      tl.to("#cursor", { scale: 1, duration: 0.2, ease: "power2.out" }, at(29));
+      tl.fromTo("#pick", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, at(29));
+      tl.set("#ripple", { x: cx - 30, y: cy - 30 }, at(29));
+      tl.fromTo("#ripple", { opacity: 1, scale: 0.4 }, { opacity: 0, scale: 4, duration: 0.6, ease: "power2.out" }, at(29));
+      tl.to("#cursor", { opacity: 0, x: cx + 140, y: cy + 180, duration: 0.5, ease: "power2.in" }, at(31));
+      tl.fromTo("#st1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: OUT }, at(30, HIT));
+      tl.fromTo("#st2", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "expo.out" }, at(31, HIT));
+      tl.fromTo("#st3", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.45, ease: OUT }, at(33, HIT));
+      // wipe → S5 on beat 36
+      tl.set("#wipe", { opacity: 1, xPercent: -100 }, at(36, -0.3));
+      tl.to("#wipe", { xPercent: 0, duration: 0.3, ease: "power3.in" }, at(36, -0.3));
+      show("#s5", at(36)); hide("#s4", at(36));
+      tl.to("#wipe", { xPercent: 100, duration: 0.4, ease: "power3.out" }, at(36));
+      tl.set("#wipe", { opacity: 0 }, at(36, 0.42));
+
+      // ── S5 · 18–24s ─────────────────────────────────────────────────────
+      drift("#s5", at(36), 24.1, 1.03);
+      tl.fromTo("#eb5", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: OUT }, at(36, 0.1));
+      tl.fromTo("#score", { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.4, ease: "expo.out" }, at(37, HIT));
+      tl.to("#ft", { y: -110, scale: 0.5, duration: 0.5, ease: "power3.inOut", transformOrigin: "50% 0%" }, at(39, -0.05));
+      const count = (sel, to, t, sign) => {
+        const o = { v: 0 };
+        tl.to(o, { v: to, duration: 0.6, ease: "power2.out", onUpdate: () => { document.querySelector(sel).textContent = sign + Math.round(o.v) + "%"; } }, t);
+      };
+      tl.fromTo("#rA", { opacity: 0, x: -200 }, { opacity: 1, x: 0, duration: 0.45, ease: OUT }, at(40, HIT)); count("#vA", 232, at(40), "+");
+      tl.fromTo("#rB", { opacity: 0, y: 90 }, { opacity: 1, y: 0, duration: 0.45, ease: OUT }, at(41, HIT)); count("#vB", 38, at(41), "+");
+      tl.fromTo("#rC", { opacity: 0, y: -90 }, { opacity: 1, y: 0, duration: 0.45, ease: OUT }, at(42, HIT)); count("#vC", 100, at(42), "−");
+      tl.fromTo("#fn5", { opacity: 0 }, { opacity: 1, duration: 0.4 }, at(40));
+      tl.to(["#rA", "#rC"], { opacity: 0.3, duration: 0.35, ease: "power2.out" }, at(44, HIT));
+      tl.to("#rB", { borderColor: "#00C805", scale: 1.04, duration: 0.35, ease: OUT }, at(44, HIT));
+      tl.fromTo("#still", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: OUT }, at(45, HIT));
+      // zoom through → S6 on beat 48
+      tl.to("#s5 .cam", { scale: 3.2, opacity: 0, filter: "blur(10px)", duration: 0.38, ease: "power3.in" }, at(48, -0.38));
+      show("#s6", at(48, -0.1));
+      tl.fromTo("#s6 .cam", { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "expo.out" }, at(48, -0.1));
+      hide("#s5", at(48, 0.05));
+
+      // ── S6 · 24–27s ─────────────────────────────────────────────────────
+      drift("#s6", at(48), 27.1, 1.035);
+      const pc = { v: 0 };
+      tl.fromTo("#pct", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "expo.out" }, at(49, HIT));
+      tl.to(pc, { v: 5, duration: 0.4, ease: "power2.out", onUpdate: () => { document.getElementById("pct").textContent = Math.round(pc.v) + "%"; } }, at(49, HIT));
+      tl.fromTo("#s6sub", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: OUT }, at(50, HIT));
+      tl.to("#segs b", { scaleX: 1, duration: 0.14, ease: "power2.out", stagger: 0.125 }, at(51));
+      // push left → S7 on beat 54
+      tl.to("#s6 .cam", { x: -1920, duration: 0.45, ease: "power3.inOut" }, at(54, -0.45));
+      show("#s7", at(54, -0.45));
+      tl.fromTo("#s7 .cam", { x: 1920 }, { x: 0, duration: 0.45, ease: "power3.inOut" }, at(54, -0.45));
+      hide("#s6", at(54, 0.02));
+
+      // ── S7 · 27–30s ─────────────────────────────────────────────────────
+      drift("#s7", at(54), 30, 1.03);
+      tl.fromTo("#logo", { rotation: -14 }, { rotation: 0, duration: 0.5, ease: "back.out(2)" }, at(54, HIT));
+            tl.fromTo("#tag1", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.5, ease: OUT }, at(55, HIT));
+      tl.fromTo("#tag2", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.5, ease: OUT }, at(56, HIT));
+      tl.fromTo("#cta", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, at(57, HIT));
+      tl.set({}, {}, 30);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

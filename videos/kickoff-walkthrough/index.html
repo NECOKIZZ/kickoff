@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Kickoff walkthrough</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-italic-400.woff2") format("woff2"); font-weight: 400; font-style: italic; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-600.woff2") format("woff2"); font-weight: 600; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-700.woff2") format("woff2"); font-weight: 700; }
+      :root { --canvas: #edeae0; --chalk: #f7f5f0; --ink: #111210; --muted: #6b6f63; --purple: #7b62f6; --shadow: 0 24px 60px rgba(17, 18, 16, 0.12), 0 4px 12px rgba(17, 18, 16, 0.05); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--canvas); }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); font-family: "Clash Display", sans-serif; background-color: var(--canvas); background-image: radial-gradient(rgba(17, 18, 16, 0.07) 1.6px, transparent 1.7px); background-size: 34px 34px; }
+      .abs { position: absolute; }
+      .in { opacity: 0; }
+      .layer { position: absolute; inset: 0; }
+
+      .stk { display: inline-block; background: #fff; padding: 6px 26px 12px; border-radius: 8px; box-shadow: 0 10px 28px rgba(17, 18, 16, 0.09); font-weight: 700; font-size: 80px; line-height: 1.05; white-space: nowrap; }
+      .stk.acc { background: var(--purple); color: #fff; }
+      .pill { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; font-size: 28px; padding: 14px 26px; border-radius: 999px; background: #fff; box-shadow: 0 8px 24px rgba(17, 18, 16, 0.08); white-space: nowrap; }
+      .pill.acc { background: var(--purple); color: #fff; }
+      .pill img { width: 34px; height: 34px; object-fit: contain; }
+      .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--purple); display: block; }
+      .card { position: absolute; background: #fbfaf7; border-radius: 22px; box-shadow: var(--shadow); border: 1px solid rgba(17, 18, 16, 0.05); }
+      .label { font-weight: 600; color: var(--muted); font-size: 24px; letter-spacing: 0.02em; }
+      .illus { left: 60px; top: 44px; font-size: 22px; padding: 10px 20px; color: var(--muted); }
+
+      /* Browser frame holding the real captures */
+      #frame { position: absolute; left: 208px; top: 30px; width: 1504px; height: 890px; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: var(--shadow); opacity: 0; }
+      #chrome { position: absolute; left: 0; top: 0; right: 0; height: 44px; background: #fbfaf7; border-bottom: 1px solid rgba(17, 18, 16, 0.07); display: flex; align-items: center; padding: 0 18px; gap: 8px; z-index: 5; }
+      #chrome .l { width: 12px; height: 12px; border-radius: 50%; background: rgba(17, 18, 16, 0.14); }
+      #urlbox { position: relative; margin-left: 20px; width: 520px; height: 28px; border-radius: 8px; background: var(--canvas); font-weight: 600; font-size: 17px; color: #4d5147; }
+      #urlbox span { position: absolute; left: 14px; top: 4px; opacity: 0; }
+      #tn { margin-left: auto; font-size: 17px; padding: 5px 14px; gap: 8px; box-shadow: none; background: var(--canvas); color: #4d5147; }
+      #tn .dot { width: 9px; height: 9px; }
+      #vp { position: absolute; left: 0; top: 44px; width: 1504px; height: 846px; overflow: hidden; background: #f7f5f0; }
+      .shot { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; opacity: 0; }
+      .shot img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+      .ring { position: absolute; left: 0; top: 0; border: 3px solid var(--purple); border-radius: 12px; box-shadow: 0 0 0 6px rgba(123, 98, 246, 0.16); opacity: 0; }
+      .cur { position: absolute; left: 0; top: 0; width: 26px; height: 26px; opacity: 0; }
+      .rip { position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 2px solid var(--purple); opacity: 0; }
+
+      /* Intro / outro */
+      #mark { left: 885px; top: 330px; width: 150px; height: 151px; }
+      #wordmark { left: 1060px; top: 320px; font-family: "Fraunces", serif; font-weight: 700; font-size: 160px; line-height: 1; letter-spacing: -0.03em; clip-path: inset(0 100% 0 0); }
+      #introw { left: 0; right: 0; top: 560px; display: flex; justify-content: center; gap: 20px; }
+      #outrow { left: 0; right: 0; top: 540px; display: flex; justify-content: center; gap: 20px; }
+      #outpills { left: 0; right: 0; top: 720px; display: flex; justify-content: center; gap: 18px; }
+
+      /* S4 recreation — pick + stake */
+      #ggrp { position: absolute; left: 250px; top: 170px; width: 560px; height: 640px; transform-origin: 0 0; }
+      #gcard { left: 0; top: 0; width: 560px; height: 640px; padding: 40px; }
+      .ghead { height: 60px; display: flex; align-items: center; gap: 14px; font-weight: 600; font-size: 30px; }
+      .ghead img { width: 44px; height: 44px; object-fit: contain; }
+      .ghead .label { margin-left: auto; }
+      #grid { margin-top: 20px; display: grid; grid-template-columns: repeat(5, 88px); gap: 10px; }
+      .cell { position: relative; width: 88px; height: 88px; border-radius: 12px; background: var(--canvas); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 22px; color: rgba(17, 18, 16, 0.7); overflow: hidden; }
+      .cell .heat { position: absolute; inset: 0; background: var(--purple); }
+      .cell span { position: relative; }
+      #pick { position: absolute; width: 88px; height: 88px; border-radius: 12px; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 26px; opacity: 0; }
+      #pick span { position: absolute; }
+      #scard { left: 640px; top: 690px; width: 440px; padding: 28px; }
+      .srow { position: relative; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+      .srow .v { font-family: "Fraunces", serif; font-weight: 700; font-size: 44px; }
+      .srow .v2 { font-weight: 700; font-size: 34px; }
+      #pk2 { position: absolute; right: 0; opacity: 0; }
+      #sbtn { position: relative; margin-top: 16px; height: 64px; border-radius: 14px; background: var(--ink); color: var(--chalk); font-weight: 700; font-size: 30px; overflow: hidden; }
+      #sbtn div { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      #sbtn2 { background: var(--purple); color: #fff; opacity: 0; }
+      #lockb { left: 1010px; top: 650px; }
+      #s4w { left: 1150px; top: 400px; }
+      #s4w2 { left: 1150px; top: 400px; }
+      .line { display: flex; gap: 20px; margin-bottom: 20px; }
+      #cur4 { position: absolute; left: 0; top: 0; width: 54px; height: 54px; opacity: 0; z-index: 20; }
+      #rip4 { position: absolute; left: 0; top: 0; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 4px solid var(--purple); opacity: 0; z-index: 19; }
+
+      /* S6 recreation — settlement */
+      #ftp { left: 0; right: 0; top: 130px; display: flex; justify-content: center; }
+      #srcs { left: 0; right: 0; top: 330px; display: flex; justify-content: center; gap: 40px; }
+      .src { position: relative; width: 420px; height: 190px; padding: 34px 36px; }
+      .src .t { font-weight: 700; font-size: 44px; margin-top: 10px; }
+      .src .ok { position: absolute; right: 30px; top: 30px; width: 54px; height: 54px; border-radius: 50%; background: var(--purple); color: #fff; font-weight: 700; font-size: 30px; display: flex; align-items: center; justify-content: center; }
+      #settled { left: 0; right: 0; top: 600px; display: flex; justify-content: center; }
+      .rcard { top: 330px; width: 380px; height: 260px; padding: 34px 36px; border: 3px solid transparent; }
+      .rcard .p { font-family: "Fraunces", serif; font-weight: 700; font-size: 80px; line-height: 1; letter-spacing: -0.02em; }
+      .rcard .l { margin-top: 14px; font-weight: 600; font-size: 30px; color: rgba(17, 18, 16, 0.7); }
+      .rcard .r { margin-top: 20px; font-weight: 700; font-size: 54px; }
+      .win { color: var(--purple); } .lose { color: var(--muted); }
+      #median { left: 1175px; top: 300px; width: 0; height: 330px; border-left: 4px dashed var(--purple); transform-origin: top; }
+      #medlab { left: 1120px; top: 250px; font-size: 22px; padding: 8px 16px; }
+      #stamp { left: 1000px; top: 280px; width: 140px; height: 140px; border-radius: 50%; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; text-align: center; line-height: 1.05; box-shadow: 0 10px 30px rgba(123, 98, 246, 0.35); border: 5px dashed rgba(255, 255, 255, 0.55); }
+      #ill6 { left: 0; right: 0; top: 700px; display: flex; justify-content: center; }
+
+      /* Captions */
+      .cap { position: absolute; left: 0; right: 0; top: 952px; display: flex; justify-content: center; opacity: 0; }
+      .cap span { background: #fff; border-radius: 12px; padding: 12px 28px 16px; box-shadow: 0 10px 28px rgba(17, 18, 16, 0.1); font-weight: 600; font-size: 40px; max-width: 1600px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="89" data-width="1920" data-height="1080">
+      <audio id="music" data-timeline-role="music" src="assets/music.mp3" data-start="0" data-duration="89" data-volume="0.3" data-fade-out="2"></audio>
+      <div id="vo"></div>
+
+      <!-- Intro -->
+      <div id="L1" class="layer">
+        <img id="mark" class="abs in" src="assets/logo-black.svg" alt="Kickoff" />
+        <div id="wordmark" class="abs">Kickoff</div>
+        <div id="introw" class="abs"><span id="i1" class="stk in">Prediction markets</span><span id="i2" class="stk acc in">Close pays.</span></div>
+      </div>
+
+      <!-- Browser frame with real captures -->
+      <div id="frame">
+        <div id="chrome">
+          <i class="l"></i><i class="l"></i><i class="l"></i>
+          <div id="urlbox"><span id="u1">kickoff.cash</span><span id="u2">kickoff.cash/markets</span><span id="u3">kickoff.cash/markets/5</span><span id="u4">kickoff.cash/leaderboard</span><span id="u5">kickoff.cash/docs</span></div>
+          <span id="tn" class="pill"><i class="dot"></i>Testnet · play money</span>
+        </div>
+        <div id="vp">
+          <div id="sh1" class="shot"><img src="assets/shots/landing-hero.png" alt="" /></div>
+          <div id="sh2" class="shot"><img src="assets/shots/landing-close.png" alt="" /><div id="rg2" class="ring"></div></div>
+          <div id="sh3" class="shot"><img src="assets/shots/markets.png" alt="" /><div id="rg3" class="ring"></div><div id="rip3" class="rip"></div>
+            <svg id="cur3" class="cur" viewBox="0 0 24 24"><path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#111210" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" /></svg></div>
+          <div id="sh5" class="shot"><img src="assets/shots/market.png" alt="" /><div id="rg5" class="ring"></div></div>
+          <div id="sh7" class="shot"><img src="assets/shots/leaderboard.png" alt="" /><div id="rg7" class="ring"></div></div>
+          <div id="sh8" class="shot"><img src="assets/shots/docs-agents-safe.png" alt="" /><div id="rg8" class="ring"></div></div>
+        </div>
+      </div>
+
+      <!-- S4 recreation: pick + stake -->
+      <div id="L4" class="layer in">
+        <span class="pill abs illus">Illustration</span>
+        <div id="ggrp">
+          <div id="gcard" class="card">
+            <div class="ghead"><img src="assets/arsenal.webp" alt="" />ARS <span class="label" style="margin: 0">v</span> LIV<img src="assets/liverpool.webp" alt="" /><span class="label">Score market</span></div>
+            <div id="grid"></div>
+          </div>
+          <div id="pick" data-layout-allow-overlap data-layout-allow-occlusion><span id="pa" data-layout-allow-overlap data-layout-allow-occlusion>2–1</span><span id="pb" data-layout-allow-overlap data-layout-allow-occlusion style="opacity: 0">1–1</span></div>
+        </div>
+        <div id="scard" class="card in">
+          <div class="srow"><span class="label">Your pick</span><span class="v"><span id="pk1">2–1</span><span id="pk2">1–1</span></span></div>
+          <div class="srow"><span class="label">Stake</span><span class="v2">10 USDC</span></div>
+          <div id="sbtn"><div id="sbtn1">Stake</div><div id="sbtn2">✓ Staked</div></div>
+        </div>
+        <div id="lockb" class="pill abs in">Locks at kickoff</div>
+        <div id="s4w" class="abs"><div class="line"><span id="k1" class="stk in">Not a side.</span></div></div>
+        <div id="s4w2" class="abs"><div class="line"><span id="k2" class="stk in">The final</span></div><div class="line"><span id="k3" class="stk acc in">score.</span></div></div>
+        <div id="rip4"></div>
+        <svg id="cur4" viewBox="0 0 24 24"><path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#111210" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" /></svg>
+      </div>
+
+      <!-- S6 recreation: settlement -->
+      <div id="L6" class="layer in">
+        <span class="pill abs illus">Illustrative example · $10 stakes</span>
+        <div id="ftp" class="abs"><span id="ftpill" class="pill in"><img src="assets/arsenal.webp" alt="" />Full time · ARS 2–1 LIV<img src="assets/liverpool.webp" alt="" /></span></div>
+        <div id="srcs" class="abs">
+          <div id="sa" class="card src in" style="position: relative"><div class="label">Data source A</div><div class="t">2–1</div><div class="ok">✓</div></div>
+          <div id="sb" class="card src in" style="position: relative"><div class="label">Data source B</div><div class="t">2–1</div><div class="ok">✓</div></div>
+        </div>
+        <div id="settled" class="abs"><span id="setp" class="pill acc in">Settled in minutes</span></div>
+        <div id="rc1" class="card rcard in" style="left: 350px"><div class="p">2–1</div><div class="l">Exact</div><div class="r win">+232%</div></div>
+        <div id="rc2" class="card rcard in" style="left: 770px"><div class="p">1–0</div><div class="l">Close</div><div class="r win">+38%</div></div>
+        <div id="rc3" class="card rcard in" style="left: 1210px"><div class="p">1–1</div><div class="l">Wrong winner</div><div class="r lose">−100%</div></div>
+        <div id="median" class="abs in"></div>
+        <span id="medlab" class="pill abs in">median</span>
+        <div id="stamp" class="abs in">Close<br />pays</div>
+      </div>
+
+      <!-- Outro -->
+      <div id="L9" class="layer">
+        <div id="outrow" class="abs"><span id="o1" class="stk in">Beat the pack.</span><span id="o2" class="stk acc in">Keep the stack.</span></div>
+        <div id="outpills" class="abs"><span id="op1" class="pill in" style="color: var(--muted)"><i class="dot"></i>Testnet · play money</span><span id="op2" class="pill acc in">Join the waitlist</span><span id="op3" class="pill in">kickoff.cash</span></div>
+      </div>
+
+      <div id="caps"></div>
+    </div>
+
+    <script>
+      // ── Voiceover timing (George, Kokoro TTS). Durations from ffprobe; phrase starts
+      // from ffmpeg silencedetect on each clip. Everything else is placed relative to these.
+      const DUR = [4.693, 8.725, 6.827, 8.853, 11.989, 13.483, 8.277, 8.128, 7.808];
+      const PHR = [
+        [0, 1.36, 3.29],
+        [0, 2.46, 4.71, 6.35, 7.6],
+        [0, 0.96, 3.88, 5.4],
+        [0, 1.47, 3.32, 5.92],
+        [0, 2.45, 6.0, 7.66, 8.53, 9.61],
+        [0, 1.05, 4.43, 6.61, 8.99, 10.16, 12.16],
+        [0, 1.64, 3.71, 5.6],
+        [0, 1.93, 4.15, 5.98],
+        [0, 1.85, 3.04, 5.8, 6.84],
+      ];
+      const CAP = [
+        ["This is Kickoff.", "Prediction markets for football,", "where being close pays."],
+        ["Most markets ask you yes or no.", "But football isn't yes or no.", "Knowing a match ends 2–1,", "not 4–0,", "is real insight."],
+        ["On Kickoff,", "every Premier League match gets its own market,", "listed automatically", "and grouped by gameweek."],
+        ["You don't pick a side.", "You pick the final score.", "Stake USDC before kickoff,", "and change your pick any time until the market locks."],
+        ["Every market is out in the open.", "The concentration grid shows where the pool's money sits,", "next to the total pool,", "the entries,", "and the rules,", "frozen the moment the market opens."],
+        ["At full time,", "the result is checked across independent data sources,", "and the pool settles within minutes.", "Everyone closer than the median wins.", "Call it exactly,", "and you take the biggest share.", "Close still pays."],
+        ["Half of Kickoff's fee,", "five percent of the losing stakes,", "builds a season prize.", "The top ten on the season leaderboard split it."],
+        ["And you don't have to play alone.", "Give an AI agent a few rules,", "and it picks and stakes for you,", "on the same terms as everyone else."],
+        ["Kickoff is live on testnet,", "with play money.", "Join the waitlist at kickoff.cash.", "Beat the pack.", "Keep the stack."],
+      ];
+      const GAP = 0.8;
+      const T = [];
+      let acc = 1.0;
+      DUR.forEach((d, i) => { T.push(acc); acc += d + GAP; });
+      const t = (sec, off = 0) => T[sec] + off;
+      const ph = (sec, p, off = 0) => T[sec] + PHR[sec][p] + off;
+
+      // voiceover clips
+      const vo = document.getElementById("vo");
+      DUR.forEach((d, i) => {
+        const a = document.createElement("audio");
+        a.id = `vo${i + 1}`; a.src = `assets/vo/s${i + 1}.mp3`;
+        a.setAttribute("data-start", T[i].toFixed(3)); a.setAttribute("data-volume", "1.35"); a.setAttribute("data-duration", d.toFixed(3));
+        vo.appendChild(a);
+      });
+      // captions, one element per phrase
+      const caps = document.getElementById("caps");
+      const capEls = [];
+      CAP.forEach((list, s) => list.forEach((txt, p) => {
+        const el = document.createElement("div"); el.className = "cap"; el.innerHTML = `<span>${txt}</span>`;
+        caps.appendChild(el);
+        const start = ph(s, p, -0.05);
+        const end = p + 1 < list.length ? ph(s, p + 1, -0.05) : t(s, DUR[s] + 0.15);
+        capEls.push([el, start, end]);
+      }));
+
+      // S4 grid
+      const HEAT = [[0.1, 0.08, 0.05, 0.03, 0.02], [0.24, 0.3, 0.12, 0.05, 0.02], [0.2, 0.34, 0.16, 0.06, 0.02], [0.1, 0.14, 0.08, 0.04, 0.02], [0.04, 0.05, 0.03, 0.02, 0.02]];
+      const grid = document.getElementById("grid");
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+        const el = document.createElement("div"); el.className = "cell";
+        el.innerHTML = `<div class="heat" style="opacity:${HEAT[r][c]}"></div><span>${r === 4 ? "4+" : r}–${c === 4 ? "4+" : c}</span>`;
+        grid.appendChild(el);
+      }
+      const G = { left: 250, top: 170, pad: 40, head: 80, cell: 88, gap: 10 };
+      const cellLocal = (r, c) => ({ x: G.pad + c * (G.cell + G.gap), y: G.pad + G.head + r * (G.cell + G.gap) });
+      const P21 = cellLocal(2, 1), P11 = cellLocal(1, 1);
+      const pickEl = document.getElementById("pick");
+      pickEl.style.left = P21.x + "px"; pickEl.style.top = P21.y + "px";
+      // screen coords of a cell centre, before and after the grid reflow (scale .9, shift -60,-40)
+      const scr = (p, re) => { const x = G.left + p.x + 44, y = G.top + p.y + 44; return re ? { x: G.left + (x - G.left) * 0.9 - 60, y: G.top + (y - G.top) * 0.9 - 40 } : { x, y }; };
+      const BTN = { x: 640 + 220, y: 690 + 28 + 120 + 16 + 32 };
+
+      // ── camera over captures: frame viewport 1504×846; page space 1920×1080 CSS px
+      const W = 1504, H = 846;
+      const cam = (reg) => {
+        const [x0, y0, x1, y1] = reg;
+        let s = Math.min(W / (x1 - x0), H / (y1 - y0));
+        s = Math.max(s, W / 1920);
+        let x = W / 2 - s * (x0 + x1) / 2, y = H / 2 - s * (y0 + y1) / 2;
+        x = Math.min(0, Math.max(W - s * 1920, x)); y = Math.min(0, Math.max(H - s * 1080, y));
+        return { x, y, scale: s };
+      };
+      const FULL = [0, 0, 1920, 1080];
+
+      const tl = gsap.timeline({ paused: true });
+      const show = (sel, tt) => tl.set(sel, { opacity: 1 }, tt);
+      const hide = (sel, tt) => tl.set(sel, { opacity: 0 }, tt);
+      const E = -0.04;
+      const TILT = [-2, 1.5, -1, 2, -1.5, 1]; let ti = 0;
+      const sticker = (sel, tt) => {
+        const tilt = TILT[ti++ % TILT.length];
+        tl.fromTo(sel, { opacity: 0, filter: "blur(12px)", scale: 1.08, x: -30 }, { opacity: 1, filter: "blur(0px)", scale: 1, x: 0, duration: 0.15, ease: "power3.out" }, tt + E);
+        tl.fromTo(sel, { rotation: -3 }, { rotation: tilt, duration: 0.4, ease: "power2.out" }, tt + E);
+      };
+      const card = (sel, tt, tilt = 0) => tl.fromTo(sel, { opacity: 0, y: 1000, rotation: -12 }, { opacity: 1, y: 0, rotation: tilt, duration: 0.32, ease: "back.out(1.3)" }, tt + E);
+      const pop = (sel, tt, rot = 0) => tl.fromTo(sel, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, rotation: rot, duration: 0.2, ease: "back.out(2)" }, tt + E);
+      const outFast = (sel, tt) => tl.to(sel, { opacity: 0, filter: "blur(10px)", y: -20, duration: 0.12, ease: "power2.in" }, tt);
+      const camTo = (shot, reg, tt, dur = 0.7) => tl.to(shot, { ...cam(reg), duration: dur, ease: "power3.inOut" }, tt);
+      const camSet = (shot, reg, tt) => tl.set(shot, cam(reg), tt);
+      const ring = (sel, box, tt) => {
+        const [x, y, w, h] = box;
+        tl.set(sel, { x, y, width: w, height: h }, tt);
+        tl.fromTo(sel, { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" }, tt);
+      };
+      const ringMove = (sel, box, tt) => { const [x, y, w, h] = box; tl.to(sel, { x, y, width: w, height: h, duration: 0.35, ease: "power3.inOut" }, tt); };
+      const url = (id, tt) => { tl.set("#urlbox span", { opacity: 0 }, tt); tl.set(id, { opacity: 1 }, tt); };
+      const swapShot = (from, to, tt) => {
+        show(to, tt);
+        tl.fromTo(to, { filter: "blur(18px)" }, { filter: "blur(0px)", duration: 0.28, ease: "power2.out" }, tt);
+        if (from) tl.to(from, { opacity: 0, duration: 0.2 }, tt);
+      };
+
+      // captions
+      capEls.forEach(([el, a, b]) => {
+        tl.fromTo(el, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.12, ease: "power2.out" }, a);
+        hide(el, b);
+      });
+
+      // ── S1 intro ─────────────────────────────────────────────────────
+      tl.fromTo("#mark", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" }, 0.3);
+      tl.to("#mark", { x: -290, duration: 0.45, ease: "power3.inOut" }, t(0, 0.1));
+      tl.fromTo("#wordmark", { clipPath: "inset(0 100% 0 0)", x: -290 }, { clipPath: "inset(0 0% 0 0)", x: -290, duration: 0.45, ease: "power3.inOut" }, t(0, 0.1));
+      sticker("#i1", ph(0, 1)); sticker("#i2", ph(0, 2, 0.5));
+      // intro → frame: intro collapses, browser frame flies in
+      tl.to("#L1", { opacity: 0, scale: 0.9, duration: 0.25, ease: "power2.in" }, t(1, -0.45));
+      tl.fromTo("#frame", { opacity: 0, y: 900, rotation: -6 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: "back.out(1.2)" }, t(1, -0.35));
+
+      // ── S2 landing (real) ───────────────────────────────────────────
+      url("#u1", t(1, -0.35)); show("#sh1", t(1, -0.35)); camSet("#sh1", FULL, t(1, -0.35));
+      tl.to("#sh1", { ...cam([330, 40, 1590, 700]), duration: PHR[1][1], ease: "none" }, t(1));
+      swapShot("#sh1", "#sh2", ph(1, 1, -0.1)); camSet("#sh2", [300, 200, 1620, 780], ph(1, 1, -0.1));
+      tl.to("#sh2", { ...cam([400, 240, 1520, 770]), duration: 2.2, ease: "none" }, ph(1, 1));
+      camTo("#sh2", [560, 380, 1360, 830], ph(1, 2, -0.2));
+      ring("#rg2", [590, 690, 740, 90], ph(1, 2, 0.4));
+
+      // ── S3 markets hub (real) ──────────────────────────────────────
+      url("#u2", t(2, -0.3));
+      tl.to("#rg2", { opacity: 0, duration: 0.1 }, t(2, -0.35));
+      swapShot("#sh2", "#sh3", t(2, -0.3)); camSet("#sh3", FULL, t(2, -0.3));
+      camTo("#sh3", [470, 90, 1450, 350], t(2, 0.2), 0.8);
+      ring("#rg3", [540, 200, 832, 118], ph(2, 1, 0.2));
+      tl.fromTo("#cur3", { opacity: 0, x: 1150, y: 330 }, { opacity: 1, x: 900, y: 290, duration: 0.5, ease: "power3.out" }, ph(2, 2));
+      ringMove("#rg3", [546, 146, 94, 52], ph(2, 3));
+      tl.to("#cur3", { x: 596, y: 176, duration: 0.45, ease: "power3.inOut" }, ph(2, 3));
+      tl.to("#cur3", { scale: 0.8, duration: 0.06, transformOrigin: "10% 10%" }, ph(2, 3, 0.5));
+      tl.to("#cur3", { scale: 1, duration: 0.18 }, ph(2, 3, 0.56));
+      tl.set("#rip3", { x: 596, y: 176 }, ph(2, 3, 0.56));
+      tl.fromTo("#rip3", { opacity: 1, scale: 0.4 }, { opacity: 0, scale: 3, duration: 0.45, ease: "power2.out" }, ph(2, 3, 0.56));
+
+      // ── S4 recreation: pick + stake ────────────────────────────────
+      tl.to("#frame", { x: -2000, rotation: -4, duration: 0.35, ease: "power3.in" }, t(3, -0.5));
+      show("#L4", t(3, -0.2));
+      tl.fromTo("#gcard", { opacity: 0, y: 1000, rotation: -12 }, { opacity: 1, y: 0, rotation: 0, duration: 0.34, ease: "back.out(1.3)" }, t(3, -0.2));
+      sticker("#k1", t(3, 0.1));
+      outFast("#k1", ph(3, 1, -0.02));
+      sticker("#k2", ph(3, 1)); sticker("#k3", ph(3, 1, 0.3));
+      const A = scr(P21, false);
+      tl.fromTo("#cur4", { opacity: 0, x: 900, y: 950 }, { opacity: 1, x: A.x, y: A.y, duration: 0.45, ease: "power3.inOut" }, ph(3, 1, 0.3));
+      const click4 = (p, tt) => {
+        tl.to("#cur4", { scale: 0.8, duration: 0.06, transformOrigin: "10% 10%" }, tt - 0.06);
+        tl.to("#cur4", { scale: 1, duration: 0.18 }, tt);
+        tl.set("#rip4", { x: p.x, y: p.y }, tt);
+        tl.fromTo("#rip4", { opacity: 1, scale: 0.4 }, { opacity: 0, scale: 3.2, duration: 0.45, ease: "power2.out" }, tt);
+      };
+      click4(A, ph(3, 1, 0.85));
+      tl.fromTo("#pick", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" }, ph(3, 1, 0.85));
+      // stake
+      tl.to("#ggrp", { x: -60, y: -40, scale: 0.9, duration: 0.4, ease: "power3.inOut" }, ph(3, 2, E));
+      card("#scard", ph(3, 2), -2);
+      tl.to("#cur4", { x: BTN.x, y: BTN.y, duration: 0.4, ease: "power3.inOut" }, ph(3, 2, 0.45));
+      click4(BTN, ph(3, 2, 1.1));
+      tl.to("#sbtn2", { opacity: 1, duration: 0.12 }, ph(3, 2, 1.1)); tl.to("#sbtn1", { opacity: 0, duration: 0.08 }, ph(3, 2, 1.1));
+      // change pick to 1–1
+      const B = scr(P11, true);
+      tl.to("#cur4", { x: B.x, y: B.y, duration: 0.45, ease: "power3.inOut" }, ph(3, 3, 0.2));
+      click4(B, ph(3, 3, 0.8));
+      tl.to("#pick", { x: P11.x - P21.x, y: P11.y - P21.y, duration: 0.3, ease: "power3.inOut" }, ph(3, 3, 0.8));
+      tl.to("#pa", { opacity: 0, duration: 0.1 }, ph(3, 3, 0.85)); tl.to("#pb", { opacity: 1, duration: 0.1 }, ph(3, 3, 0.9));
+      tl.to("#pk1", { opacity: 0, duration: 0.1 }, ph(3, 3, 0.9)); tl.to("#pk2", { opacity: 1, duration: 0.1 }, ph(3, 3, 0.95));
+      pop("#lockb", ph(3, 3, 1.8), 6);
+      tl.to("#cur4", { opacity: 0, duration: 0.2 }, ph(3, 3, 2.3));
+
+      // ── S5 market page (real) ──────────────────────────────────────
+      tl.to("#L4", { opacity: 0, x: -300, duration: 0.3, ease: "power3.in" }, t(4, -0.5));
+      hide("#sh3", t(4, -0.5)); show("#sh5", t(4, -0.5)); camSet("#sh5", FULL, t(4, -0.5)); url("#u3", t(4, -0.5));
+      tl.fromTo("#frame", { x: 2000, rotation: 4 }, { x: 0, rotation: 0, duration: 0.4, ease: "power3.out", immediateRender: false }, t(4, -0.4));
+      camTo("#sh5", [400, 80, 1140, 680], ph(4, 1, -0.2));
+      ring("#rg5", [578, 210, 414, 406], ph(4, 1, 0.5));
+      camTo("#sh5", [1060, 60, 1600, 480], ph(4, 2, -0.3));
+      tl.to("#rg5", { opacity: 0, duration: 0.1 }, ph(4, 2, -0.3));
+      ring("#rg5", [1160, 293, 348, 36], ph(4, 2, 0.3));
+      ringMove("#rg5", [1160, 329, 348, 36], ph(4, 3));
+      ringMove("#rg5", [1160, 365, 348, 72], ph(4, 4));
+
+      // ── S6 recreation: settlement ─────────────────────────────────
+      tl.to("#frame", { scale: 0.6, opacity: 0, duration: 0.3, ease: "power3.in" }, t(5, -0.45));
+      show("#L6", t(5, -0.15));
+      pop("#ftpill", t(5, -0.1));
+      card("#sa", ph(5, 1, 0.1), -1.5); card("#sb", ph(5, 1, 0.6), 1.5);
+      tl.fromTo("#setp", { opacity: 0, scale: 0, rotation: -20 }, { opacity: 1, scale: 1, rotation: -3, duration: 0.3, ease: "back.out(2.5)" }, ph(5, 2, 0.4));
+      outFast(["#sa", "#sb", "#setp"], ph(5, 3, -0.15));
+      card("#rc1", ph(5, 3), -2.5); card("#rc2", ph(5, 3, 0.2), 1.5); card("#rc3", ph(5, 3, 0.4), 2.5);
+      tl.fromTo("#median", { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.3, ease: "power2.out" }, ph(5, 3, 0.9));
+      pop("#medlab", ph(5, 3, 1.1));
+      tl.to("#rc3", { opacity: 0.4, scale: 0.94, duration: 0.3 }, ph(5, 3, 1.3));
+      tl.to("#rc1", { scale: 1.08, y: -16, rotation: 0, borderColor: "#7B62F6", duration: 0.35, ease: "power3.inOut" }, ph(5, 4, 0.3));
+      tl.to("#rc1", { scale: 1, y: 0, borderColor: "rgba(0,0,0,0)", duration: 0.35, ease: "power3.inOut" }, ph(5, 6, -0.3));
+      tl.to("#rc2", { scale: 1.08, y: -16, rotation: 0, borderColor: "#7B62F6", duration: 0.35, ease: "power3.inOut" }, ph(5, 6, -0.3));
+      tl.fromTo("#stamp", { opacity: 0, scale: 0, rotation: -40 }, { opacity: 1, scale: 1, rotation: -8, duration: 0.3, ease: "back.out(2.5)" }, ph(5, 6, 0.1));
+
+      // ── S7 leaderboard (real) ─────────────────────────────────────
+      tl.to("#L6", { opacity: 0, duration: 0.25 }, t(6, -0.5));
+      hide("#sh5", t(6, -0.5)); show("#sh7", t(6, -0.5)); camSet("#sh7", [540, 90, 1380, 345], t(6, -0.5)); url("#u4", t(6, -0.5));
+      tl.fromTo("#frame", { scale: 0.6, opacity: 0, x: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.2)", immediateRender: false }, t(6, -0.4));
+      tl.to("#sh7", { ...cam([500, 70, 1420, 365]), duration: 5, ease: "none" }, t(6));
+      ring("#rg7", [575, 262, 770, 38], ph(6, 3));
+
+      // ── S8 docs: AI agents (real) ─────────────────────────────────
+      url("#u5", t(7, -0.3));
+      tl.to("#rg7", { opacity: 0, duration: 0.1 }, t(7, -0.35));
+      swapShot("#sh7", "#sh8", t(7, -0.3)); camSet("#sh8", [660, 110, 1470, 560], t(7, -0.3));
+      ring("#rg8", [688, 276, 750, 82], ph(7, 1, 0.3));
+      ringMove("#rg8", [688, 180, 750, 92], ph(7, 3));
+
+      // ── S9 outro ─────────────────────────────────────────────────
+      tl.to("#frame", { scale: 0.05, opacity: 0, duration: 0.3, ease: "power3.in" }, t(8, -0.45));
+      tl.set("#L1", { opacity: 1, scale: 1 }, t(8, -0.2));
+      tl.set("#introw", { opacity: 0 }, t(8, -0.2));
+      tl.set("#mark", { x: 0, opacity: 0 }, t(8, -0.2));
+      tl.set("#wordmark", { clipPath: "inset(0 100% 0 0)" }, t(8, -0.2));
+      tl.fromTo("#mark", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" }, t(8, -0.15));
+      tl.to("#mark", { x: -290, duration: 0.45, ease: "power3.inOut" }, t(8, 0.3));
+      tl.to("#wordmark", { clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power3.inOut" }, t(8, 0.3));
+      pop("#op1", ph(8, 0, 0.6));
+      pop("#op2", ph(8, 2, 0.3)); pop("#op3", ph(8, 2, 0.6));
+      sticker("#o1", ph(8, 3)); sticker("#o2", ph(8, 4));
+      tl.set({}, {}, 89);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

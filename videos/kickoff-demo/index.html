@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Kickoff demo</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-italic-400.woff2") format("woff2"); font-weight: 400; font-style: italic; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-600.woff2") format("woff2"); font-weight: 600; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-700.woff2") format("woff2"); font-weight: 700; }
+      :root { --canvas: #edeae0; --chalk: #f7f5f0; --ink: #111210; --muted: #6b6f63; --purple: #7b62f6; --deep: #4e3cb5; --shadow: 0 30px 70px rgba(17, 18, 16, 0.16), 0 6px 16px rgba(17, 18, 16, 0.06); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--canvas); }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); font-family: "Clash Display", sans-serif; background-color: var(--canvas); background-image: radial-gradient(rgba(17, 18, 16, 0.07) 1.6px, transparent 1.7px); background-size: 34px 34px; }
+      .abs { position: absolute; }
+      .in { opacity: 0; }
+      .layer { position: absolute; inset: 0; }
+
+      /* chalk pitch markings, faint, behind everything */
+      #pitch { position: absolute; inset: 0; }
+
+      /* ── The board: real app captures on a bendable 3D surface ───────────────── */
+      #stage { position: absolute; inset: 0; perspective: 2200px; perspective-origin: 960px 520px; }
+      #bshadow { position: absolute; left: 200px; top: 96px; width: 1520px; height: 855px; border-radius: 20px; box-shadow: var(--shadow); background: var(--chalk); }
+      #board { position: absolute; left: 200px; top: 96px; width: 1520px; height: 855px; transform-style: preserve-3d; --k: 0.00001; --cx: 0; --cy: 0; --cs: 0.79167; --iw: 1920; --ih: 1080; --img: none; }
+      .strip { position: absolute; top: 0; height: 855px; overflow: hidden; backface-visibility: hidden;
+        transform: translateX(calc((sin(var(--k) * var(--u)) / var(--k) - var(--u)) * 1px)) translateZ(calc((1 - cos(var(--k) * var(--u))) / var(--k) * 1px)) rotateY(calc(var(--k) * var(--u) * -1rad)); }
+      .strip .pg { position: absolute; top: 0; width: calc(var(--iw) * 1px); height: calc(var(--ih) * 1px); background-image: var(--img); background-size: 100% 100%; transform-origin: 0 0; transform: translate(calc(var(--cx) * 1px), calc(var(--cy) * 1px)) scale(var(--cs)); }
+      .strip .sh { position: absolute; inset: 0; background: var(--ink); opacity: calc(sin(var(--k) * var(--u)) * sin(var(--k) * var(--u)) * 1.1); }
+
+      /* flat overlay locked to the board (rings, cursor, reveals) */
+      #ov { position: absolute; left: 200px; top: 96px; width: 1520px; height: 855px; overflow: hidden; border-radius: 20px; pointer-events: none; }
+      .ring { position: absolute; left: 0; top: 0; border: 4px solid var(--purple); border-radius: 14px; box-shadow: 0 0 0 7px rgba(123, 98, 246, 0.16); opacity: 0; }
+      #cur { position: absolute; left: 0; top: 0; width: 46px; height: 46px; opacity: 0; z-index: 20; }
+      #rip { position: absolute; left: 0; top: 0; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 4px solid var(--purple); opacity: 0; z-index: 19; }
+      #soulrev { position: absolute; left: 0; top: 0; opacity: 0; background-image: url("assets/shots/agent-create-soul.png"); }
+      #median { position: absolute; left: 0; top: 0; height: 0; border-top: 5px dashed var(--purple); opacity: 0; transform-origin: 0 50%; }
+
+      /* ── HUD: chapter tile, URL + demo pills ─────────────────────────────────── */
+      #chap { left: 200px; top: 26px; display: flex; align-items: center; gap: 0; perspective: 600px; }
+      .ch { position: absolute; left: 0; top: 0; display: flex; align-items: stretch; height: 52px; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 24px rgba(17, 18, 16, 0.14); opacity: 0; transform-origin: 50% 0; white-space: nowrap; }
+      .ch b { background: var(--purple); color: #fff; font-weight: 700; font-size: 26px; padding: 0 16px; display: flex; align-items: center; }
+      .ch span { background: var(--ink); color: var(--chalk); font-weight: 700; font-size: 25px; letter-spacing: 0.1em; text-transform: uppercase; padding: 0 20px; display: flex; align-items: center; }
+      #hudr { right: 200px; top: 30px; display: flex; gap: 14px; opacity: 0; }
+      .pill { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; font-size: 28px; padding: 14px 26px; border-radius: 999px; background: #fff; box-shadow: 0 8px 24px rgba(17, 18, 16, 0.08); white-space: nowrap; }
+      .pill.sm { font-size: 22px; padding: 10px 20px; gap: 10px; }
+      .pill.acc { background: var(--purple); color: #fff; }
+      .pill.ink { background: var(--ink); color: var(--chalk); }
+      .pill img { width: 34px; height: 34px; object-fit: contain; }
+      .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--purple); display: block; }
+      #url { position: relative; width: 420px; color: #4d5147; }
+      #url i { font-style: normal; position: absolute; left: 22px; top: 10px; opacity: 0; }
+      .how { left: 600px; top: 30px; }
+
+      /* ── Words ───────────────────────────────────────────────────────────────── */
+      .stk { display: inline-block; background: #fff; padding: 6px 26px 12px; border-radius: 8px; box-shadow: 0 10px 28px rgba(17, 18, 16, 0.1); font-weight: 700; font-size: 76px; line-height: 1.05; white-space: nowrap; }
+      .stk.acc { background: var(--purple); color: #fff; }
+      .stk.sm { font-size: 46px; padding: 6px 20px 10px; }
+      .card { position: absolute; background: #fbfaf7; border-radius: 22px; box-shadow: var(--shadow); border: 1px solid rgba(17, 18, 16, 0.05); }
+      .label { font-weight: 600; color: var(--muted); font-size: 24px; letter-spacing: 0.04em; }
+      .cap { position: absolute; left: 0; right: 0; top: 972px; display: flex; justify-content: center; opacity: 0; }
+      .cap span { background: #fff; border-radius: 12px; padding: 10px 28px 14px; box-shadow: 0 10px 28px rgba(17, 18, 16, 0.1); font-weight: 600; font-size: 38px; max-width: 1700px; text-align: center; white-space: nowrap; }
+
+      /* intro / outro */
+      #mark { left: 885px; top: 300px; width: 150px; height: 151px; }
+      #wordmark { left: 1060px; top: 290px; font-family: "Fraunces", serif; font-weight: 700; font-size: 160px; line-height: 1; letter-spacing: -0.03em; clip-path: inset(0 100% 0 0); }
+      #introw { left: 0; right: 0; top: 540px; display: flex; justify-content: center; gap: 22px; }
+      #outrow { left: 0; right: 0; top: 520px; display: flex; justify-content: center; gap: 22px; }
+      #outpills { left: 0; right: 0; top: 700px; display: flex; justify-content: center; gap: 18px; }
+
+      /* S2 compare */
+      .cmp { top: 230px; width: 700px; height: 520px; padding: 46px 50px; }
+      .cmp .q { font-family: "Fraunces", serif; font-weight: 700; font-size: 50px; line-height: 1.08; letter-spacing: -0.02em; margin-top: 18px; }
+      .yn { display: flex; gap: 20px; margin-top: 46px; }
+      .yn div { flex: 1; height: 120px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 50px; background: var(--canvas); color: var(--muted); }
+      .sc { display: flex; align-items: center; justify-content: center; gap: 26px; margin-top: 36px; }
+      .sc img { width: 110px; height: 110px; object-fit: contain; }
+      .flap { position: relative; width: 120px; height: 160px; border-radius: 14px; background: var(--ink); color: var(--chalk); font-family: "Fraunces", serif; font-weight: 700; font-size: 120px; line-height: 160px; text-align: center; overflow: hidden; }
+      .flap::after { content: ""; position: absolute; left: 0; right: 0; top: 79px; height: 2px; background: rgba(247, 245, 240, 0.25); }
+      .flap i { font-style: normal; position: absolute; inset: 0; backface-visibility: hidden; }
+      .dash { font-family: "Fraunces", serif; font-weight: 700; font-size: 70px; color: var(--muted); }
+      #strike { left: 230px; top: 486px; width: 600px; height: 8px; border-radius: 4px; background: var(--ink); transform-origin: 0 50%; }
+
+      /* S3 fixture feed */
+      #feed { left: 110px; top: 150px; width: 620px; height: 760px; padding: 34px 34px; }
+      .frow { position: relative; height: 92px; display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(17, 18, 16, 0.08); font-weight: 600; font-size: 23px; white-space: nowrap; }
+      .frow img { width: 40px; height: 40px; object-fit: contain; }
+      .frow .d { margin-left: auto; color: var(--muted); font-size: 20px; }
+      .frow .ok { position: absolute; right: 0; top: 24px; font-size: 20px; padding: 8px 14px; gap: 8px; }
+      #rules { left: 1180px; top: 560px; width: 520px; padding: 30px 34px; }
+      .rrow { display: flex; justify-content: space-between; align-items: center; height: 62px; border-top: 1px solid rgba(17, 18, 16, 0.08); font-weight: 600; font-size: 28px; }
+      .rrow b { font-weight: 700; }
+
+      /* S7 settlement */
+      #ft { left: 0; right: 0; top: 120px; display: flex; justify-content: center; align-items: center; gap: 22px; }
+      #ft img { width: 96px; height: 96px; object-fit: contain; }
+      #srcs { left: 0; right: 0; top: 380px; display: flex; justify-content: center; align-items: center; gap: 30px; }
+      .src { position: relative; width: 470px; height: 230px; padding: 34px 38px; }
+      .src .t { font-family: "Fraunces", serif; font-weight: 700; font-size: 96px; line-height: 1; margin-top: 18px; }
+      .src .badge { position: absolute; right: 30px; top: 30px; width: 64px; height: 64px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 36px; display: flex; align-items: center; justify-content: center; }
+      .src .yes { background: var(--purple); }
+      .src .no { background: var(--ink); opacity: 0; }
+      #eq { width: 110px; text-align: center; font-family: "Fraunces", serif; font-weight: 700; font-size: 90px; color: var(--purple); }
+      #ne { position: absolute; left: 0; right: 0; text-align: center; font-family: "Fraunces", serif; font-weight: 700; font-size: 90px; color: var(--ink); opacity: 0; }
+      #srcB .t2 { position: absolute; left: 38px; top: 82px; font-family: "Fraunces", serif; font-weight: 700; font-size: 96px; line-height: 1; opacity: 0; }
+      #stamp { left: 860px; top: 660px; width: 200px; height: 200px; border-radius: 50%; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 38px; text-align: center; line-height: 1.05; box-shadow: 0 12px 34px rgba(123, 98, 246, 0.35); border: 6px dashed rgba(255, 255, 255, 0.55); }
+      #hold { left: 0; right: 0; top: 690px; display: flex; justify-content: center; }
+      #worst { left: 0; right: 0; top: 800px; display: flex; justify-content: center; gap: 24px; }
+      #wrong { position: relative; }
+      #wrong::after { content: ""; position: absolute; left: 18px; right: 18px; top: 50%; height: 5px; margin-top: -2px; background: var(--ink); transform: scaleX(var(--s, 0)); transform-origin: 0 50%; }
+
+      /* stickers placed on the board */
+      .tag { position: absolute; left: 0; top: 0; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="132.35" data-width="1920" data-height="1080">
+      <audio id="music" data-timeline-role="music" src="assets/music.mp3" data-start="0" data-duration="132" data-volume="0.28" data-fade-out="3"></audio>
+      <div id="vo"></div>
+
+      <svg id="pitch" viewBox="0 0 1920 1080" fill="none" stroke="rgba(17,18,16,0.06)" stroke-width="3">
+        <line x1="960" y1="0" x2="960" y2="1080" /><circle cx="960" cy="540" r="190" /><circle cx="960" cy="540" r="6" fill="rgba(17,18,16,0.08)" />
+        <rect x="-4" y="300" width="250" height="480" /><rect x="1674" y="300" width="250" height="480" />
+      </svg>
+
+      <!-- Board -->
+      <div id="stage">
+        <div id="bshadow"></div>
+        <div id="board"></div>
+      </div>
+      <div id="ov">
+        <div id="soulrev"></div>
+        <div id="median"></div>
+        <div class="ring" id="r1"></div><div class="ring" id="r2"></div><div class="ring" id="r3"></div>
+        <div id="rip"></div>
+        <svg id="cur" viewBox="0 0 24 24"><path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#111210" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" /></svg>
+      </div>
+
+      <!-- HUD -->
+      <div id="chap" class="abs"></div>
+      <div id="hudr" class="abs">
+        <span id="url" class="pill sm"><i id="u-markets">kickoff.cash/markets</i><i id="u-market">kickoff.cash/markets/701</i><i id="u-agent">kickoff.cash/agent</i><i id="u-lb">kickoff.cash/leaderboard</i></span>
+        <span class="pill sm" style="color: var(--muted)"><i class="dot"></i>Demo data · Testnet</span>
+      </div>
+      <span id="how" class="pill sm ink abs how in">How it works</span>
+
+      <!-- S1 intro -->
+      <div id="L1" class="layer">
+        <img id="mark" class="abs in" src="assets/logo-black.svg" alt="Kickoff" />
+        <div id="wordmark" class="abs">Kickoff</div>
+        <div id="introw" class="abs"><span id="i1" class="stk in">Call the score.</span><span id="i2" class="stk acc in">Close still pays.</span></div>
+      </div>
+
+      <!-- S2 yes/no vs scoreline -->
+      <div id="L2" class="layer in">
+        <div id="cmpA" class="card cmp in" style="left: 180px">
+          <div class="label">A yes / no market</div>
+          <div class="q">Will Arsenal<br />beat Chelsea?</div>
+          <div class="yn"><div>Yes</div><div>No</div></div>
+        </div>
+        <div id="strike" class="abs in"></div>
+        <div id="cmpB" class="card cmp in" style="left: 1040px">
+          <div class="label">A Kickoff score market</div>
+          <div class="q">Arsenal v Chelsea:<br />the final score</div>
+          <div class="sc">
+            <img src="assets/arsenal.webp" alt="" />
+            <div class="flap" id="fl1"><i class="f0">0</i><i class="f1" style="opacity: 0">2</i></div>
+            <span class="dash">–</span>
+            <div class="flap" id="fl2"><i class="f0">0</i><i class="f1" style="opacity: 0">1</i></div>
+            <img src="assets/chelsea.webp" alt="" />
+          </div>
+        </div>
+        <div id="ins" class="abs" style="left: 0; right: 0; top: 800px; display: flex; justify-content: center"><span id="insS" class="stk acc sm in">Real insight.</span></div>
+      </div>
+
+      <!-- S3 fixture feed -->
+      <div id="L3" class="layer in">
+        <div id="feed" class="card in">
+          <div class="label" style="margin-bottom: 14px">Premier League · GW8 fixtures</div>
+          <div id="frows"></div>
+        </div>
+        <span id="week" class="pill abs in" style="left: 720px; top: 860px">About a week before kickoff</span>
+        <div id="rules" class="card in">
+          <div class="label" style="margin-bottom: 10px">Frozen when the market opens</div>
+          <div class="rrow"><span>Stake</span><b>fixed $10</b></div>
+          <div class="rrow"><span>Fee</span><b>10% of losing stakes</b></div>
+          <div class="rrow"><span>Accuracy</span><b>γ = 3</b></div>
+        </div>
+        <span id="wysiwys" class="stk acc sm abs in" style="left: 1080px; top: 840px">What you see is what settles.</span>
+      </div>
+
+      <!-- S7 two-source settlement -->
+      <div id="L7" class="layer in">
+        <div id="ft" class="abs">
+          <span id="ftl" class="pill ink in">Full time</span>
+          <img id="fta" class="in" src="assets/arsenal.webp" alt="" />
+          <div class="flap in" id="ftf1"><i>2</i></div><span class="dash in" id="ftd">–</span><div class="flap in" id="ftf2"><i>1</i></div>
+          <img id="ftc" class="in" src="assets/chelsea.webp" alt="" />
+        </div>
+        <div id="srcs" class="abs">
+          <div id="srcA" class="card src in" style="position: relative"><div class="label">Data source A</div><div class="t">2–1</div><div class="badge yes in" id="okA">✓</div></div>
+          <div id="eqw" style="position: relative; width: 110px"><div id="eq" class="in">=</div><div id="ne">≠</div></div>
+          <div id="srcB" class="card src in" style="position: relative"><div class="label">Data source B</div><div class="t" id="tB">2–1</div><div class="t2" id="tB2">2–2</div><div class="badge yes in" id="okB">✓</div><div class="badge no" id="noB">✗</div></div>
+        </div>
+        <div id="stamp" class="abs in">Settled</div>
+        <div id="hold" class="abs"><span id="holdp" class="pill ink in"><i class="dot" style="background: var(--chalk)"></i>Held for review</span></div>
+        <div id="worst" class="abs"><span id="w1" class="pill in">Worst case: a delay</span><span id="wrong" class="pill in">A wrong payout</span></div>
+      </div>
+
+      <!-- Stickers that sit over the board -->
+      <span id="tGoal1" class="pill acc tag">Goal · 12' ARS</span>
+      <span id="tGoal2" class="pill ink tag">Goal · 58' CHE</span>
+      <span id="tGoal3" class="pill acc tag">Goal · 81' ARS</span>
+      <span id="tYour" class="pill acc tag">Your pick: 2–1</span>
+      <span id="tAgent" class="pill tag">Agent in the pool</span>
+      <span id="tExact" class="pill acc tag">Exact: biggest share</span>
+      <span id="tClose" class="stk acc sm tag">Close still pays.</span>
+      <span id="tFive" class="pill acc tag">5% of losing stakes</span>
+      <span id="tTop" class="pill tag">Top 10 split it</span>
+      <span id="tBal" class="pill tag">Only you can withdraw</span>
+
+      <!-- S12 outro -->
+      <div id="L12" class="layer in">
+        <div id="outrow" class="abs"><span id="o1" class="stk in">Beat the pack.</span><span id="o2" class="stk acc in">Keep the stack.</span></div>
+        <div id="outpills" class="abs"><span id="op1" class="pill in" style="color: var(--muted)"><i class="dot"></i>Testnet · play money</span><span id="op2" class="pill acc in">Join the waitlist</span><span id="op3" class="pill in">kickoff.cash</span></div>
+      </div>
+
+      <div id="caps"></div>
+    </div>
+
+    <script>
+      // ── Element boxes (CSS px) from capture/capture.mjs; inlined by capture/inject-boxes.mjs ──
+      const BOX = /*BOXES*/{"gw6":[554,153,77,39],"gw7":[639,153,76,39],"gw8":[723,153,77,39],"row_live":[554,212,812,100],"row_ars":[554,537,812,100],"markets-gw7.__h":1080,"gw8_list":[554,212,812,100],"gw8_last":[554,753,812,100],"markets-gw8.__h":1080,"markets-gw6.__h":1080,"m_spec":[1146,95,360,406],"m_stake":[1146,521,360,473],"m_grid":[414,95,712,563],"m_home_plus":[1179,610,130,30],"m_away_plus":[1344,610,130,30],"m_lock":[1171,879,310,53],"m_estimate":[1171,952,310,17],"m_rules":[1171,413,51,16],"m-00.__h":1080,"m-10.__h":1080,"m-20.__h":1080,"m-21.__h":1080,"m_msg":[1171,990,310,37],"m_restake":[1171,879,310,53],"m_cell21":[672,375,72,72],"m_cell11":[672,297,72,72],"m_badge":[1171,120,164,22],"m-placed.__h":1080,"m_board":[414,710,712,2221],"m_row1":[415,785,710,45],"m_row2":[415,830,710,45],"m_row3":[415,875,710,45],"m_row4":[415,919,710,45],"m_row5":[415,964,710,45],"m_row6":[415,1009,710,45],"m_row7":[415,1054,710,45],"m_row8":[415,1098,710,45],"m_row9":[415,1143,710,45],"m_row10":[415,1188,710,45],"m_row11":[415,1232,710,45],"m_row12":[415,1277,710,45],"m-placed-full.__h":3143,"l_chart":[414,95,712,473],"l_spec":[1146,95,360,370],"live-1.__h":1080,"live-2.__h":1080,"live-3.__h":1080,"live-4.__h":1080,"s_card":[414,95,712,470],"s_spec":[1146,95,360,370],"s_board":[414,1111,712,2221],"s_row1":[415,1186,710,45],"s_row2":[415,1231,710,45],"s_row3":[415,1276,710,45],"s_row4":[415,1320,710,45],"s_row5":[415,1365,710,45],"s_row6":[415,1410,710,45],"s_row7":[415,1454,710,45],"s_row8":[415,1499,710,45],"s_row9":[415,1544,710,45],"s_row10":[415,1589,710,45],"s_row11":[415,1633,710,45],"s_row12":[415,1678,710,45],"s_row13":[415,1723,710,45],"s_row14":[415,1767,710,45],"s_row15":[415,1812,710,45],"s_row16":[415,1857,710,45],"s_row17":[415,1901,710,45],"s_row18":[415,1946,710,45],"s_row19":[415,1991,710,45],"s_row20":[415,2035,710,45],"s_row21":[415,2080,710,45],"s_row22":[415,2125,710,45],"s_row23":[415,2169,710,45],"s_row24":[415,2214,710,45],"s_row25":[415,2259,710,45],"s_row26":[415,2304,710,45],"s_row27":[415,2348,710,45],"s_row28":[415,2393,710,45],"s_row29":[415,2438,710,45],"s_row30":[415,2482,710,45],"s_row31":[415,2527,710,45],"s_row32":[415,2572,710,45],"s_row33":[415,2616,710,45],"s_row34":[415,2661,710,45],"s_row35":[415,2706,710,45],"s_row36":[415,2750,710,45],"s_row37":[415,2795,710,45],"s_row38":[415,2840,710,45],"s_row39":[415,2884,710,45],"s_row40":[415,2929,710,45],"s_row41":[415,2974,710,45],"s_row42":[415,3019,710,45],"s_row43":[415,3063,710,45],"s_row44":[415,3108,710,45],"s_row45":[415,3153,710,45],"s_row46":[415,3197,710,45],"s_row47":[415,3242,710,45],"s_row48":[415,3287,710,44],"s_pnl":[414,585,712,473],"settled-full.__h":3544,"a_intro":[554,130,620,41],"a_name":[579,231,620,40],"a_modes":[579,310,620,120],"a_managed":[579,310,306,120],"a_byok":[893,310,306,120],"agent-create-empty.__h":1080,"a_soul":[579,465,620,188],"agent-create-soul.__h":1080,"a_create":[579,723,123,33],"a_head":[554,191,812,147],"a_balance":[554,354,812,145],"a_results":[554,515,812,231],"a_runs":[554,762,812,327],"a_bal_note":[579,461,762,17],"a_card_btn":[1292,576,49,29],"agent-full.__h":1644,"modal_img":[550,283,820,461],"agent-card-modal.__h":1080,"lb_acc":[554,95,812,245],"lb_table":[555,445,810,605],"lb_row1":[555,484,810,53],"lb_row2":[555,537,810,65],"lb_row3":[555,602,810,53],"lb_row4":[555,655,810,53],"lb_row5":[555,708,810,65],"lb_row6":[555,773,810,53],"lb_row7":[555,826,810,53],"lb_row8":[555,879,810,65],"lb_row9":[555,944,810,53],"lb_row10":[555,997,810,53],"lb_car":[1163,445,92,39],"lb_amount":[587,172,746,88],"lb_note":[587,272,746,19],"leaderboard.__h":1080}/*END*/;
+
+      // ── Voiceover (George, Kokoro). Durations from ffprobe, phrase starts from silencedetect.
+      const DUR = [6.552, 7.824, 13.968, 9.168, 9.624, 3.744, 15.528, 8.256, 11.088, 6.168, 12.36, 7.872];
+      const GAP = [1.0, 1.2, 1.4, 1.0, 1.2, 2.8, 1.0, 1.4, 1.0, 1.6, 1.2];
+      const PHR = [
+        [0, 1.35, 3.37, 5.08],
+        [0, 2.34, 4.51, 6.55],
+        [0, 2.0, 3.61, 5.97, 7.78, 9.66, 12.16],
+        [0, 1.72, 4.65, 5.97, 7.3],
+        [0, 2.37, 5.32, 7.17, 8.47],
+        [0, 1.43],
+        [0, 1.0, 2.92, 6.42, 7.98, 9.72, 10.9, 12.43, 14.12],
+        [0, 1.47, 3.91, 5.17, 6.97],
+        [0, 1.5, 2.95, 5.8, 7.7, 9.5],
+        [0, 1.7, 2.57, 3.5],
+        [0, 2.06, 4.49, 8.21, 9.76],
+        [0, 1.85, 3.04, 5.8, 6.84],
+      ];
+      const CAP = [
+        ["This is Kickoff.", "A prediction market for football,", "where you call the exact score,", "and close still pays."],
+        ["Most markets ask yes or no.", "But football isn't yes or no.", "Knowing a match ends 2–1,", "is real insight."],
+        ["And Kickoff runs itself.", "Every Premier League fixture", "gets its own market automatically,", "about a week before kickoff,", "sorted into its gameweek.", "The rules freeze the moment it opens.", "What you see is what settles."],
+        ["On matchday, pick a match.", "Choose your scoreline, and stake before kickoff.", "Change your mind?", "Restake any time,", "until the market locks at kickoff."],
+        ["Every pool is out in the open.", "The concentration grid shows where the money sits,", "across every scoreline.", "People and agents,", "in the same pool."],
+        ["Once it kicks off,", "watch your position move with every goal."],
+        ["At full time,", "the result is cross-checked.", "A market only settles when two independent data sources", "report the same score,", "usually within minutes.", "If they disagree,", "it's held for review.", "The worst case is a delay,", "never a wrong payout."],
+        ["Then the pool splits.", "Everyone closer than the median wins.", "Nail it exactly,", "and you take the biggest share.", "Close still pays."],
+        ["No time on matchday?", "Create an agent.", "Write a soul.md telling it how to think,", "or connect your own AI.", "It stakes from its own balance,", "and only you can withdraw."],
+        ["Every run is logged.", "What it picked,", "and why.", "And every result comes with a shareable card."],
+        ["Five percent of the losing stakes", "builds the Season Accumulator.", "At season end, the top ten on the leaderboard split it.", "Ranked by precision,", "with people and agents on the same board."],
+        ["Kickoff is live on testnet,", "with play money.", "Join the waitlist at kickoff.cash.", "Beat the pack.", "Keep the stack."],
+      ];
+      const T = [];
+      let acc = 2.2;
+      DUR.forEach((d, i) => { T.push(+acc.toFixed(3)); acc += d + (GAP[i] ?? 0); });
+      const END = 132.35;
+      const t = (s, off = 0) => T[s] + off;
+      const ph = (s, p, off = 0) => T[s] + PHR[s][p] + off;
+
+      const vo = document.getElementById("vo");
+      DUR.forEach((d, i) => {
+        const a = document.createElement("audio");
+        a.id = `vo${i + 1}`; a.src = `assets/vo/s${i + 1}.mp3`;
+        a.setAttribute("data-start", T[i].toFixed(3)); a.setAttribute("data-volume", "1.35"); a.setAttribute("data-duration", (d - 0.07).toFixed(3));
+        vo.appendChild(a);
+      });
+      const caps = document.getElementById("caps");
+      const capEls = [];
+      CAP.forEach((list, s) => list.forEach((txt, p) => {
+        const el = document.createElement("div"); el.className = "cap"; el.innerHTML = `<span>${txt}</span>`;
+        caps.appendChild(el);
+        const a = ph(s, p, -0.05);
+        const b = p + 1 < list.length ? ph(s, p + 1, -0.05) : t(s, DUR[s] + 0.2);
+        capEls.push([el, a, b]);
+      }));
+
+      // ── Board strips ───────────────────────────────────────────────────────────
+      const BW = 1520, BH = 855, N = 24, SW = BW / N;
+      const board = document.getElementById("board");
+      for (let i = 0; i < N; i++) {
+        const s = document.createElement("div");
+        s.className = "strip";
+        s.style.left = `${i * SW}px`; s.style.width = `${SW + 1.2}px`;
+        s.style.setProperty("--u", ((i + 0.5) * SW - BW / 2).toFixed(3));
+        if (i === 0) s.style.borderRadius = "20px 0 0 20px";
+        if (i === N - 1) s.style.borderRadius = "0 20px 20px 0";
+        s.innerHTML = `<div class="pg" style="left:${(-i * SW).toFixed(3)}px"></div><div class="sh"></div>`;
+        board.appendChild(s);
+      }
+      // Shots: CSS-px height of each capture (width is always 1920).
+      const H = (name) => BOX[`${name}.__h`] || 1080;
+      const shotVars = (name) => ({ "--img": `url("assets/shots/${name}.png")`, "--ih": H(name) });
+
+      // Camera: fit a page region [x0,y0,x1,y1] into the board.
+      let CUR = { shot: "markets-gw7", x: 0, y: 0, s: BW / 1920 };
+      const fit = (shot, reg) => {
+        const [x0, y0, x1, y1] = reg;
+        let s = Math.min(BW / (x1 - x0), BH / (y1 - y0));
+        s = Math.max(s, BW / 1920);
+        let x = BW / 2 - (s * (x0 + x1)) / 2, y = BH / 2 - (s * (y0 + y1)) / 2;
+        x = Math.min(0, Math.max(BW - s * 1920, x)); y = Math.min(0, Math.max(BH - s * H(shot), y));
+        return { shot, x, y, s };
+      };
+      const camVars = (c) => ({ "--cx": c.x, "--cy": c.y, "--cs": c.s });
+      // page box → board coords under the current camera
+      const onB = (b, pad = 8) => { const [x, y, w, h] = typeof b === "string" ? BOX[b] : b; return [x * CUR.s + CUR.x - pad, y * CUR.s + CUR.y - pad, w * CUR.s + 2 * pad, h * CUR.s + 2 * pad]; };
+      const ctr = (b) => { const [x, y, w, h] = onB(b, 0); return { x: x + w / 2, y: y + h / 2 }; };
+      // board coords → frame coords (for stickers placed over the board)
+      const fr = (p) => ({ x: p.x + 200, y: p.y + 96 });
+
+      const tl = gsap.timeline({ paused: true });
+      const E = -0.04;
+      const show = (sel, tt) => tl.set(sel, { opacity: 1 }, tt);
+      const hide = (sel, tt) => tl.set(sel, { opacity: 0 }, tt);
+
+      // initial board state
+      gsap.set(board, { ...shotVars("markets-gw7"), ...camVars(fit("markets-gw7", [0, 0, 1920, 1080])), "--k": 0.00001 });
+
+      const camSet = (shot, reg, tt) => { CUR = fit(shot, reg); tl.set(board, { ...shotVars(shot), ...camVars(CUR) }, tt); };
+      const camTo = (reg, tt, dur = 0.7) => { CUR = fit(CUR.shot, reg); tl.to(board, { ...camVars(CUR), duration: dur, ease: "power3.inOut" }, tt); };
+      const swap = (shot, tt) => { CUR = { ...CUR, shot }; tl.set(board, shotVars(shot), tt); };
+      // Board flip: bend and turn away, swap the capture at the edge, turn back flat. ~0.5s
+      const flipTo = (shot, reg, tt) => {
+        tl.to(board, { rotationY: 32, z: -160, "--k": 0.0009, filter: "blur(3px)", duration: 0.22, ease: "power2.in" }, tt);
+        tl.to("#bshadow", { opacity: 0, duration: 0.15 }, tt);
+        camSet(shot, reg, tt + 0.22);
+        tl.fromTo(board, { rotationY: -32 }, { rotationY: 0, z: 0, "--k": 0.00001, filter: "blur(0px)", duration: 0.34, ease: "power3.out", immediateRender: false }, tt + 0.22);
+        tl.to("#bshadow", { opacity: 1, duration: 0.2 }, tt + 0.45);
+      };
+      const url = (id, tt) => { tl.set("#url i", { opacity: 0 }, tt); tl.set(id, { opacity: 1 }, tt); };
+
+      // rings / cursor live in #ov, in board coords
+      const ring = (sel, b, tt, pad = 8) => {
+        const [x, y, w, h] = onB(b, pad);
+        tl.set(sel, { x, y, width: w, height: h }, tt);
+        tl.fromTo(sel, { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)", immediateRender: false }, tt);
+      };
+      const ringMove = (sel, b, tt, pad = 8) => { const [x, y, w, h] = onB(b, pad); tl.to(sel, { x, y, width: w, height: h, duration: 0.35, ease: "power3.inOut" }, tt); };
+      const ringsOff = (tt) => tl.to(".ring", { opacity: 0, duration: 0.12 }, tt);
+      const curTo = (b, tt, dur = 0.45) => { const p = ctr(b); tl.to("#cur", { opacity: 1, x: p.x - 4, y: p.y - 4, duration: dur, ease: "power3.inOut" }, tt); };
+      const click = (b, tt) => {
+        const p = ctr(b);
+        tl.to("#cur", { scale: 0.8, duration: 0.06, transformOrigin: "10% 10%" }, tt - 0.06);
+        tl.to("#cur", { scale: 1, duration: 0.18 }, tt);
+        tl.set("#rip", { x: p.x, y: p.y }, tt);
+        tl.fromTo("#rip", { opacity: 1, scale: 0.4 }, { opacity: 0, scale: 3, duration: 0.45, ease: "power2.out", immediateRender: false }, tt);
+      };
+      const curOff = (tt) => tl.to("#cur", { opacity: 0, duration: 0.15 }, tt);
+
+      const TILT = [-2, 1.5, -1, 2, -1.5, 1]; let ti = 0;
+      const sticker = (sel, tt) => {
+        const tilt = TILT[ti++ % TILT.length];
+        tl.fromTo(sel, { opacity: 0, filter: "blur(12px)", scale: 1.08, x: -30 }, { opacity: 1, filter: "blur(0px)", scale: 1, x: 0, duration: 0.15, ease: "power3.out", immediateRender: false }, tt + E);
+        tl.fromTo(sel, { rotation: -3 }, { rotation: tilt, duration: 0.4, ease: "power2.out", immediateRender: false }, tt + E);
+      };
+      const pop = (sel, tt, rot = 0) => tl.fromTo(sel, { opacity: 0, scale: 0.7, filter: "blur(0px)" }, { opacity: 1, scale: 1, rotation: rot, filter: "blur(0px)", duration: 0.2, ease: "back.out(2)", immediateRender: false }, tt + E);
+      const card = (sel, tt, tilt = 0) => tl.fromTo(sel, { opacity: 0, y: 900, rotation: -10 }, { opacity: 1, y: 0, rotation: tilt, duration: 0.34, ease: "back.out(1.3)", immediateRender: false }, tt + E);
+      const outFast = (sel, tt) => tl.to(sel, { opacity: 0, filter: "blur(10px)", duration: 0.14, ease: "power2.in" }, tt);
+      // place a sticker over the board next to a page box (side: right/left/above/below)
+      const tagAt = (sel, b, tt, side = "right", rot = -2, gap = 22) => {
+        const [x, y, w, h] = onB(b, 0);
+        const el = document.querySelector(sel); const ew = el.offsetWidth, eh = el.offsetHeight;
+        let px = x + w + gap, py = y + h / 2 - eh / 2;
+        if (side === "left") px = x - ew - gap;
+        if (side === "above") { px = x + w / 2 - ew / 2; py = y - eh - gap; }
+        if (side === "below") { px = x + w / 2 - ew / 2; py = y + h + gap; }
+        const f = fr({ x: px, y: py });
+        tl.set(sel, { x: Math.round(Math.min(1880 - ew, Math.max(40, f.x))), y: Math.round(Math.min(950 - eh, Math.max(30, f.y))) }, tt - 0.01);
+        pop(sel, tt, rot);
+      };
+
+      // chapter tiles flip in like a board
+      const chapEl = document.getElementById("chap");
+      let chapPrev = null;
+      const chapter = (n, label, tt) => {
+        const el = document.createElement("div"); el.className = "ch";
+        el.innerHTML = `<b>${String(n).padStart(2, "0")}</b><span>${label}</span>`;
+        chapEl.appendChild(el);
+        if (chapPrev) tl.to(chapPrev, { rotationX: 90, opacity: 0, duration: 0.14, ease: "power2.in" }, tt - 0.14);
+        tl.fromTo(el, { rotationX: -90, opacity: 0 }, { rotationX: 0, opacity: 1, duration: 0.28, ease: "back.out(1.8)", immediateRender: false }, tt);
+        chapPrev = el;
+      };
+      const chapOff = (tt) => { if (chapPrev) tl.to(chapPrev, { rotationX: 90, opacity: 0, duration: 0.14 }, tt); chapPrev = null; };
+
+      // captions
+      capEls.forEach(([el, a, b]) => {
+        tl.fromTo(el, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.12, ease: "power2.out", immediateRender: false }, a);
+        hide(el, b);
+      });
+
+      // ═══ S1 intro: logo, with the board turning slowly behind it ═══════════════
+      gsap.set(board, { rotationY: -18, z: -1300, "--k": 0.0008, opacity: 0.32, filter: "blur(2px)" });
+      gsap.set("#bshadow", { opacity: 0 });
+      tl.to(board, { rotationY: 18, duration: T[1] - 0.2, ease: "none" }, 0);
+      tl.fromTo("#mark", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" }, 0.4);
+      tl.to("#mark", { x: -290, duration: 0.45, ease: "power3.inOut" }, 1.2);
+      tl.fromTo("#wordmark", { clipPath: "inset(0 100% 0 0)", x: -290 }, { clipPath: "inset(0 0% 0 0)", x: -290, duration: 0.45, ease: "power3.inOut" }, 1.2);
+      sticker("#i1", ph(0, 2, 0.4)); sticker("#i2", ph(0, 3));
+      tl.to("#L1", { opacity: 0, scale: 0.92, duration: 0.25, ease: "power2.in" }, t(1, -0.45));
+      tl.to(board, { opacity: 0, duration: 0.3 }, t(1, -0.45));
+
+      // ═══ S2 the idea: yes/no vs the scoreline ══════════════════════════════════
+      show("#L2", t(1, -0.3));
+      chapter(1, "The idea", t(1, -0.2));
+      card("#cmpA", t(1, 0.05), -1.5);
+      tl.fromTo("#strike", { opacity: 0, scaleX: 0, rotation: -8 }, { opacity: 1, scaleX: 1, rotation: -8, duration: 0.3, ease: "power3.out", immediateRender: false }, ph(1, 1, 0.5));
+      tl.to("#cmpA", { opacity: 0.45, scale: 0.96, duration: 0.3 }, ph(1, 1, 0.6));
+      card("#cmpB", ph(1, 2, -0.3), 1.5);
+      ["#fl1", "#fl2"].forEach((f, i) => {
+        const at = ph(1, 2, 0.35 + i * 0.25);
+        tl.to(`${f} .f0`, { rotationX: -90, duration: 0.12, ease: "power2.in" }, at);
+        tl.fromTo(`${f} .f1`, { opacity: 1, rotationX: 90 }, { rotationX: 0, duration: 0.14, ease: "power2.out", immediateRender: false }, at + 0.12);
+      });
+      sticker("#insS", ph(1, 3));
+      tl.to("#L2", { opacity: 0, x: -200, duration: 0.3, ease: "power3.in" }, t(2, -0.45));
+
+      // ═══ S3 auto-listing ═════════════════════════════════════════════════════
+      const FIX = [["man-city", "Man City", "arsenal", "Arsenal", "Sat 17 Oct"], ["chelsea", "Chelsea", "liverpool", "Liverpool", "Sat 17 Oct"], ["newcastle", "Newcastle", "brighton", "Brighton", "Sat 17 Oct"], ["everton", "Everton", "west-ham", "West Ham", "Sat 17 Oct"], ["fulham", "Fulham", "crystal-palace", "Palace", "Sun 18 Oct"], ["man-united", "Man United", "tottenham", "Tottenham", "Sun 18 Oct"]];
+      document.getElementById("frows").innerHTML = FIX.map((f, i) => `<div class="frow in" id="fr${i}"><img src="assets/${f[0]}.webp" alt="" />${f[1]} <span style="color:var(--muted)">v</span> ${f[3]}<img src="assets/${f[2]}.webp" alt="" /><span class="d">${f[4]}</span><span class="pill acc ok in" id="fok${i}">✓ Listed</span></div>`).join("");
+      show("#L3", t(2, -0.3));
+      chapter(2, "Auto-listing", t(2, -0.2));
+      pop("#how", t(2, 0));
+      // board flies in on the right, bent, then settles small
+      camSet("markets-gw8", [430, 60, 1490, 900], t(2, -0.3));
+      tl.set(board, { filter: "blur(0px)", z: 0 }, t(2, -0.3));
+      tl.fromTo(board, { x: 1400, rotationY: -60, scale: 0.62, "--k": 0.0012, opacity: 0 }, { opacity: 1, x: 260, rotationY: -14, scale: 0.62, "--k": 0.0005, duration: 0.6, ease: "power3.out", immediateRender: false }, t(2, 0.1));
+      url("#u-markets", t(2, 0.1)); pop("#hudr", t(2, 0.3));
+      card("#feed", ph(2, 1, -0.2), -1);
+      FIX.forEach((_, i) => tl.fromTo(`#fr${i}`, { opacity: 0, x: -40, filter: "blur(8px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.16, ease: "power3.out", immediateRender: false }, ph(2, 1, 0.25 + i * 0.12)));
+      FIX.forEach((_, i) => { tl.to(`#fr${i} .d`, { opacity: 0, duration: 0.08 }, ph(2, 2, 0.15 + i * 0.28)); pop(`#fok${i}`, ph(2, 2, 0.2 + i * 0.28), -3); });
+      tl.to(board, { rotationY: -6, "--k": 0.0003, duration: 1.4, ease: "power2.inOut" }, ph(2, 2, 0.2));
+      sticker("#week", ph(2, 3));
+      // sorted into its gameweek: board comes forward, flattens, camera on the GW rail
+      outFast(["#feed", "#week"], ph(2, 4, -0.2));
+      tl.to(board, { x: 0, rotationY: 0, scale: 1, "--k": 0.00001, duration: 0.55, ease: "power3.inOut" }, ph(2, 4, -0.2));
+      tl.to("#bshadow", { opacity: 1, duration: 0.3 }, ph(2, 4, 0.2));
+      camTo([520, 120, 1400, 600], ph(2, 4, 0.35), 0.6);
+      ring("#r1", "gw8", ph(2, 4, 1.0));
+      ringMove("#r1", "gw8_list", ph(2, 5, -0.3));
+      card("#rules", ph(2, 5, 0.1), 2);
+      sticker("#wysiwys", ph(2, 6));
+      outFast(["#rules", "#wysiwys", "#how"], t(3, -0.75));
+      ringsOff(t(3, -0.75));
+
+      // ═══ S4 matchday staking ═════════════════════════════════════════════════
+      chapter(3, "Matchday staking", t(3, -0.6));
+      curTo("gw7", t(3, -0.7), 0.4);
+      click("gw7", t(3, -0.2));
+      swap("markets-gw7", t(3, -0.2));
+      curTo("row_ars", t(3, 0.3), 0.45);
+      ring("#r1", "row_ars", t(3, 0.5));
+      click("row_ars", t(3, 1.05));
+      ringsOff(t(3, 1.1)); curOff(t(3, 1.1));
+      flipTo("m-00", [1120, 80, 1530, 1000], t(3, 1.15));
+      url("#u-market", t(3, 1.37));
+      camTo([1130, 505, 1520, 1045], ph(3, 1, -0.15), 0.5);
+      curTo("m_home_plus", ph(3, 1, 0.35), 0.35);
+      click("m_home_plus", ph(3, 1, 0.75)); swap("m-10", ph(3, 1, 0.75));
+      click("m_home_plus", ph(3, 1, 1.15)); swap("m-20", ph(3, 1, 1.15));
+      curTo("m_away_plus", ph(3, 1, 1.3), 0.3);
+      click("m_away_plus", ph(3, 1, 1.7)); swap("m-21", ph(3, 1, 1.7));
+      curTo("m_lock", ph(3, 1, 1.85), 0.35);
+      click("m_lock", ph(3, 1, 2.35)); swap("m-placed", ph(3, 1, 2.45));
+      ring("#r1", "m_msg", ph(3, 1, 2.6));
+      ringMove("#r1", "m_restake", ph(3, 2));
+      curTo("m_restake", ph(3, 3, -0.1), 0.35);
+      curOff(ph(3, 4, -0.2)); ringsOff(ph(3, 4, -0.25));
+      camTo([1130, 85, 1520, 520], ph(3, 4, -0.2), 0.55);
+      ring("#r1", "m_badge", ph(3, 4, 0.5), 6);
+
+      // ═══ S5 open pool ════════════════════════════════════════════════════════
+      chapter(4, "Open pool", t(4, -0.4));
+      ringsOff(t(4, -0.5));
+      camTo([400, 85, 1140, 670], t(4, -0.4), 0.7);
+      ring("#r1", "m_grid", ph(4, 1, 0.2), 4);
+      ringMove("#r1", "m_cell21", ph(4, 2), 6);
+      tagAt("#tYour", "m_cell21", ph(4, 2, 0.3), "right", -3, 120);
+      tl.to("#tYour", { opacity: 0, duration: 0.12 }, ph(4, 3, -0.3));
+      ringsOff(ph(4, 3, -0.3));
+      swap("m-placed-full", ph(4, 3, -0.3));
+      camTo([400, 700, 1140, 1240], ph(4, 3, -0.25), 0.6);
+      ring("#r1", "m_row3", ph(4, 3, 0.5), 4);
+      tagAt("#tAgent", "m_row3", ph(4, 3, 0.6), "right", 2, 30);
+      ring("#r2", "m_row1", ph(4, 4, 0.1), 4);
+      tl.to("#tAgent", { opacity: 0, duration: 0.12 }, t(5, -0.6));
+
+      // ═══ S6 live ═════════════════════════════════════════════════════════════
+      ringsOff(t(5, -0.6));
+      chapter(5, "Live", t(5, -0.4));
+      flipTo("live-1", [400, 85, 1520, 600], t(5, -0.6));
+      swap("live-2", t(5, 1.2)); tagAt("#tGoal1", "l_spec", t(5, 1.2), "above", -3, -60);
+      tl.to("#tGoal1", { opacity: 0, duration: 0.1 }, t(5, 2.8));
+      swap("live-3", t(5, 2.9)); tagAt("#tGoal2", "l_spec", t(5, 2.9), "above", 2, -60);
+      tl.to("#tGoal2", { opacity: 0, duration: 0.1 }, t(5, 4.5));
+      swap("live-4", t(5, 4.6)); tagAt("#tGoal3", "l_spec", t(5, 4.6), "above", -2, -60);
+      tl.to("#tGoal3", { opacity: 0, duration: 0.1 }, t(6, -0.6));
+
+      // ═══ S7 two-source settlement (how it works) ═════════════════════════════
+      chapter(6, "Settlement", t(6, -0.4));
+      tl.to(board, { rotationY: 70, x: -1600, "--k": 0.0012, opacity: 0, duration: 0.45, ease: "power3.in" }, t(6, -0.6));
+      tl.to(["#bshadow", "#hudr"], { opacity: 0, duration: 0.2 }, t(6, -0.6));
+      show("#L7", t(6, -0.3));
+      pop("#how", t(6, -0.2));
+      pop("#ftl", t(6, -0.25));
+      pop("#fta", t(6, -0.1)); pop("#ftc", t(6, -0.1));
+      tl.fromTo(["#ftf1", "#ftd", "#ftf2"], { opacity: 0, rotationX: -90 }, { opacity: 1, rotationX: 0, duration: 0.22, stagger: 0.1, ease: "back.out(1.6)", immediateRender: false }, t(6, 0.05));
+      card("#srcA", ph(6, 1, 0.1), -1.5); card("#srcB", ph(6, 1, 0.45), 1.5);
+      pop("#okA", ph(6, 2, 0.4)); pop("#okB", ph(6, 2, 1.4));
+      pop("#eq", ph(6, 3));
+      tl.fromTo("#stamp", { opacity: 0, scale: 0, rotation: -40 }, { opacity: 1, scale: 1, rotation: -8, duration: 0.3, ease: "back.out(2.5)", immediateRender: false }, ph(6, 4, 0.1));
+      // disagreement
+      tl.to("#stamp", { opacity: 0, scale: 0.8, duration: 0.15 }, ph(6, 5, -0.1));
+      tl.to("#tB", { rotationX: -90, opacity: 0, duration: 0.12, ease: "power2.in" }, ph(6, 5, 0.1));
+      tl.fromTo("#tB2", { opacity: 1, rotationX: 90 }, { rotationX: 0, duration: 0.14, ease: "power2.out", immediateRender: false }, ph(6, 5, 0.22));
+      tl.to("#okB", { opacity: 0, duration: 0.1 }, ph(6, 5, 0.22)); pop("#noB", ph(6, 5, 0.3));
+      tl.to("#eq", { opacity: 0, duration: 0.1 }, ph(6, 5, 0.3)); pop("#ne", ph(6, 5, 0.35));
+      sticker("#holdp", ph(6, 6));
+      tl.to("#holdp", { y: -40, duration: 0.3, ease: "power3.inOut" }, ph(6, 7, -0.2));
+      sticker("#w1", ph(6, 7));
+      pop("#wrong", ph(6, 8));
+      tl.fromTo("#wrong", { "--s": 0 }, { "--s": 1, duration: 0.3, ease: "power3.out", immediateRender: false }, ph(6, 8, 0.5));
+      tl.to("#L7", { opacity: 0, scale: 0.94, duration: 0.3, ease: "power2.in" }, t(7, -0.5));
+      tl.to("#how", { opacity: 0, duration: 0.15 }, t(7, -0.5));
+
+      // ═══ S8 payout (real settled market) ═════════════════════════════════════
+      chapter(7, "Payout", t(7, -0.35));
+      camSet("settled-full", [400, 85, 1520, 600], t(7, -0.4));
+      tl.fromTo(board, { x: 1600, rotationY: -70, "--k": 0.0012, opacity: 0 }, { x: 0, rotationY: 0, "--k": 0.00001, opacity: 1, duration: 0.55, ease: "power3.out", immediateRender: false }, t(7, -0.4));
+      tl.to(["#bshadow", "#hudr"], { opacity: 1, duration: 0.3 }, t(7, 0));
+      // the settled table: winners above the median line, losers below
+      const sRowY = (n) => BOX[`s_row${n}`][1];
+      camTo([400, sRowY(15) - 10, 1140, sRowY(28)], ph(7, 1, -0.3), 0.7);
+      {
+        const [x, y, w] = onB([BOX.s_row22[0], BOX.s_row22[1] + BOX.s_row22[3], BOX.s_row22[2], 0], 0);
+        tl.set("#median", { x: x - 20, y: y - 2, width: w + 40 }, ph(7, 1, 0.5));
+        tl.fromTo("#median", { opacity: 1, scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out", immediateRender: false }, ph(7, 1, 0.5));
+        ring("#r1", [BOX.s_row15[0], BOX.s_row15[1], BOX.s_row15[2], sRowY(22) + 45 - sRowY(15)], ph(7, 1, 1.0), 4);
+      }
+      tl.to("#median", { opacity: 0, duration: 0.12 }, ph(7, 2, -0.35));
+      ringsOff(ph(7, 2, -0.35));
+      camTo([400, sRowY(1) - 60, 1140, sRowY(13)], ph(7, 2, -0.3), 0.6);
+      ring("#r1", [BOX.s_row1[0], BOX.s_row1[1], BOX.s_row1[2], sRowY(11) + 45 - sRowY(1)], ph(7, 2, 0.35), 4);
+      ring("#r2", "s_row5", ph(7, 2, 0.8), 2);
+      ringsOff(ph(7, 3, -0.25));
+      camTo([400, 85, 1140, 580], ph(7, 3, -0.2), 0.6);
+      ring("#r1", "s_card", ph(7, 3, 0.5), 4);
+      ringsOff(ph(7, 4, -0.25));
+      camTo([400, sRowY(11), 1140, sRowY(24)], ph(7, 4, -0.2), 0.55);
+      ring("#r1", [BOX.s_row12[0], BOX.s_row12[1], BOX.s_row12[2], sRowY(22) + 45 - sRowY(12)], ph(7, 4, 0.35), 4);
+      tagAt("#tClose", [BOX.s_row12[0], BOX.s_row12[1], BOX.s_row12[2], sRowY(22) + 45 - sRowY(12)], ph(7, 4, 0.5), "right", -3, 30);
+      tl.to("#tClose", { opacity: 0, duration: 0.12 }, t(8, -0.6));
+
+      // ═══ S9 agents ══════════════════════════════════════════════════════════
+      ringsOff(t(8, -0.6));
+      chapter(8, "Agents", t(8, -0.4));
+      flipTo("agent-create-empty", [550, 80, 1230, 700], t(8, -0.6));
+      url("#u-agent", t(8, -0.4));
+      ring("#r1", "a_name", ph(8, 1, 0.1), 6);
+      ringMove("#r1", "a_managed", ph(8, 2), 6);
+      {
+        // soul.md types itself: reveal the filled textarea from the second capture, line by line
+        const [x, y, w, h] = onB("a_soul", 0);
+        tl.set("#soulrev", { x, y, width: w, height: h, backgroundSize: `${1920 * CUR.s}px ${1080 * CUR.s}px`, backgroundPosition: `${CUR.x - x}px ${CUR.y - y}px`, opacity: 1, clipPath: "inset(0 0 100% 0)" }, ph(8, 2, 0.7));
+        tl.to("#soulrev", { clipPath: "inset(0 0 0% 0)", duration: 1.6, ease: "steps(9)" }, ph(8, 2, 0.75));
+      }
+      ringMove("#r1", "a_byok", ph(8, 3), 6);
+      ringsOff(ph(8, 4, -0.35));
+      tl.set("#soulrev", { opacity: 0 }, ph(8, 4, -0.15));
+      flipTo("agent-full", [540, 100, 1380, 520], ph(8, 4, -0.35));
+      ring("#r1", "a_balance", ph(8, 4, 0.4), 4);
+      ringMove("#r1", "a_intro", ph(8, 5), 6);
+
+      // ═══ S10 agent runs ═════════════════════════════════════════════════════
+      ringsOff(t(9, -0.35));
+      chapter(9, "Agent runs", t(9, -0.35));
+      camTo([540, 750, 1380, 1100], t(9, -0.35), 0.6);
+      {
+        const [rx, ry, rw] = BOX.a_runs;
+        ring("#r1", [rx + 12, ry + 52, rw - 24, 92], ph(9, 1, -0.2), 4);
+        ring("#r2", [rx + 12, ry + 268, 300, 42], ph(9, 3, -0.6), 4);
+      }
+      ringsOff(ph(9, 3, 0.1));
+      camTo([540, 440, 1380, 760], ph(9, 3, 0.1), 0.5);
+      ring("#r1", "a_results", ph(9, 3, 0.7), 4);
+      curTo("a_card_btn", ph(9, 3, 0.8), 0.45);
+      click("a_card_btn", ph(9, 3, 1.5));
+      ringsOff(ph(9, 3, 1.55)); curOff(ph(9, 3, 1.55));
+      flipTo("agent-card-modal", [520, 250, 1400, 800], ph(9, 3, 1.6));
+
+      // ═══ S11 Season Accumulator + leaderboard ═══════════════════════════════
+      chapter(10, "Season Accumulator", t(10, -0.4));
+      flipTo("leaderboard", [540, 80, 1380, 360], t(10, -0.6));
+      url("#u-lb", t(10, -0.38));
+      tagAt("#tFive", "lb_acc", ph(10, 0, 0.3), "below", -2, 14);
+      ring("#r1", "lb_amount", ph(10, 1, 0.1), 6);
+      tl.to("#tFive", { opacity: 0, duration: 0.12 }, ph(10, 2, -0.3));
+      ringsOff(ph(10, 2, -0.3));
+      camTo([540, 430, 1380, 1060], ph(10, 2, -0.25), 0.6);
+      ring("#r1", "lb_table", ph(10, 2, 0.5), 4);
+      tagAt("#tTop", "lb_table", ph(10, 2, 0.8), "above", 2, -40);
+      tl.to("#tTop", { opacity: 0, duration: 0.12 }, ph(10, 3, -0.2));
+      {
+        const [cx, cy, cw] = BOX.lb_car;
+        ringMove("#r1", [cx, cy, cw, BOX.lb_row10[1] + BOX.lb_row10[3] - cy], ph(10, 3), 4);
+      }
+      ringsOff(ph(10, 4, -0.15));
+      ring("#r1", "lb_row2", ph(10, 4, 0.1), 2);
+      ring("#r2", "lb_row4", ph(10, 4, 0.45), 2);
+      ring("#r3", "lb_row5", ph(10, 4, 0.8), 2);
+
+      // ═══ S12 outro ══════════════════════════════════════════════════════════
+      ringsOff(t(11, -0.55));
+      chapOff(t(11, -0.55));
+      tl.to(board, { rotationY: 60, z: -900, "--k": 0.0009, opacity: 0.3, filter: "blur(2px)", duration: 0.6, ease: "power3.inOut" }, t(11, -0.6));
+      tl.to(["#bshadow", "#hudr"], { opacity: 0, duration: 0.2 }, t(11, -0.6));
+      tl.to(board, { rotationY: 80, duration: END - T[11], ease: "none" }, t(11, 0));
+      tl.set("#L1", { opacity: 1, scale: 1 }, t(11, -0.2));
+      tl.set("#introw", { opacity: 0 }, t(11, -0.2));
+      tl.set("#mark", { x: 0, opacity: 0 }, t(11, -0.2));
+      tl.set("#wordmark", { clipPath: "inset(0 100% 0 0)" }, t(11, -0.2));
+      tl.set("#L1", { y: -40 }, t(11, -0.2));
+      tl.fromTo("#mark", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, t(11, -0.15));
+      tl.to("#mark", { x: -290, duration: 0.45, ease: "power3.inOut" }, t(11, 0.3));
+      tl.to("#wordmark", { clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power3.inOut" }, t(11, 0.3));
+      show("#L12", t(11, 0));
+      pop("#op1", ph(11, 0, 0.6));
+      pop("#op2", ph(11, 2, 0.2)); pop("#op3", ph(11, 2, 0.5));
+      sticker("#o1", ph(11, 3)); sticker("#o2", ph(11, 4));
+      tl.set({}, {}, END);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

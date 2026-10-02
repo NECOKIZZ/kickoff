@@ -7,3 +7,9 @@ contracts/broadcast/*/*/dry-run/
 contracts/broadcast/*/*/run-1*.json
 # local-only pnpm store relocation (tiny /home disk) — must NOT reach Vercel
 .npmrc
+
+# Video renders and regenerable capture caches
+videos/*/out/
+videos/*/snapshots/
+videos/kickoff-demo/capture/fontcache/
+videos/kickoff-demo/capture/cards/

@@ -35,10 +35,8 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="flex items-center justify-center shrink-0 cursor-pointer"
+      className="flex items-center justify-center shrink-0 cursor-pointer size-8 sm:size-[34px]"
       style={{
-        width: 34,
-        height: 34,
         background: "var(--muted)",
         border: "1px solid var(--border)",
         borderRadius: 8,

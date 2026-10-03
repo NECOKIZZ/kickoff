@@ -67,7 +67,7 @@ export default function MarketsHub() {
   return (
     // Player tab spreads into the wide margins the score list doesn't need —
     // the deck board (rail + stage) is built to fill one desktop viewport.
-    <div className="mx-auto px-6" style={{ maxWidth: tab === "player" ? 1180 : 860, paddingTop: 28, paddingBottom: 60 }}>
+    <div className="mx-auto px-4 sm:px-6 pt-5 sm:pt-7" style={{ maxWidth: tab === "player" ? 1180 : 860, paddingBottom: 60 }}>
       {/* Tab switcher — accent underline per brand (purple light / green dark) */}
       <div className="flex items-center gap-1 mb-6 border-b" style={{ borderColor: "var(--border)" }}>
         {(PLAYER_PERPS_ENABLED ? (["score", "player"] as const) : (["score"] as const)).map((t) => {

@@ -43,53 +43,69 @@ function TeamCell({ name }: { name: string }) {
 
 function ScoreMarketCard({ market }: { market: MarketSummary }) {
   const settled = market.status === "settled" && market.actual;
+  const pool = fmtUsdc(market.totalPool, { compact: true });
+  const entries = `${market.positionCount} ${market.positionCount === 1 ? "entry" : "entries"}`;
+  const kickoff = fmtKickoff(market.kickoffAt);
+  const muted = { fontSize: "0.72rem", color: "var(--muted-foreground)" } as const;
+  const scoreNum = { fontFamily: "'Fraunces', serif", fontWeight: 700, lineHeight: 1 } as const;
+
+  // Phones stack three rows (state + kickoff / teams + score / pool) so
+  // nothing has to squeeze; from sm up it's one row with the pool on the right.
   return (
     <Link
       href={`/markets/${market.id}`}
-      className="card-diagonal glass flex flex-wrap items-center gap-x-2 gap-y-2 px-4 sm:px-6 py-[18px] transition-transform duration-150 hover:-translate-y-0.5"
+      className="card-diagonal glass flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2 px-5 sm:px-6 py-4 sm:py-[18px] transition-transform duration-150 hover:-translate-y-0.5"
       style={{ textDecoration: "none", color: "inherit" }}
     >
-      <div className="w-full sm:w-auto flex justify-start sm:justify-center" style={{ minWidth: 0 }}>
+      <div className="flex items-center justify-between sm:justify-center sm:w-auto" style={{ minWidth: 0 }}>
         <StateBadge status={market.status} locksAt={market.locksAt} size="sm" />
+        <span className="sm:hidden" style={muted}>
+          {kickoff}
+        </span>
       </div>
 
-      <TeamCell name={market.homeTeam ?? "Home"} />
+      <div className="flex flex-1 items-center gap-2" style={{ minWidth: 0 }}>
+        <TeamCell name={market.homeTeam ?? "Home"} />
 
-      {/* Score / vs */}
-      <div className="flex items-center gap-2.5 px-2">
-        {settled ? (
-          <>
-            <span style={{ fontFamily: "'Fraunces', serif", fontSize: "2rem", fontWeight: 700, lineHeight: 1 }}>
-              {market.actual!.home}
-            </span>
-            <span style={{ fontSize: "0.9rem", color: "var(--muted-foreground)" }}>-</span>
-            <span style={{ fontFamily: "'Fraunces', serif", fontSize: "2rem", fontWeight: 700, lineHeight: 1 }}>
-              {market.actual!.away}
-            </span>
-          </>
-        ) : (
-          <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--muted-foreground)" }}>vs</span>
-        )}
+        {/* Score / vs */}
+        <div className="flex items-center gap-2.5 px-1 sm:px-2 shrink-0">
+          {settled ? (
+            <>
+              <span className="text-[1.75rem] sm:text-[2rem]" style={scoreNum}>
+                {market.actual!.home}
+              </span>
+              <span style={{ fontSize: "0.9rem", color: "var(--muted-foreground)" }}>-</span>
+              <span className="text-[1.75rem] sm:text-[2rem]" style={scoreNum}>
+                {market.actual!.away}
+              </span>
+            </>
+          ) : (
+            <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--muted-foreground)" }}>vs</span>
+          )}
+        </div>
+
+        <TeamCell name={market.awayTeam ?? "Away"} />
       </div>
 
-      <TeamCell name={market.awayTeam ?? "Away"} />
-
-      {/* Pool + entries */}
-      <div className="flex flex-col items-end gap-0.5 shrink-0" style={{ minWidth: 72 }}>
-        <span
-          style={{
-            fontFamily: "'Fraunces', serif",
-            fontSize: "1.1rem",
-            fontWeight: 700,
-            color: "var(--ui-accent)",
-          }}
-        >
-          {fmtUsdc(market.totalPool, { compact: true })}
+      {/* Pool + entries: a footer row on phones, a right-hand column from sm up */}
+      <div
+        className="flex sm:hidden items-baseline justify-between pt-3"
+        style={{ borderTop: "1px solid var(--border)" }}
+      >
+        <span style={{ fontSize: "0.78rem", color: "var(--muted-foreground)" }}>
+          <span style={{ fontFamily: "'Fraunces', serif", fontSize: "1.05rem", fontWeight: 700, color: "var(--ui-accent)" }}>
+            {pool}
+          </span>{" "}
+          pool
         </span>
-        <span style={{ fontSize: "0.68rem", color: "var(--muted-foreground)" }}>
-          {market.positionCount} {market.positionCount === 1 ? "entry" : "entries"}
+        <span style={muted}>{entries}</span>
+      </div>
+      <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0" style={{ minWidth: 72 }}>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 700, color: "var(--ui-accent)" }}>
+          {pool}
         </span>
-        <span style={{ fontSize: "0.65rem", color: "var(--muted-foreground)" }}>{fmtKickoff(market.kickoffAt)}</span>
+        <span style={{ fontSize: "0.68rem", color: "var(--muted-foreground)" }}>{entries}</span>
+        <span style={{ fontSize: "0.65rem", color: "var(--muted-foreground)" }}>{kickoff}</span>
       </div>
     </Link>
   );

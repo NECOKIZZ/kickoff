@@ -1,10 +1,19 @@
 import "./globals.css";
+import type { Metadata } from "next";
 import { AuthProvider } from "@/ui/auth/AuthProvider";
 
-export const metadata = {
-  title: "Kickoff | Proximity Markets",
-  description:
-    "Beat the pack, keep the stack. Proximity markets for EPL fixtures. Rewards for how close you land, not just yes/no.",
+const TITLE = "Kickoff | Proximity Markets";
+const DESCRIPTION =
+  "Beat the pack, keep the stack. Proximity markets for EPL fixtures. Rewards for how close you land, not just yes/no.";
+
+// openGraph/twitter drive the link preview on X, WhatsApp, Telegram, Slack…;
+// the image itself is app/opengraph-image.tsx (+ twitter-image.tsx).
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.PUBLIC_ORIGIN ?? "https://kickoff.cash"),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { title: TITLE, description: DESCRIPTION, siteName: "Kickoff", type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
 // Apply persisted theme before paint to avoid a light-mode flash.

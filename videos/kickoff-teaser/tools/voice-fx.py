@@ -22,6 +22,8 @@ def ir(seconds, damp, predelay=0.02, seed=1):
 PRESETS = {
     #            pitch  formant    eq                                                     grit  ir(s,damp)  wet   sub-octave
     "sorcerer": (0.82, "shifted",  "lowshelf=f=140:g=4,equalizer=f=320:t=q:w=1:g=-2,equalizer=f=3200:t=q:w=1.2:g=2.5", 0.25, (3.2, 0.85), 0.22, 0.0),
+    # the chosen narrator: Old Sorcerer without the room (the user heard the echo)
+    "sorcerer-dry": (0.82, "shifted", "lowshelf=f=140:g=4,equalizer=f=320:t=q:w=1:g=-2,equalizer=f=3200:t=q:w=1.2:g=2.5", 0.25, None, 0.0, 0.0),
     "ancient":  (0.89, "preserved","lowshelf=f=120:g=5,equalizer=f=2800:t=q:w=1:g=1.5",      0.10, (2.2, 0.8),  0.15, 0.0),
     "storyteller": (0.80, "shifted","lowshelf=f=150:g=3,equalizer=f=2500:t=q:w=1:g=3",       0.35, (1.2, 0.7),  0.12, 0.0),
     "oracle":   (0.79, "shifted",  "lowshelf=f=130:g=4,equalizer=f=3000:t=q:w=1:g=2",        0.20, (4.2, 0.9),  0.30, 0.18),
@@ -30,7 +32,7 @@ PRESETS = {
 }
 
 def main(preset, src, dst):
-    pitch, formant, eq, grit, (rs, damp), wet, sub = PRESETS[preset]
+    pitch, formant, eq, grit, rev, wet, sub = PRESETS[preset]
     d = tempfile.mkdtemp()
     dry = os.path.join(d, "dry.wav"); irf = os.path.join(d, "ir.wav")
     chain = f"aresample={SR},rubberband=pitch={pitch}:formant={formant}:transients=smooth,{eq}"
@@ -41,6 +43,10 @@ def main(preset, src, dst):
         oct_ = os.path.join(d, "oct.wav")
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", dry, "-af", "rubberband=pitch=0.5:formant=shifted,lowpass=f=1800", "-ac", "2", oct_], check=True)
         a, _ = sf.read(dry); b, _ = sf.read(oct_); m = min(len(a), len(b)); a = a[:m] + b[:m] * sub; sf.write(dry, a, SR)
+    if not wet:  # dry: no reverb, just level
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", dry, "-af", "loudnorm=I=-16:TP=-1.5", "-ar", "44100", dst], check=True)
+        return
+    rs, damp = rev
     sf.write(irf, ir(rs, damp), SR)
     fc = (f"[0:a]asplit[a][b];[b][1:a]afir=dry=10:wet=10[r];"
           f"[a]volume={1 - wet}[d];[r]volume={wet * 2.2}[w];[d][w]amix=inputs=2:normalize=0,"

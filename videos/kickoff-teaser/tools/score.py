@@ -3,7 +3,7 @@
 Writes assets/bed.wav: score + source-clip sound (crowd, commentary), ducked under the voiceover.
 The voiceover itself stays as separate <audio> clips in index.html.
 
-Usage: python3 tools/score.py <dir with c1..c7.mp4>
+Usage: python3 tools/score.py <dir with c1..c7.mp4 and n1..n5.mp4>
 """
 import json, subprocess, sys, wave
 from pathlib import Path
@@ -182,36 +182,36 @@ def whoosh(d=0.6):
 D2, A2, F2, D3, F3, A3, C3, E3 = (note(x) for x in ("D2", "A2", "F2", "D3", "F3", "A3", "C3", "E3"))
 Bb2 = note("Bb2"); G2 = note("G2"); C2 = note("C2")
 
-# A. Origins 0-18.6: dark drone, bell motif, low booms on the cuts
-put(pad([D2, A2, D3], 18.4, cutoff=380, a=3.0, r=1.2), 0.0, 0.45)
-put(pad([F3, A3, note("D4")], 10.0, cutoff=900, a=4.0, r=2.0), 8.4, 0.35)
-for i, (nm, t0) in enumerate((("D5", 0.45), ("A4", 4.45), ("E4", 5.1), ("D5", 9.8), ("A4", 11.0), ("C5", 12.1), ("A4", 13.7))):
+# A. Origins: dark drone, bell motif in the gaps between lines, low booms on each cut
+put(pad([D2, A2, D3], H["chaos"], cutoff=380, a=3.0, r=1.2), 0.0, 0.45)
+put(pad([F3, A3, note("D4")], H["chaos"] - H["noise"], cutoff=900, a=4.0, r=2.0), H["noise"] + 0.4, 0.35)
+for i, (nm, t0) in enumerate((("D5", 0.35), ("A4", 4.25), ("D5", 9.15), ("C5", 11.45), ("A4", 12.95), ("F4", 14.6))):
     put(bell(note(nm)), t0, 0.9, pan=(-0.3 if i % 2 else 0.3))
-for k, g in (("streets", 0.9), ("mud", 0.5), ("noise", 0.6), ("by", 1.0), ("of", 0.55), ("for", 0.7)):
+for k, g in (("streets", 0.9), ("mud", 0.5), ("noise", 0.6), ("by", 1.0), ("of", 0.55), ("for", 0.7), ("simple", 0.5)):
     put(boom(2.6, g=g), H[k] - 0.01, 0.7)
 put(whoosh(0.7), H["streets"] - 0.6, 0.6)
-put(riser(2.6, 120, 1800), 15.9, 0.35)
-put(boom(3.0, 28, 80), 15.7, 0.5)
+put(riser(H["chaos"] - H["simple"] - 0.3, 120, 1800), H["simple"] + 0.3, 0.35)
 
-# B. Chaos 18.6-31.4: accelerating clock ticks, pulse, red-card stab, riser into the goal
-t, iv, k = H["chaos"], 0.5, 0
+# B. Chaos: accelerating clock ticks, pulse, slow-mo save thud, red-card stab, riser into the goal
+t, k = H["chaos"], 0
 while t < H["goal"] - 0.05:
     put(tick(k % 2 == 0), t, 0.9 if k % 2 == 0 else 0.6)
     k += 1; frac = (t - H["chaos"]) / (H["goal"] - H["chaos"])
-    iv = 0.5 * (1 - frac) ** 1.6 + 0.07
-    t += iv
+    t += 0.5 * (1 - frac) ** 1.6 + 0.07
 put(boom(2.0, 32, 90), H["yes"], 0.8)
 put(boom(2.0, 32, 90), H["win"], 0.8)
-# pulse bass from the penalty to the goal, getting denser
 t = H["penalty"]
 while t < H["goal"] - 0.1:
     frac = (t - H["penalty"]) / (H["goal"] - H["penalty"])
     step = 0.25 if frac < 0.55 else 0.125
-    put(bass(D2 / 2 * 2, step * 0.9), t, 0.8)
+    put(bass(D2, step * 0.9), t, 0.8)
     t += step
 put(lpf(supersaw(D3, H["goal"] - H["penalty"]), 700) * np.linspace(0.05, 0.6, int(SR * (H["goal"] - H["penalty"]))), H["penalty"], 0.4)
-put(impact(3.0, 0.8), H["red"] - 0.01, 0.85)
-put(braam(D2, 2.2), H["red"], 0.7)
+put(whoosh(0.5), H["strike"] - 0.35, 0.7)                      # the strike, slowed
+put(boom(2.4, 30, 60), H["save"] - 0.01, 0.9)                   # the save lands like a door slam
+put(braam(D2, 1.4), H["reaction"], 0.4)
+put(impact(3.0, 0.8), H["cardup"] - 0.01, 0.85)
+put(braam(D2, 2.2), H["cardup"], 0.7)
 put(riser(H["goal"] - H["late"], 150, 4000), H["late"], 0.55)
 put(impact(5.0, 1.0), H["goal"] - 0.02, 1.0)
 put(braam(D2, 2.6), H["goal"], 0.55)
@@ -226,36 +226,38 @@ put(riser(H["scoreline"] - H["variables"], 300, 5000), H["variables"], 0.35)
 put(impact(3.2, 0.9), H["scoreline"] - 0.01, 0.9)
 put(bell(note("D5"), 3.0), H["scoreline"], 1.0)
 
-# D. The takes 37.4-46.9: driving 120 BPM groove, gets denser, dead stop at the silence
+# D. The takes: 120 BPM groove (the dialogue ducks it), denser into "every opinion", dead stop at the silence
 B = 0.5
-prog = [D2, D2, Bb2 / 2 * 2, C2 * 2 / 2]
+prog = [D2, D2, Bb2, C2]
 t0 = H["takes"]
-nb = int((H["silence"] - t0) / B)
+nb = int(round((H["silence"] - t0) / B))
 for b in range(nb):
     t = t0 + b * B
     put(kick(), t, 0.85)
     if b % 2 == 1: put(clap(), t, 0.7)
     put(hat(), t + B / 2, 0.6)
-    if b >= 8: put(hat(), t + B / 4, 0.35); put(hat(), t + 3 * B / 4, 0.35)
+    if t >= H["fan"]: put(hat(), t + B / 4, 0.35); put(hat(), t + 3 * B / 4, 0.35)
     root = prog[(b // 4) % 4]
-    for s in range(2): put(bass(root, B / 2 * 0.85), t + s * B / 2, 0.7)
+    for s_ in range(2): put(bass(root, B / 2 * 0.85), t + s_ * B / 2, 0.7)
     if b >= 4:
         arp = [root * 4, root * 4 * 1.189, root * 4 * 1.498, root * 8]
-        for s in range(4): put(pluck(arp[(b * 4 + s) % 4]), t + s * B / 4, 0.8, pan=0.3 * (1 if s % 2 else -1))
-for s in range(16):  # snare roll into the cut
-    put(snare(), H["silence"] - 1.0 + s * 1.0 / 16, 0.25 + 0.5 * s / 16)
+        for s_ in range(4): put(pluck(arp[(b * 4 + s_) % 4]), t + s_ * B / 4, 0.8, pan=0.3 * (1 if s_ % 2 else -1))
+for s_ in range(16):  # snare roll into the cut
+    put(snare(), H["silence"] - 1.0 + s_ * 1.0 / 16, 0.25 + 0.5 * s_ / 16)
 put(riser(2.6, 200, 5000), H["silence"] - 2.6, 0.4)
 
-# E. The turn 46.9-53.6: near silence, a held high tone, heartbeat, reverse swell
-put(np.sin(2 * np.pi * note("A5") * tt(6.6)) * env(6.6, 1.0, 1.0) * 0.035, H["silence"] + 0.2, 1.0)
-put(pad([D3, F3, A3], 6.7, cutoff=400, a=2.5, r=0.2), H["silence"], 0.35)
+# E. The turn: near silence, a held high tone, heartbeat that quickens, reverse swell
+gap = H["call"] - H["silence"]
+put(np.sin(2 * np.pi * note("A5") * tt(gap - 0.2)) * env(gap - 0.2, 1.0, 1.0) * 0.035, H["silence"] + 0.2, 1.0)
+put(pad([D3, F3, A3], gap + 0.1, cutoff=400, a=2.5, r=0.2), H["silence"], 0.35)
 t = H["silence"] + 0.5
 while t < H["call"] - 0.4:
-    put(heartbeat(), t, 0.7); t += 1.0 if t < 50.3 else 0.75
+    put(heartbeat(), t, 0.7); t += 1.0 if t < H["right"] else 0.75
 put(riser(3.0, 100, 2500), H["call"] - 3.0, 0.5)
 
 # F. Call the score -> full time
 put(impact(3.5, 0.9), H["call"] - 0.01, 0.9)
+put(tick(True), H["tap"], 1.0)
 t = H["call"]
 arp = [note("D4"), note("A4"), note("F4"), note("A4"), note("E4"), note("A4"), note("F4"), note("D5")]
 k = 0
@@ -267,7 +269,7 @@ put(pad([D3, F3, A3, note("C4")], H["ft"] - H["call"], cutoff=1100, a=0.5, r=0.3
 put(whistle(0.35), H["ft"] - 0.55, 1.0); put(whistle(1.0), H["ft"] - 0.12, 1.0)
 put(impact(3.0, 0.8), H["ft"], 0.75)
 
-# G. Anthem 60.1-65.6: big chords, half-time drums, cymbal swell, cut to black
+# G. Anthem: big chords, half-time drums, cymbal swell, cut to black
 chords = [[D3, F3, A3, note("D4")], [Bb2, D3, F3, note("Bb3")], [F2 * 2, A3, note("C4"), note("F4")], [C3, E3, G2 * 2, note("C4")]]
 cd = (H["black"] - H["anthem"]) / 4
 for i, ch in enumerate(chords):
@@ -285,8 +287,18 @@ put(riser(1.6, 400, 6000), H["black"] - 1.6, 0.4)
 put(np.flip(crash(1.2)) * 1.4, H["logo"] - 1.2, 0.8)
 put(impact(6.0, 1.0), H["logo"] - 0.01, 1.0)
 put(pad([D2, A2, D3, note("E4"), F3], DUR - H["logo"], cutoff=900, a=0.3, r=3.5), H["logo"], 0.45)
-put(bell(note("D5"), 4.0), H["tagline"], 1.0); put(bell(note("A5"), 4.0), H["tagline"] + 0.95, 0.8)
-put(boom(2.0, 36, 60), H["tagline"] + 0.95, 0.5)
+put(bell(note("D5"), 4.0), H["tagline"], 1.0); put(bell(note("A5"), 4.0), H["tagline"] + 1.3, 0.8)
+put(boom(2.0, 36, 60), H["tagline"] + 1.3, 0.5)
+
+# I. Camera shutter on every negative-flash cut
+def shutter():
+    t = tt(0.12)
+    x = hpf(rng.standard_normal(len(t)), 2000)
+    clk = x * (np.exp(-t * 300) + 0.7 * np.exp(-np.maximum(t - 0.045, 0) * 260) * (t >= 0.045))
+    thump = np.sin(2 * np.pi * 90 * t) * np.exp(-t * 40) * 0.6
+    return (clk * 0.5 + thump) * 0.6
+for t0 in E["shutters"]:
+    put(shutter(), t0 - 0.02, 0.9)
 
 
 # ---------- source-clip sound ----------
@@ -316,6 +328,11 @@ for vid, at in E["vo"]:
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(p), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
     v = np.abs(np.frombuffer(raw, dtype=np.float32).astype(float))
     i = int(at * SR); j = min(n, i + len(v)); vo_env[i:j] = np.maximum(vo_env[i:j], v[: j - i])
+for name, clip, ms, at, d in E.get("dialogue", []):
+    p = ROOT / "assets" / "dialogue" / f"{name}.mp3"
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(p), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
+    v = np.abs(np.frombuffer(raw, dtype=np.float32).astype(float))
+    i = int(at * SR); j = min(n, i + len(v)); vo_env[i:j] = np.maximum(vo_env[i:j], v[: j - i])
 # smooth: fast attack (~20ms), slow release (~350ms), computed on 10ms blocks
 blk = SR // 100
 nb = n // blk + 1
@@ -329,7 +346,6 @@ duck_music = np.repeat(1 - 0.72 * key, blk)[:n]   # about -11 dB under voice
 duck_fx = np.repeat(1 - 0.80 * key, blk)[:n]      # crowd/commentary further down
 
 out = np.stack([L * duck_music + FX[0] * duck_fx, R * duck_music + FX[1] * duck_fx], axis=1)
-# hard silence for the turn (only the tone/heartbeat that start after it remain)
 peak = np.max(np.abs(out)) or 1
 out = np.tanh(out / peak * 1.6) * 0.9
 pcm = (np.clip(out, -1, 1) * 32767).astype(np.int16)

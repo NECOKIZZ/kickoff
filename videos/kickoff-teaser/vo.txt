@@ -1,25 +1,22 @@
-v01|bm_george|0.85|Football was never built in a boardroom.
-v02|bm_george|0.85|It was born in the streets. In the mud. In the noise.
-v03|bm_george|0.85|A game by the people.   (tail trimmed 0.15s: it read as "peoples")
-v04|bm_george|0.85|Of the people.
-v05|bm_george|0.82|For the people.
-v06|bm_george|0.9|And it has never been simple.
-v07|bm_george|1.0|It isn't yes, or no.
-v08|bm_george|1.0|It isn't win, or lose.
-v09|bm_george|1.1|It's a missed penalty in the eightieth minute.
-v10|bm_george|1.15|A red card nobody saw coming.
-v11|bm_george|1.15|A goal in the ninety-fourth.
-v12|bm_george|0.88|A thousand variables. One scoreline.
-v13|bm_george|1.0|And everyone has a take.
-v14|am_michael|1.15|Three, nil. Easy.
-v15|bf_emma|1.1|They'll bottle it.
-v16|am_adam|1.1|One all. Mark my words.
-v17|bm_george|1.1|Every fan. Every city. Every opinion.
-v18|bm_george|0.85|But what if opinions weren't just noise?
-v19|bm_george|0.85|What if being right, actually meant something?
-v20|bm_george|0.85|Call the score.
-v21|bm_george|0.9|And if the game proves you right, you get paid for it.
-v22|bm_george|0.85|Football belongs to the people.
-v23|bm_george|0.85|Now so does the reward.
-v24|bm_george|0.8|Kickoff!
-v25|bm_george|0.95|Beat the pack. Keep the stack.   (-l en-us: en-gb says "stock")
+v01|bm_lewis|0.82|Football was never built in a boardroom.
+v02|bm_lewis|0.82|It was born in the streets. In the mud. In the noise.
+v03|bm_lewis|0.82|A game by the people.
+v04|bm_lewis|0.82|Of the people.
+v05|bm_lewis|0.8|For the people.
+v06|bm_lewis|0.85|And it has never been simple.
+v07|bm_lewis|0.95|It isn't yes, or no.
+v08|bm_lewis|0.95|It isn't win, or lose.
+v09|bm_lewis|1.0|It's a missed penalty in the eightieth minute.
+v10|bm_lewis|1.05|A red card nobody saw coming.
+v11|bm_lewis|1.05|A goal in the ninety-fourth.
+v12|bm_lewis|0.85|A thousand variables. One scoreline.
+v13|bm_lewis|0.9|And everyone has a take.
+v17|bm_lewis|1.0|Every fan. Every city. Every opinion.
+v18|bm_lewis|0.82|But what if opinions weren't just noise?
+v19|bm_lewis|0.82|What if being right, actually meant something?
+v20|bm_lewis|0.82|Call the score.
+v21|bm_lewis|0.85|And if the game proves you right, you get paid for it.
+v22|bm_lewis|0.82|Football belongs to the people.
+v23|bm_lewis|0.82|Now so does the reward.
+v24|bm_lewis|0.78|Kickoff!
+v25|bm_lewis|0.88|Beat the pack. Keep the stack.

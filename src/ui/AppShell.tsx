@@ -11,13 +11,13 @@ import { useAuth } from "@/ui/auth/useAuth";
 import { WalletChip } from "@/ui/chain/WalletChip";
 import { CONTACT_EMAIL } from "@/ui/contact";
 import { GettingStarted, GuideButton } from "@/ui/onboarding/GettingStarted";
+import { MobileNav } from "@/ui/MobileNav";
 
-// `short` is the phone label: four tabs have to fit one row at 360px.
 const APP_TABS = [
-  { label: "Markets", short: "Markets", href: "/markets" },
-  { label: "Leaderboard", short: "Leaderboard", href: "/leaderboard" },
-  { label: "My Positions", short: "Positions", href: "/positions" },
-  { label: "My Agent", short: "Agent", href: "/agent" },
+  { label: "Markets", href: "/markets" },
+  { label: "Leaderboard", href: "/leaderboard" },
+  { label: "My Positions", href: "/positions" },
+  { label: "My Agent", href: "/agent" },
 ];
 
 /**
@@ -56,27 +56,25 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <div
-          className="mx-auto px-4 sm:px-6 flex flex-wrap items-center sm:grid"
+          className="mx-auto px-4 sm:px-6 flex items-center gap-2 sm:gap-0 sm:grid"
           style={{
             maxWidth: 1100,
             minHeight: 58,
             gridTemplateColumns: "1fr auto 1fr",
           }}
         >
-          {/* Logo — monochrome: black on cream, white on ink */}
-          <Link
-            href="/"
-            aria-label="Home"
-            className="order-1 pl-0 sm:pl-2"
-            style={{ justifySelf: "start", display: "flex" }}
-          >
-            <Logo size={26} />
-          </Link>
+          {/* Logo — monochrome: black on cream, white on ink. Phones get the
+              menu button beside it (tabs + theme live in the drawer). */}
+          <div className="flex items-center gap-2" style={{ justifySelf: "start" }}>
+            <MobileNav tabs={APP_TABS} />
+            <Link href="/" aria-label="Home" className="flex sm:pl-2">
+              <Logo size={26} />
+            </Link>
+          </div>
 
-          {/* Center tabs — green underline marks selection. On phones the
-              tabs drop to their own row beneath logo/controls. */}
+          {/* Center tabs — green underline marks selection. Desktop only. */}
           <nav
-            className="order-3 sm:order-2 basis-full sm:basis-auto flex items-center justify-between sm:justify-center gap-4 sm:gap-6 overflow-x-auto"
+            className="hidden sm:flex items-center justify-center gap-6"
             style={{ minHeight: 40 }}
           >
             {APP_TABS.map((t) => (
@@ -84,20 +82,21 @@ export function AppShell({ children }: { children: ReactNode }) {
                 key={t.href}
                 active={pathname.startsWith(t.href)}
                 onClick={() => router.push(t.href)}
-                className="text-[0.8rem] sm:text-[0.84rem] whitespace-nowrap h-full flex items-end pb-[9px]"
+                className="text-[0.84rem] whitespace-nowrap h-full flex items-end pb-[9px]"
               >
-                <span className="sm:hidden">{t.short}</span>
-                <span className="hidden sm:inline">{t.label}</span>
+                {t.label}
               </NavUnderlineItem>
             ))}
           </nav>
 
           <div
-            className="order-2 sm:order-3 ml-auto sm:ml-0 flex items-center gap-1.5 sm:gap-2.5 py-2 sm:py-0"
+            className="ml-auto sm:ml-0 flex items-center gap-2 sm:gap-2.5 py-2 sm:py-0"
             style={{ justifySelf: "end" }}
           >
             <GuideButton />
-            <ThemeToggle />
+            <span className="hidden sm:flex">
+              <ThemeToggle />
+            </span>
             <SignInButton />
           </div>
         </div>

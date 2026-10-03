@@ -8,16 +8,16 @@ import { Logo } from "@/ui/Logo";
 import { ThemeToggle } from "@/ui/ThemeToggle";
 import { NavUnderlineItem } from "@/ui/NavUnderline";
 import { useAuth } from "@/ui/auth/useAuth";
-import { shortAddr } from "@/ui/clientApi";
 import { WalletChip } from "@/ui/chain/WalletChip";
 import { CONTACT_EMAIL } from "@/ui/contact";
 import { GettingStarted, GuideButton } from "@/ui/onboarding/GettingStarted";
 
+// `short` is the phone label: four tabs have to fit one row at 360px.
 const APP_TABS = [
-  { label: "Markets", href: "/markets" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "My Positions", href: "/positions" },
-  { label: "My Agent", href: "/agent" },
+  { label: "Markets", short: "Markets", href: "/markets" },
+  { label: "Leaderboard", short: "Leaderboard", href: "/leaderboard" },
+  { label: "My Positions", short: "Positions", href: "/positions" },
+  { label: "My Agent", short: "Agent", href: "/agent" },
 ];
 
 /**
@@ -29,31 +29,7 @@ function SignInButton() {
 
   if (!ready) return null;
 
-  if (address) {
-    return (
-      <span className="flex items-center gap-3">
-        <WalletChip address={address} />
-        <button
-          onClick={signOut}
-          title="Signed in. Click to sign out"
-          className="cursor-pointer"
-          style={{
-            fontFamily: "'Clash Display', sans-serif",
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            padding: "8px 14px",
-            borderRadius: 10,
-            border: "1px solid var(--border)",
-            background: "var(--muted)",
-            color: "var(--foreground)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {shortAddr(address)}
-        </button>
-      </span>
-    );
-  }
+  if (address) return <WalletChip address={address} onSignOut={signOut} />;
 
   return (
     <Button3D size="sm" color="accent" onClick={signIn}>
@@ -91,8 +67,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             href="/"
             aria-label="Home"
-            className="order-1"
-            style={{ justifySelf: "start", display: "flex", paddingLeft: 8 }}
+            className="order-1 pl-0 sm:pl-2"
+            style={{ justifySelf: "start", display: "flex" }}
           >
             <Logo size={26} />
           </Link>
@@ -100,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Center tabs — green underline marks selection. On phones the
               tabs drop to their own row beneath logo/controls. */}
           <nav
-            className="order-3 sm:order-2 basis-full sm:basis-auto flex items-center justify-center gap-5 sm:gap-6 overflow-x-auto"
+            className="order-3 sm:order-2 basis-full sm:basis-auto flex items-center justify-between sm:justify-center gap-4 sm:gap-6 overflow-x-auto"
             style={{ minHeight: 40 }}
           >
             {APP_TABS.map((t) => (
@@ -110,13 +86,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClick={() => router.push(t.href)}
                 className="text-[0.8rem] sm:text-[0.84rem] whitespace-nowrap h-full flex items-end pb-[9px]"
               >
-                {t.label}
+                <span className="sm:hidden">{t.short}</span>
+                <span className="hidden sm:inline">{t.label}</span>
               </NavUnderlineItem>
             ))}
           </nav>
 
           <div
-            className="order-2 sm:order-3 ml-auto sm:ml-0 flex items-center gap-2.5 py-2 sm:py-0"
+            className="order-2 sm:order-3 ml-auto sm:ml-0 flex items-center gap-1.5 sm:gap-2.5 py-2 sm:py-0"
             style={{ justifySelf: "end" }}
           >
             <GuideButton />

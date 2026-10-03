@@ -11,6 +11,7 @@ import { useAuth } from "@/ui/auth/useAuth";
 import { shortAddr } from "@/ui/clientApi";
 import { WalletChip } from "@/ui/chain/WalletChip";
 import { CONTACT_EMAIL } from "@/ui/contact";
+import { GettingStarted, GuideButton } from "@/ui/onboarding/GettingStarted";
 
 const APP_TABS = [
   { label: "Markets", href: "/markets" },
@@ -118,6 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="order-2 sm:order-3 ml-auto sm:ml-0 flex items-center gap-2.5 py-2 sm:py-0"
             style={{ justifySelf: "end" }}
           >
+            <GuideButton />
             <ThemeToggle />
             <SignInButton />
           </div>
@@ -125,6 +127,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {children}
+
+      <GettingStarted />
 
       <footer
         className="mx-auto px-4 sm:px-6 py-8 text-center"

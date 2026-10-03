@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Kickoff · Teaser</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/fraunces-italic-400.woff2") format("woff2"); font-weight: 400; font-style: italic; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-600.woff2") format("woff2"); font-weight: 600; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-700.woff2") format("woff2"); font-weight: 700; }
+      :root { --ink: #111210; --tile: #1c1d1a; --tile2: #242521; --chalk: #f7f5f0; --muted: #8a8e81; --green: #00c805; --red: #d3202b; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; color: var(--chalk); font-family: "Clash Display", sans-serif; }
+      .layer { position: absolute; inset: 0; }
+      .abs { position: absolute; }
+      .in { opacity: 0; }
+      .serif { font-family: "Fraunces", serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+      .serif span, .word { display: inline-block; }
+      .italic { font-family: "Fraunces", serif; font-style: italic; font-weight: 400; }
+      .caps { font-weight: 700; text-transform: uppercase; letter-spacing: 0.3em; }
+
+      /* footage */
+      .sw { position: absolute; inset: 0; overflow: hidden; }
+      .sw video { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+      #shadeB { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent); pointer-events: none; }
+      #shadeL { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.35) 45%, transparent 70%); opacity: 0; pointer-events: none; }
+      #dim { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+
+      /* supers */
+      .super { left: 0; right: 0; bottom: 170px; text-align: center; font-size: 40px; color: var(--chalk); text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7); }
+      #people { left: 150px; top: 390px; font-size: 118px; }
+      #people > div { opacity: 0; }
+      #simple { left: 0; right: 0; bottom: 180px; text-align: center; font-size: 66px; color: rgba(247, 245, 240, 0.92); text-shadow: 0 2px 24px rgba(0, 0, 0, 0.8); }
+
+      /* yes / no */
+      .duo { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: baseline; gap: 70px; }
+      .duo .big { font-size: 300px; }
+      .duo .or { font-size: 92px; color: rgba(247, 245, 240, 0.55); }
+      .strike { position: absolute; left: 300px; width: 1320px; top: 520px; height: 10px; background: var(--chalk); transform-origin: left center; box-shadow: 0 0 24px rgba(247, 245, 240, 0.5); }
+
+      /* broadcast HUD (lives in the top letterbox bar) */
+      #hud { left: 72px; top: 26px; display: flex; align-items: center; gap: 18px; }
+      #hud .live { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 26px; letter-spacing: 0.16em; color: var(--chalk); }
+      .rdot { width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 12px var(--red); display: block; }
+      .gdot { width: 11px; height: 11px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); display: block; }
+      .tag { left: 72px; bottom: 150px; font-weight: 700; font-size: 30px; letter-spacing: 0.18em; text-transform: uppercase; padding: 12px 22px; background: rgba(17, 18, 16, 0.85); border-left: 6px solid var(--chalk); }
+
+      /* split-flap */
+      .board { position: absolute; display: flex; justify-content: center; }
+      .tile { position: relative; background: linear-gradient(180deg, var(--tile2) 0 49.6%, #0c0d0b 49.6% 50.4%, var(--tile) 50.4% 100%); border-radius: 8px; perspective: 500px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+      .face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--chalk); opacity: 0; }
+      .face.g { color: var(--green); text-shadow: 0 0 22px rgba(0, 200, 5, 0.55); }
+      .face::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: rgba(0, 0, 0, 0.55); }
+      .face.first { opacity: 1; }
+
+      /* red card */
+      #cardStage { position: absolute; inset: 0; perspective: 1400px; }
+      #rcard { position: absolute; left: 1260px; top: 300px; width: 300px; height: 430px; border-radius: 22px; background: linear-gradient(150deg, #ee3a43, var(--red) 45%, #8f0f17); box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.35); opacity: 0; }
+      #rcard::after { content: ""; position: absolute; inset: 0; border-radius: 22px; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.35) 48%, transparent 60%); }
+      #redwash { position: absolute; inset: 0; background: var(--red); mix-blend-mode: multiply; opacity: 0; }
+
+      /* scoreline wall */
+      #wall { position: absolute; left: 98px; top: 270px; width: 1724px; display: grid; grid-template-columns: repeat(14, 112px); gap: 12px; }
+      .sc { height: 64px; border-radius: 8px; background: linear-gradient(180deg, var(--tile2) 0 49.6%, #0c0d0b 49.6% 50.4%, var(--tile) 50.4%); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; color: rgba(247, 245, 240, 0.85); opacity: 0; }
+      #one { left: 0; right: 0; top: 380px; }
+      #oneLab { left: 0; right: 0; top: 650px; text-align: center; font-size: 34px; color: rgba(247, 245, 240, 0.75); }
+
+      /* takes: chat bubbles */
+      .bub { position: absolute; padding: 22px 30px 26px; border-radius: 30px; background: rgba(247, 245, 240, 0.96); color: var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); opacity: 0; white-space: nowrap; }
+      .bub .who { font-weight: 700; font-size: 20px; line-height: 1; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+      .bub .q { font-family: "Fraunces", serif; font-weight: 700; font-size: 62px; letter-spacing: -0.02em; line-height: 1.15; }
+      .bub.l { border-bottom-left-radius: 6px; } .bub.r { border-bottom-right-radius: 6px; }
+      .bub.s { padding: 14px 22px 16px; border-radius: 22px; }
+      .bub.s .q { font-size: 38px; }
+      .bub.dk { background: rgba(28, 29, 26, 0.95); color: var(--chalk); border: 1px solid rgba(247, 245, 240, 0.12); }
+      #scrim { position: absolute; inset: 0; background: radial-gradient(ellipse 52% 32% at 50% 48%, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.35) 60%, transparent 85%); opacity: 0; pointer-events: none; }
+      #every { left: 0; right: 0; top: 410px; text-align: center; font-size: 170px; text-shadow: 0 8px 50px rgba(0, 0, 0, 0.8); }
+      #every > div { position: absolute; left: 0; right: 0; opacity: 0; }
+
+      /* call the score */
+      #s24 { background: radial-gradient(ellipse at 35% 45%, #1d1f1b, var(--ink) 60%); }
+      #gStage { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 655px 575px; }
+      #grid { position: absolute; left: 330px; top: 250px; display: grid; grid-template-columns: repeat(5, 118px); gap: 12px; transform-style: preserve-3d; }
+      .cell { position: relative; width: 118px; height: 118px; border-radius: 14px; background: rgba(247, 245, 240, 0.06); border: 1px solid rgba(247, 245, 240, 0.12); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 30px; color: rgba(247, 245, 240, 0.78); overflow: hidden; opacity: 0; }
+      .cell .heat { position: absolute; inset: 0; background: var(--green); opacity: 0; }
+      .cell span { position: relative; }
+      #pickRing { position: absolute; width: 138px; height: 138px; border-radius: 18px; border: 5px solid var(--green); box-shadow: 0 0 34px rgba(0, 200, 5, 0.8), inset 0 0 20px rgba(0, 200, 5, 0.4); opacity: 0; }
+      #cursor { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(247, 245, 240, 0.95); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6); opacity: 0; }
+      #ripple { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 4px solid var(--chalk); opacity: 0; }
+      .axis { position: absolute; font-weight: 600; font-size: 24px; letter-spacing: 0.16em; color: rgba(247, 245, 240, 0.6); }
+      #callT { left: 1130px; top: 360px; font-size: 158px; }
+      #callPill { left: 1140px; top: 720px; }
+      .pill { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: 28px; letter-spacing: 0.08em; text-transform: uppercase; padding: 14px 26px; border-radius: 999px; border: 2px solid rgba(247, 245, 240, 0.2); background: rgba(28, 29, 26, 0.92); color: var(--chalk); white-space: nowrap; }
+      .pill.g { border-color: var(--green); color: var(--green); box-shadow: 0 0 22px rgba(0, 200, 5, 0.35); }
+      .pill.solid { background: var(--green); color: var(--ink); border-color: var(--green); }
+      #testnet { left: 72px; bottom: 140px; }
+
+      /* full time */
+      #s26 { background: radial-gradient(ellipse at 50% 40%, #1d1f1b, var(--ink) 65%); }
+      #ftLab { left: 0; right: 0; top: 250px; text-align: center; font-size: 30px; color: rgba(247, 245, 240, 0.7); }
+      #ft { left: 0; right: 0; top: 320px; }
+      #ftCall { left: 0; right: 0; top: 640px; display: flex; justify-content: center; }
+      #stamp { left: 1240px; top: 230px; font-weight: 700; font-size: 64px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--green); border: 6px solid var(--green); border-radius: 14px; padding: 6px 26px; text-shadow: 0 0 18px rgba(0, 200, 5, 0.5); box-shadow: 0 0 30px rgba(0, 200, 5, 0.35); opacity: 0; }
+      #conf { position: absolute; inset: 0; pointer-events: none; }
+      #conf i { position: absolute; left: 0; top: 0; width: 12px; height: 18px; border-radius: 2px; opacity: 0; display: block; }
+
+      /* anthem lines */
+      .anth { left: 0; right: 0; top: 400px; text-align: center; font-size: 130px; text-shadow: 0 6px 40px rgba(0, 0, 0, 0.75); }
+      .anth > div { opacity: 0; }
+
+      /* end card */
+      #bloom { position: absolute; left: 460px; top: 40px; width: 1000px; height: 1000px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 200, 5, 0.45), rgba(247, 245, 240, 0.12) 50%, transparent); opacity: 0; }
+      #mark { left: 885px; top: 300px; width: 150px; height: 151px; opacity: 0; }
+      #wordmark { left: 1060px; top: 290px; font-size: 168px; clip-path: inset(0 100% 0 0); }
+      #tagline { left: 0; right: 0; top: 540px; text-align: center; font-size: 86px; }
+      #tagline .word { opacity: 0; }
+      #pills { left: 0; right: 0; top: 720px; display: flex; justify-content: center; gap: 18px; }
+
+      /* frame */
+      #flash { position: absolute; inset: 0; background: var(--chalk); opacity: 0; pointer-events: none; }
+      #black { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+      #vign { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55)); pointer-events: none; }
+      .bar { position: absolute; left: 0; width: 1920px; height: 200px; background: #000; }
+      #barT { top: -90px; } #barB { bottom: -90px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="74" data-width="1920" data-height="1080">
+      <!-- sound: score + source-clip sound (pre-mixed, ducked under the voice), then the voice lines -->
+      <audio id="bed" src="assets/bed.mp3" data-start="0" data-duration="74" data-track-index="20" data-volume="1"></audio>
+      <audio id="v01" src="assets/vo/v01.mp3" data-start="1.2" data-duration="3.08" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v02" src="assets/vo/v02.mp3" data-start="5.3" data-duration="3.92" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v03" src="assets/vo/v03.mp3" data-start="9.9" data-duration="1.83" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v04" src="assets/vo/v04.mp3" data-start="12.2" data-duration="1.25" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v05" src="assets/vo/v05.mp3" data-start="13.8" data-duration="1.25" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v06" src="assets/vo/v06.mp3" data-start="15.9" data-duration="1.91" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v07" src="assets/vo/v07.mp3" data-start="18.9" data-duration="1.78" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v08" src="assets/vo/v08.mp3" data-start="20.9" data-duration="1.80" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v09" src="assets/vo/v09.mp3" data-start="22.9" data-duration="2.64" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v10" src="assets/vo/v10.mp3" data-start="25.7" data-duration="2.17" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v11" src="assets/vo/v11.mp3" data-start="28.0" data-duration="1.72" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v12" src="assets/vo/v12.mp3" data-start="34.0" data-duration="3.08" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v13" src="assets/vo/v13.mp3" data-start="37.6" data-duration="1.99" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v14" src="assets/vo/v14.mp3" data-start="39.8" data-duration="1.10" data-track-index="22" data-volume="1.3"></audio>
+      <audio id="v15" src="assets/vo/v15.mp3" data-start="41.1" data-duration="0.99" data-track-index="22" data-volume="1.3"></audio>
+      <audio id="v16" src="assets/vo/v16.mp3" data-start="42.3" data-duration="1.41" data-track-index="22" data-volume="1.3"></audio>
+      <audio id="v17" src="assets/vo/v17.mp3" data-start="43.9" data-duration="2.72" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v18" src="assets/vo/v18.mp3" data-start="47.4" data-duration="2.64" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v19" src="assets/vo/v19.mp3" data-start="50.4" data-duration="2.95" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v20" src="assets/vo/v20.mp3" data-start="53.9" data-duration="1.36" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v21" src="assets/vo/v21.mp3" data-start="56.2" data-duration="3.27" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v22" src="assets/vo/v22.mp3" data-start="60.2" data-duration="2.53" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v23" src="assets/vo/v23.mp3" data-start="63.0" data-duration="2.19" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v24" src="assets/vo/v24.mp3" data-start="66.2" data-duration="0.97" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v25" src="assets/vo/v25.mp3" data-start="67.8" data-duration="2.06" data-track-index="21" data-volume="1.3"></audio>
+
+      <!-- footage: each shot in an untimed wrapper so camera moves never touch the timed <video> -->
+      <div id="w-s01" class="sw"><video id="s01" class="clip" src="assets/shots/s01-boardroom.mp4" data-start="0.4" data-duration="4.7" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s02" class="sw"><video id="s02" class="clip" src="assets/shots/s02-streets.mp4" data-start="5.1" data-duration="2.0" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s03" class="sw"><video id="s03" class="clip" src="assets/shots/s03-mud.mp4" data-start="7.1" data-duration="1.0" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s04" class="sw"><video id="s04" class="clip" src="assets/shots/s04-noise.mp4" data-start="8.1" data-duration="1.7" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s05" class="sw"><video id="s05" class="clip" src="assets/shots/s05-by.mp4" data-start="9.8" data-duration="2.3" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s06" class="sw"><video id="s06" class="clip" src="assets/shots/s06-of.mp4" data-start="12.1" data-duration="1.6" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s07" class="sw"><video id="s07" class="clip" src="assets/shots/s07-for.mp4" data-start="13.7" data-duration="2.0" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s08" class="sw"><video id="s08" class="clip" src="assets/shots/s08-simple.mp4" data-start="15.7" data-duration="2.9" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s10" class="sw"><video id="s10" class="clip" src="assets/shots/s10-penalty.mp4" data-start="22.9" data-duration="2.7" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s11" class="sw"><video id="s11" class="clip" src="assets/shots/s11-redcard.mp4" data-start="25.6" data-duration="2.4" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s12" class="sw"><video id="s12" class="clip" src="assets/shots/s12-goal.mp4" data-start="28.0" data-duration="3.9" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s13" class="sw"><video id="s13" class="clip" src="assets/shots/s13-aguero.mp4" data-start="31.9" data-duration="1.9" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s15" class="sw"><video id="s15" class="clip" src="assets/shots/s15-take.mp4" data-start="37.4" data-duration="2.3" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s16" class="sw"><video id="s16" class="clip" src="assets/shots/s16-threenil.mp4" data-start="39.7" data-duration="1.3" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s17" class="sw"><video id="s17" class="clip" src="assets/shots/s17-bottle.mp4" data-start="41.0" data-duration="1.2" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s18" class="sw"><video id="s18" class="clip" src="assets/shots/s18-oneall.mp4" data-start="42.2" data-duration="1.6" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s19" class="sw"><video id="s19" class="clip" src="assets/shots/s19-fan.mp4" data-start="43.8" data-duration="0.9" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s20" class="sw"><video id="s20" class="clip" src="assets/shots/s20-city.mp4" data-start="44.7" data-duration="0.95" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s21" class="sw"><video id="s21" class="clip" src="assets/shots/s21-opinion.mp4" data-start="45.65" data-duration="1.25" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s22" class="sw"><video id="s22" class="clip" src="assets/shots/s22-noise.mp4" data-start="46.9" data-duration="3.4" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s23" class="sw"><video id="s23" class="clip" src="assets/shots/s23-right.mp4" data-start="50.3" data-duration="3.3" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s25" class="sw"><video id="s25" class="clip" src="assets/shots/s25-proves.mp4" data-start="56.2" data-duration="2.0" data-track-index="0" muted playsinline></video></div>
+      <div id="w-s27" class="sw"><video id="s27" class="clip" src="assets/shots/s27-people.mp4" data-start="60.1" data-duration="2.8" data-track-index="1" muted playsinline></video></div>
+      <div id="w-s28" class="sw"><video id="s28" class="clip" src="assets/shots/s28-reward.mp4" data-start="62.9" data-duration="2.7" data-track-index="0" muted playsinline></video></div>
+
+      <div id="redwash"></div>
+      <div id="shadeB"></div>
+      <div id="shadeL"></div>
+      <div id="dim"></div>
+
+      <!-- ACT 1 · origins -->
+      <div id="sup1" class="abs super caps in">The streets</div>
+      <div id="sup2" class="abs super caps in">The mud</div>
+      <div id="sup3" class="abs super caps in">The noise</div>
+      <div id="people" class="abs serif">
+        <div id="pl1">By the people.</div>
+        <div id="pl2">Of the people.</div>
+        <div id="pl3">For the <span style="color: var(--green)">people.</span></div>
+      </div>
+      <div id="simple" class="abs italic in">And it has never been simple.</div>
+
+      <!-- ACT 2 · chaos -->
+      <div id="yn" class="layer">
+        <div class="duo"><div id="yes" class="big serif"></div><div id="or1" class="or italic in">or</div><div id="no" class="big serif"></div></div>
+        <div id="strike1" class="strike in"></div>
+      </div>
+      <div id="wl" class="layer">
+        <div class="duo"><div id="win" class="big serif"></div><div id="or2" class="or italic in">or</div><div id="lose" class="big serif"></div></div>
+        <div id="strike2" class="strike in"></div>
+      </div>
+      <div id="tag80" class="abs tag in">80' · Penalty missed</div>
+      <div id="tagRed" class="abs tag in" style="border-left-color: var(--red)">87' · Straight red</div>
+      <div id="cardStage"><div id="rcard"></div></div>
+
+      <div id="sv" class="layer">
+        <div id="wall"></div>
+        <div id="one" class="board in"></div>
+        <div id="oneLab" class="abs caps in">One scoreline</div>
+      </div>
+
+      <!-- ACT 3 · the takes -->
+      <div id="bubs" class="layer" data-layout-allow-overlap data-layout-allow-occlusion>
+        <div data-layout-allow-overlap data-layout-allow-occlusion id="b1" class="bub l" style="left: 150px; top: 230px"><div data-layout-allow-overlap data-layout-allow-occlusion class="who">Highbury · the pub</div><div data-layout-allow-overlap data-layout-allow-occlusion class="q">“3–0. Easy.”</div></div>
+        <div data-layout-allow-overlap data-layout-allow-occlusion id="b2" class="bub r" style="left: 1150px; top: 300px"><div data-layout-allow-overlap data-layout-allow-occlusion class="who">Lagos · group chat</div><div data-layout-allow-overlap data-layout-allow-occlusion class="q">“They'll bottle it.”</div></div>
+        <div data-layout-allow-overlap data-layout-allow-occlusion id="b3" class="bub l dk" style="left: 170px; top: 560px"><div data-layout-allow-overlap data-layout-allow-occlusion class="who">The away end</div><div data-layout-allow-overlap data-layout-allow-occlusion class="q">“1–1. Mark my words.”</div></div>
+        <div id="flood"></div>
+      </div>
+      <div id="scrim"></div>
+      <div id="every" class="abs serif" data-layout-allow-overlap data-layout-allow-occlusion>
+        <div id="ev1" data-layout-allow-overlap data-layout-allow-occlusion>Every fan.</div>
+        <div id="ev2" data-layout-allow-overlap data-layout-allow-occlusion>Every city.</div>
+        <div id="ev3" data-layout-allow-overlap data-layout-allow-occlusion>Every <span data-layout-allow-overlap data-layout-allow-occlusion style="color: var(--green)">opinion.</span></div>
+      </div>
+
+      <!-- ACT 4 · call the score (product) -->
+      <div id="s24" class="layer in">
+        <div id="gStage">
+          <div id="grid"><div id="pickRing"></div><div id="cursor"></div><div id="ripple"></div></div>
+        </div>
+        <div class="axis" style="left: 330px; top: 196px">HOME ↓ · AWAY →</div>
+        <div id="callT" class="abs serif" data-layout-allow-overlap><div id="ct1"></div><div id="ct2" style="color: var(--green)"></div></div>
+        <div id="callPill" class="abs"><span id="cp" class="pill g in"><i class="gdot"></i>Your call · 2–1</span></div>
+      </div>
+      <div id="s26" class="layer in">
+        <div id="ftLab" class="abs caps in">Full time</div>
+        <div id="ft" class="board"></div>
+        <div id="ftCall" class="abs"><span id="fc" class="pill solid in">Your call · 2–1 ✓</span></div>
+        <div id="stamp" class="abs">Called it</div>
+      </div>
+      <div id="testnet" class="abs"><span id="tn" class="pill in"><i class="gdot"></i>Testnet · play money</span></div>
+
+      <!-- ACT 5 · anthem -->
+      <div id="an1" class="abs anth serif"><div id="an1a">Football belongs</div><div id="an1b">to the people.</div></div>
+      <div id="an2" class="abs anth serif"><div id="an2a">Now so does</div><div id="an2b" style="color: var(--green)">the reward.</div></div>
+
+      <!-- end card -->
+      <div id="end" class="layer">
+        <div id="bloom"></div>
+        <img id="mark" class="abs" src="assets/logo-white.svg" alt="Kickoff" />
+        <div id="wordmark" class="abs serif">Kickoff</div>
+        <div id="tagline" class="abs serif"><span class="word" id="tg1">Beat the pack.</span>&nbsp;<span class="word" id="tg2" style="color: var(--green)">Keep the stack.</span></div>
+        <div id="pills" class="abs"><span id="p1" class="pill solid in">Join the waitlist</span><span id="p2" class="pill in">kickoff.cash</span><span id="p3" class="pill in"><i class="gdot"></i>Testnet · play money</span></div>
+      </div>
+      <div id="conf"></div>
+
+      <div id="flash"></div>
+      <div id="vign"></div>
+      <div id="barT" class="bar"></div>
+      <div id="barB" class="bar"></div>
+      <div id="hud" class="abs in"><div class="live"><i class="rdot"></i>LIVE</div><div id="clock" class="board" style="position: relative"></div></div>
+      <div id="black"></div>
+    </div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const h = (i, s) => { const v = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return v - Math.floor(v); };
+      const tl = gsap.timeline({ paused: true });
+      const E = -0.03; // impacts arrive a frame early
+      const DUR = 74;
+
+      // ── helpers (house patterns from kickoff-floodlight / kickoff-launch-v2)
+      const rise = (s, t, d = 0.18, y = 30) => tl.fromTo(s, { opacity: 0, y, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: d, ease: "power3.out", immediateRender: false }, t + E);
+      const out = (s, t, d = 0.14) => tl.to(s, { opacity: 0, filter: "blur(10px)", duration: d, ease: "power2.in" }, t);
+      const pop = (s, t, rot = 0) => tl.fromTo(s, { opacity: 0, scale: 0.7, rotation: rot - 6 }, { opacity: 1, scale: 1, rotation: rot, duration: 0.24, ease: "back.out(2)", immediateRender: false }, t + E);
+      const flash = (t, a = 0.8, d = 0.35) => tl.fromTo("#flash", { opacity: a }, { opacity: 0, duration: d, ease: "power2.out", immediateRender: false }, t + E);
+      const push = (s, t, d, a = 1.0, b = 1.08, x0 = 0, x1 = 0) => (x0 || x1)
+        ? tl.fromTo(s, { scale: a, x: x0 }, { scale: b, x: x1, duration: d, ease: "none", immediateRender: false }, t)
+        : tl.fromTo(s, { scale: a }, { scale: b, duration: d, ease: "none", immediateRender: false }, t);
+      const shake = (s, t, d = 0.35, amp = 14) => {
+        const n = Math.round(d / 0.033);
+        for (let k = 0; k < n; k++) {
+          const f = 1 - k / n;
+          tl.to(s, { x: (h(k, 7) - 0.5) * 2 * amp * f, y: (h(k, 9) - 0.5) * 2 * amp * f, duration: 0.033, ease: "none" }, t + k * 0.033);
+        }
+        tl.to(s, { x: 0, y: 0, duration: 0.033, ease: "none" }, t + d);
+      };
+      const OFF = [[-260, -160], [220, -120], [0, -220], [300, 100], [-240, 150], [180, -200]];
+      const letters = (sel, text) => { $(sel).innerHTML = [...text].map((c) => `<span class="in">${c === " " ? "&nbsp;" : c}</span>`).join(""); return [...document.querySelectorAll(sel + " span")]; };
+      const slam = (els, t, stag = 0.05) => els.forEach((el, i) => {
+        const [x, y] = OFF[i % OFF.length];
+        tl.fromTo(el, { opacity: 0, x, y, scale: 2, skewX: -15, filter: "blur(8px)" }, { opacity: 1, x: 0, y: 0, scale: 1, skewX: 0, filter: "blur(0px)", duration: 0.28, ease: "expo.out", immediateRender: false }, t + i * stag + E);
+      });
+
+      // split-flap board: states [{t, text, g}] → per-tile flips (seek-safe: every face is its own tween)
+      function board(sel, n, w, hgt, fs, states, stagger = 0.04, gap = 12) {
+        const el = $(sel); el.style.gap = gap + "px";
+        for (let i = 0; i < n; i++) {
+          const tile = document.createElement("div"); tile.className = "tile";
+          tile.style.width = w + "px"; tile.style.height = hgt + "px"; el.appendChild(tile);
+          const blank = document.createElement("div"); blank.className = "face first"; tile.appendChild(blank);
+          let cur = blank, curCh = " ";
+          states.forEach((st) => {
+            const ch = st.text[i] || " ";
+            if (ch === curCh) return;
+            const f = document.createElement("div"); f.className = "face" + (st.g ? " g" : "");
+            f.style.fontSize = fs + "px"; f.textContent = ch === " " ? "" : ch; tile.appendChild(f);
+            const t0 = st.t + i * stagger;
+            tl.to(cur, { rotationX: -90, duration: 0.07, ease: "power2.in" }, t0);
+            tl.set(cur, { opacity: 0 }, t0 + 0.07);
+            tl.fromTo(f, { rotationX: 90, opacity: 1 }, { rotationX: 0, opacity: 1, duration: 0.13, ease: "back.out(1.7)", immediateRender: false }, t0 + 0.07);
+            cur = f; curCh = ch;
+          });
+        }
+      }
+
+      // text that changes over time is a pure function of time, applied by one driver tween
+      const SEG = new Map();
+      const textAt = (el, t, text) => { if (!SEG.has(el)) SEG.set(el, []); SEG.get(el).push({ t, text }); };
+
+      // ═════ frame: open from black, letterbox, slow ambient life ═════
+      tl.fromTo("#black", { opacity: 1 }, { opacity: 0, duration: 1.3, ease: "power2.inOut", immediateRender: false }, 0.4);
+
+      // ═════ ACT 1 · origins (slow) ═════
+      push("#w-s01", 0.4, 4.7, 1.0, 1.1);                     // cold drone push on "boardroom"
+      flash(5.1, 0.35, 0.3);                                   // cut to the streets
+      push("#w-s02", 5.1, 2.0, 1.12, 1.02);
+      rise("#sup1", 6.16); out("#sup1", 6.95);
+      push("#w-s03", 7.1, 1.0, 1.18, 1.05);                    // punch-out on the splash
+      rise("#sup2", 7.34); out("#sup2", 8.0);
+      push("#w-s04", 8.1, 1.7, 1.0, 1.08);
+      rise("#sup3", 8.34); out("#sup3", 9.6);
+      shake("#w-s04", 8.1, 0.4, 10);
+
+      // By / Of / For the people: a growing stack, older lines dim to 35%
+      tl.to("#shadeL", { opacity: 1, duration: 0.3 }, 9.8);
+      push("#w-s05", 9.8, 2.3, 1.0, 1.06, 0, -40);
+      rise("#pl1", 10.34, 0.22);
+      push("#w-s06", 12.1, 1.6, 1.04, 1.1);
+      tl.to("#pl1", { opacity: 0.35, duration: 0.2 }, 12.1);
+      rise("#pl2", 12.2, 0.22);
+      push("#w-s07", 13.7, 2.0, 1.0, 1.12);
+      tl.to("#pl2", { opacity: 0.35, duration: 0.2 }, 13.7);
+      rise("#pl3", 13.8, 0.22);
+      tl.to("#people", { opacity: 0, filter: "blur(12px)", y: -20, duration: 0.35, ease: "power2.in" }, 15.35);
+      tl.to("#shadeL", { opacity: 0, duration: 0.3 }, 15.5);
+
+      push("#w-s08", 15.7, 2.9, 1.0, 1.1);
+      rise("#simple", 16.1, 0.4, 16);
+      tl.to("#simple", { opacity: 0, duration: 0.4 }, 17.9);
+      tl.to("#dim", { opacity: 1, duration: 0.45, ease: "power2.in" }, 18.15);  // into the dark: the clock starts ticking
+
+      // ═════ ACT 2 · chaos (accelerating) ═════
+      slam(letters("#yes", "Yes"), 19.22);
+      rise("#or1", 19.44, 0.16, 10);
+      slam(letters("#no", "No"), 20.04);
+      tl.fromTo("#strike1", { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.22, ease: "power3.out", immediateRender: false }, 20.5);
+      tl.to("#yn", { opacity: 0, scale: 1.4, filter: "blur(16px)", duration: 0.18, ease: "power2.in" }, 20.78);
+      slam(letters("#win", "Win"), 21.24);
+      rise("#or2", 21.44, 0.16, 10);
+      slam(letters("#lose", "Lose"), 21.98);
+      tl.fromTo("#strike2", { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.18, ease: "power3.out", immediateRender: false }, 22.45);
+      tl.to("#wl", { opacity: 0, scale: 1.4, filter: "blur(16px)", duration: 0.15, ease: "power2.in" }, 22.72);
+      tl.set("#dim", { opacity: 0 }, 22.9);
+
+      // broadcast HUD in the letterbox: the match clock runs out
+      tl.fromTo("#hud", { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.2, ease: "power3.out", immediateRender: false }, 22.9);
+      board("#clock", 5, 40, 54, 32, [
+        { t: 22.95, text: "  80'" },
+        { t: 25.6, text: "  87'" },
+        { t: 28.0, text: "90+3'" },
+        { t: 31.4, text: "90+4'", g: true },
+      ], 0.03, 5);
+      tl.to("#hud", { opacity: 0, duration: 0.2 }, 33.6);
+
+      flash(22.9, 0.5, 0.25);
+      push("#w-s10", 22.9, 2.7, 1.15, 1.3, 0, -60);
+      tl.fromTo("#tag80", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.2, ease: "power3.out", immediateRender: false }, 23.26);
+      out("#tag80", 25.4);
+
+      // red card: flies in in 3D, slams flat, red wash on the flares
+      push("#w-s11", 25.6, 2.4, 1.0, 1.1);
+      tl.fromTo("#redwash", { opacity: 0 }, { opacity: 0.35, duration: 0.15, immediateRender: false }, 25.9);
+      tl.fromTo("#rcard", { opacity: 1, x: 500, y: 300, rotationY: -70, rotationZ: 40, scale: 1.6 }, { opacity: 1, x: 0, y: 0, rotationY: -14, rotationZ: 8, scale: 1, duration: 0.32, ease: "power4.out", immediateRender: false }, 25.62);
+      tl.to("#rcard", { rotationY: -4, rotationZ: 5, y: -12, duration: 1.6, ease: "sine.inOut" }, 25.95);
+      shake("#w-s11", 25.92, 0.35, 16);
+      tl.fromTo("#tagRed", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.2, ease: "power3.out", immediateRender: false }, 26.0);
+      tl.to("#rcard", { x: -900, y: -200, rotationY: 80, rotationZ: -60, opacity: 0, duration: 0.25, ease: "power3.in" }, 27.72);
+      out("#tagRed", 27.8); tl.to("#redwash", { opacity: 0, duration: 0.2 }, 27.8);
+
+      // the 94th: real commentary carries it, the camera creeps in, white-out on the goal
+      push("#w-s12", 28.0, 3.4, 1.05, 1.32);
+      flash(31.4, 1.0, 0.6);
+      shake("#w-s12", 31.4, 0.4, 20);
+      push("#w-s13", 31.9, 1.9, 1.15, 1.0);
+      tl.to("#dim", { opacity: 1, duration: 0.15, ease: "power2.in" }, 33.65);
+
+      // ═════ a thousand variables → one scoreline ═════
+      const wall = $("#wall"); const tiles = [];
+      const COLS = 14, ROWS = 7;
+      const sl = (k) => `${Math.floor(h(k, 3) * 6)}–${Math.floor(h(k, 4) * 6)}`;
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const el = document.createElement("div"); el.className = "sc"; wall.appendChild(el);
+        const i = r * COLS + c; tiles.push(el);
+        const dist = Math.hypot((c - 6.5) / 6.5, (r - 3) / 3) / Math.SQRT2;
+        const t0 = 33.85 + dist * 0.9 + h(i, 1) * 0.12;
+        el.textContent = sl(i * 31);
+        tl.fromTo(el, { opacity: 0, scale: 0.6, filter: "blur(6px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.14, ease: "power3.out", immediateRender: false }, t0);
+        let k = 0;
+        for (let t = t0 + 0.12 + h(i, 2) * 0.1; t < 35.75; t += 0.11 + h(i, k + 5) * 0.12) textAt(el, t, sl(i * 31 + ++k));
+        const x = c * 124 + 56, y = r * 76 + 32;
+        tl.to(el, { x: 862 - x, y: 270 - y, scale: 0.2, opacity: 0, filter: "blur(8px)", duration: 0.26, ease: "power3.in" }, 35.6 + h(i, 6) * 0.1);
+      }
+      push("#wall", 33.8, 2.0, 1.0, 1.04);
+      board("#one", 3, 190, 250, 190, [{ t: 35.8, text: "3–2", g: true }], 0.05, 16);
+      tl.fromTo("#one", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(1.6)", immediateRender: false }, 35.78);
+      rise("#oneLab", 35.96);
+      flash(35.83, 0.25, 0.3);
+      tl.to("#sv", { opacity: 0, scale: 1.08, filter: "blur(10px)", duration: 0.2, ease: "power2.in" }, 37.2);
+      tl.to("#dim", { opacity: 0, duration: 0.05 }, 37.38);
+
+      // ═════ ACT 3 · everyone has a take (fast) ═════
+      push("#w-s15", 37.4, 2.3, 1.0, 1.1, 0, -30);
+      push("#w-s16", 39.7, 1.3, 1.05, 1.15);
+      pop("#b1", 39.8, -2);
+      push("#w-s17", 41.0, 1.2, 1.05, 1.15);
+      pop("#b2", 41.1, 2);
+      push("#w-s18", 42.2, 1.6, 1.0, 1.12);
+      pop("#b3", 42.3, -1);
+      shake("#w-s18", 42.3, 0.3, 8);
+
+      // the flood: takes multiply until it's all noise
+      const TAKES = ["2–0 easy", "We're finished", "4–4 madness", "0–0. Snooze.", "Bottlers.", "3–1, trust me", "Ref's bent", "Late winner", "No chance", "Clean sheet", "Hat-trick incoming", "1–0 ugly win", "Sack him", "5–0", "Always a draw", "2–2", "Title's ours", "Upset incoming", "3–2 thriller", "Bench him", "Park the bus", "Own goal, watch", "1–2 away win", "Penalties", "Easy money", "Never in doubt"];
+      const flood = $("#flood"); const fb = [];
+      TAKES.forEach((q, i) => {
+        const el = document.createElement("div"); el.className = "bub s" + (i % 3 === 1 ? " dk" : "") + (i % 2 ? " r" : " l");
+        el.innerHTML = `<div data-layout-allow-overlap data-layout-allow-occlusion class="q">${q}</div>`; el.setAttribute("data-layout-allow-overlap", ""); el.setAttribute("data-layout-allow-occlusion", ""); flood.appendChild(el);
+        el.style.left = (60 + h(i, 11) * 1500) + "px"; el.style.top = (150 + h(i, 12) * 700) + "px";
+        const p = i / TAKES.length; const t = 43.9 + 2.85 * (1 - Math.pow(1 - p, 0.6));
+        tl.fromTo(el, { opacity: 0, scale: 0.5, rotation: (h(i, 13) - 0.5) * 16 }, { opacity: 1, scale: 1, rotation: (h(i, 13) - 0.5) * 8, duration: 0.16, ease: "back.out(2)", immediateRender: false }, t);
+        fb.push(el);
+      });
+      ["#ev1", "#ev2", "#ev3"].forEach((s, i) => {
+        const t = [43.9, 44.72, 45.66][i];
+        tl.fromTo(s, { opacity: 0, scale: 1.25, filter: "blur(14px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.16, ease: "power3.out", immediateRender: false }, t + E);
+        if (i < 2) tl.set(s, { opacity: 0 }, [44.72, 45.66][i] + E);
+      });
+      tl.set("#ev3", { opacity: 0 }, 46.9);
+      tl.fromTo("#scrim", { opacity: 0 }, { opacity: 1, duration: 0.15, immediateRender: false }, 43.85);
+      tl.set("#scrim", { opacity: 0 }, 46.9);
+
+      // ═════ the silence: the noise falls away ═════
+      push("#w-s22", 46.9, 3.4, 1.0, 1.12);
+      [...fb, $("#b1"), $("#b2"), $("#b3")].forEach((el, i) => {
+        const t = 47.5 + h(i, 21) * 1.4;
+        tl.to(el, { y: 700 + h(i, 22) * 300, rotation: (h(i, 23) - 0.5) * 70, opacity: 0, filter: "blur(6px)", duration: 1.4 + h(i, 24) * 0.6, ease: "power2.in" }, t);
+      });
+      tl.to("#barT", { y: 40, duration: 6.6, ease: "power1.inOut" }, 46.9);   // the letterbox closes in
+      tl.to("#barB", { y: -40, duration: 6.6, ease: "power1.inOut" }, 46.9);
+      push("#w-s23", 50.3, 3.3, 1.0, 1.16);
+
+      // ═════ ACT 4 · call the score (product, motion design) ═════
+      tl.set("#barT", { y: 0 }, 53.6); tl.set("#barB", { y: 0 }, 53.6);
+      tl.set("#s24", { opacity: 1 }, 53.6);
+      flash(53.6, 0.5, 0.3);
+      const grid = $("#grid"); const cells = [];
+      const HEAT = [[0.25, 0.35, 0.15, 0.05, 0], [0.45, 0.6, 0.3, 0.1, 0.05], [0.5, 0.85, 0.4, 0.15, 0.05], [0.3, 0.45, 0.25, 0.1, 0], [0.1, 0.15, 0.1, 0.05, 0]];
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+        const el = document.createElement("div"); el.className = "cell";
+        el.innerHTML = `<div class="heat"></div><span>${r === 4 ? "4+" : r}–${c === 4 ? "4+" : c}</span>`; grid.insertBefore(el, $("#pickRing")); cells.push(el);
+        const d = Math.hypot(r - 2, c - 1);
+        tl.fromTo(el, { opacity: 0, z: -120, filter: "blur(8px)" }, { opacity: 1, z: 0, filter: "blur(0px)", duration: 0.18, ease: "power3.out", immediateRender: false }, 53.62 + d * 0.06);
+        tl.fromTo(el.firstChild, { opacity: 0 }, { opacity: HEAT[r][c] * 0.3, duration: 0.3, immediateRender: false }, 53.9 + d * 0.07);
+      }
+      tl.fromTo("#grid", { rotationX: 38, rotationY: 16, rotationZ: -6, scale: 0.92 }, { rotationX: 14, rotationY: 6, rotationZ: -2, scale: 1, duration: 2.6, ease: "power2.out", immediateRender: false }, 53.6);
+      // cursor taps 2–1 on "score"
+      const pick = cells[2 * 5 + 1];
+      const px = 1 * 130 + 59, py = 2 * 130 + 59; // cell centre in grid space (cursor/ring live inside the tilted grid)
+      tl.fromTo("#cursor", { opacity: 0, x: px + 260, y: py + 260 }, { opacity: 1, x: px + 10, y: py + 10, duration: 0.42, ease: "power3.out", immediateRender: false }, 53.95);
+      tl.to("#cursor", { scale: 0.8, duration: 0.06 }, 54.34);
+      tl.to("#cursor", { scale: 1, duration: 0.12 }, 54.41);
+      tl.fromTo("#ripple", { opacity: 0.9, x: px + 10, y: py + 10, scale: 1 }, { opacity: 0, scale: 3.4, duration: 0.45, ease: "power2.out", immediateRender: false }, 54.36);
+      tl.to(pick.firstChild, { opacity: 1, duration: 0.12 }, 54.36);
+      tl.to(pick, { color: "#111210", z: 40, scale: 1.08, duration: 0.2, ease: "back.out(2)" }, 54.36);
+      tl.fromTo("#pickRing", { opacity: 0, x: px - 69, y: py - 69, scale: 1.4 }, { opacity: 1, scale: 1.08, duration: 0.22, ease: "back.out(2)", immediateRender: false }, 54.38);
+      tl.to("#cursor", { opacity: 0, x: px + 120, y: py + 160, duration: 0.3, ease: "power2.in" }, 54.75);
+      slam(letters("#ct1", "Call the"), 53.9, 0.035);
+      slam(letters("#ct2", "score."), 54.34, 0.04);
+      pop("#cp", 54.7);
+      pop("#tn", 53.8);
+      tl.to("#s24", { opacity: 0, scale: 1.06, filter: "blur(10px)", duration: 0.16, ease: "power2.in" }, 56.04);
+
+      // the game proves you right: knee slide, then the full-time board matches your call
+      push("#w-s25", 56.2, 2.0, 1.12, 1.0);
+      tl.set("#s26", { opacity: 1 }, 58.2);
+      flash(58.2, 0.6, 0.35);
+      rise("#ftLab", 58.2, 0.14);
+      board("#ft", 6, 150, 200, 150, [{ t: 58.2, text: "FT 2–1" }, { t: 58.45, text: "FT 2–1", g: true }], 0.045, 14);
+      pop("#fc", 58.42);
+      tl.fromTo("#stamp", { opacity: 0, scale: 2.4, rotation: -40 }, { opacity: 1, scale: 1, rotation: -9, duration: 0.3, ease: "back.out(2.5)", immediateRender: false }, 58.42);
+      shake("#s26", 58.55, 0.25, 8);
+      tl.to("#s26", { opacity: 0, duration: 0.15 }, 60.0);
+      tl.to("#tn", { opacity: 0, duration: 0.15 }, 60.0);
+      // payoff burst (the one burst in the film)
+      const conf = $("#conf"); const COL = ["#00C805", "#F7F5F0", "#00C805", "#8a8e81"];
+      for (let i = 0; i < 48; i++) { const el = document.createElement("i"); el.style.background = COL[i % 4]; conf.appendChild(el); }
+      const bits = [...conf.children]; const cb = { v: 0 };
+      tl.fromTo(cb, { v: 0 }, { v: 1.6, duration: 1.6, ease: "none", immediateRender: false, onUpdate: () => {
+        const t = cb.v;
+        bits.forEach((el, i) => {
+          if (t <= 0) { el.style.opacity = 0; return; }
+          const ang = -Math.PI / 2 + (h(i, 1) - 0.5) * 2.8, sp = 900 + h(i, 2) * 1200;
+          const x = 960 + Math.cos(ang) * sp * t * 0.6, y = 420 + Math.sin(ang) * sp * t * 0.6 + 0.5 * 1600 * t * t;
+          el.style.transform = `translate(${x}px, ${y}px) rotate(${(h(i, 3) - 0.5) * 1400 * t}deg) scaleY(${0.4 + Math.abs(Math.sin(t * 9 + i))})`;
+          el.style.opacity = t < 1.2 ? 1 : Math.max(0, 1 - (t - 1.2) / 0.4);
+        });
+      } }, 58.45);
+
+      // ═════ ACT 5 · anthem ═════
+      push("#w-s27", 60.1, 2.8, 1.0, 1.1, 0, 40);
+      tl.fromTo("#scrim", { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 60.1);
+      tl.to("#scrim", { opacity: 0, duration: 0.15 }, 65.45);
+      rise("#an1a", 60.2, 0.25); rise("#an1b", 61.36, 0.25);
+      tl.to("#an1", { opacity: 0, filter: "blur(12px)", duration: 0.2 }, 62.75);
+      push("#w-s28", 62.9, 2.7, 1.0, 1.12);
+      rise("#an2a", 63.0, 0.25); rise("#an2b", 63.96, 0.25);
+      tl.to("#an2", { opacity: 0, filter: "blur(12px)", duration: 0.2 }, 65.35);
+      tl.to("#black", { opacity: 1, duration: 0.08 }, 65.6);           // cut to black, silence
+
+      // ═════ end card ═════
+      tl.set("#black", { opacity: 0 }, 66.2);
+      tl.set("#dim", { opacity: 1 }, 66.2);
+      tl.fromTo("#bloom", { opacity: 1, scale: 0.4 }, { opacity: 0.25, scale: 1.7, duration: 1.4, ease: "power2.out", immediateRender: false }, 66.2 + E);
+      flash(66.2, 0.7, 0.4);
+      tl.fromTo("#mark", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, 66.2 + E);
+      tl.to("#mark", { x: -300, duration: 0.5, ease: "power3.inOut" }, 66.55);
+      tl.fromTo("#wordmark", { clipPath: "inset(0 100% 0 0)", x: -300 }, { clipPath: "inset(0 0% 0 0)", x: -300, duration: 0.5, ease: "power3.inOut", immediateRender: false }, 66.55);
+      rise("#tg1", 67.8, 0.3); rise("#tg2", 68.82, 0.3);
+      pop("#p1", 70.3); pop("#p2", 70.45); pop("#p3", 70.6);
+      tl.fromTo("#end", { scale: 1 }, { scale: 1.03, duration: DUR - 66.2, ease: "none", immediateRender: false }, 66.2);
+      tl.to("#black", { opacity: 1, duration: 1.2, ease: "power2.in" }, DUR - 1.3);
+
+      // text driver
+      const INIT = new Map(); SEG.forEach((v, el) => { INIT.set(el, el.textContent); v.sort((a, b) => a.t - b.t); });
+      const clk = { t: 0 };
+      tl.fromTo(clk, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: () => {
+        const T = clk.t;
+        SEG.forEach((v, el) => {
+          let o = INIT.get(el); for (const g of v) { if (g.t <= T) o = g.text; else break; }
+          if (el.textContent !== o) el.textContent = o;
+        });
+      } }, 0);
+      tl.set({}, {}, DUR);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

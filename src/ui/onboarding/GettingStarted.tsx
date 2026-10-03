@@ -12,20 +12,21 @@ import { MOCKUSDC_ADDRESS } from "@/lib/chainConfig";
 import { tusdcBalance } from "@/ui/chain/escrowTx";
 
 /**
- * Beginner checklist: five steps from sign-in to the leaderboard. Opens by
+ * Beginner checklist: five steps from sign-in to your own agent. Opens by
  * itself on a first visit, reopens from the "?" in the header. Steps tick
  * themselves off when we can see they happened (signed in, wallet funded,
- * a stake placed, a market settled); the rest can be marked done by hand.
+ * a stake placed, a market settled, an agent created); any step can also be
+ * marked done by hand.
  */
 
-type StepId = "signin" | "funds" | "stake" | "settle" | "leaderboard";
+type StepId = "signin" | "funds" | "stake" | "settle" | "agent";
 
 const STEPS: { id: StepId; title: string; body: string }[] = [
   { id: "signin", title: "Sign in", body: "Use your email or a wallet. If you don't have a wallet, we make one for you." },
   { id: "funds", title: "Get test funds", body: "Claim free test USDC to try everything. It's play money, not real." },
   { id: "stake", title: "Call a score", body: "Open a match, pick a scoreline like 2-1 and stake before kickoff. You can change your pick until it locks." },
   { id: "settle", title: "Watch it settle", body: "Close picks still pay. Follow your stakes in My Positions and claim winnings after full time." },
-  { id: "leaderboard", title: "Climb the leaderboard", body: "Settle 5 markets to enter the season rankings. The top 10 share the Season Accumulator." },
+  { id: "agent", title: "Set up your agent", body: "Create an AI agent that calls scores for you from its own balance, even when you are offline. You fund it, and only you can withdraw." },
 ];
 
 const DONE_KEY = "kickoff-guide-done";
@@ -95,11 +96,12 @@ export function GettingStarted() {
   const detect = useCallback(async () => {
     if (!address) return setAuto(new Set());
     const found = new Set<StepId>(["signin"]);
-    const [bal, pos] = await Promise.all([
+    const [bal, pos, agent] = await Promise.all([
       MOCKUSDC_ADDRESS ? tusdcBalance(address as Hex).catch(() => null) : null,
       api<{ positions: { position: { isWinner: boolean | null } }[] }>(`/api/users/${address}/positions`).catch(
         () => null,
       ),
+      api<{ agent: object | null }>("/api/agents/me").catch(() => null),
     ]);
     if (bal !== null && bal > 0n) found.add("funds");
     if (pos && pos.positions.length > 0) {
@@ -107,6 +109,7 @@ export function GettingStarted() {
       found.add("stake");
       if (pos.positions.some((p) => p.position.isWinner !== null)) found.add("settle");
     }
+    if (agent?.agent) found.add("agent");
     setAuto(found);
   }, [address]);
 
@@ -180,9 +183,8 @@ export function GettingStarted() {
         return go("/markets");
       case "settle":
         return go("/positions");
-      case "leaderboard":
-        setManualDone("leaderboard", true);
-        return go("/leaderboard");
+      case "agent":
+        return go("/agent");
     }
   };
 
@@ -242,7 +244,7 @@ export function GettingStarted() {
             Getting started
           </h2>
           <p style={{ marginTop: 6, fontSize: "0.95rem", color: "var(--muted-foreground)", lineHeight: 1.5 }}>
-            Five steps from sign-in to your first payout. Kickoff is on testnet, so everything here uses play money.
+            Five steps from sign-in to your first payout and your own agent. Kickoff is on testnet, so everything here uses play money.
           </p>
           <div
             role="progressbar"

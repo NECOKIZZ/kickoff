@@ -335,5 +335,11 @@
   "logo": 69.1,
   "tagline": 70.6,
   "card": 73.2
+ },
+ "offset": 14.2,
+ "coldopen": {
+  "file": "assets/coldopen/commentary.mp3",
+  "at": 0.6,
+  "note": "commentary over black; the film (all other times, which are film-relative) starts at offset"
  }
 }

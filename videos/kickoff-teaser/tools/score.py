@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parent.parent
 E = json.loads((ROOT / "edit.json").read_text())
 H = E["hits"]
 SR = 44100
-DUR = E["duration"]
+OFF = E.get("offset", 0)        # the film starts after the cold open; every time in edit.json is film-relative
+DUR = E["duration"] + OFF
 n = int(SR * DUR)
 L = np.zeros(n); R = np.zeros(n)
 rng = np.random.default_rng(7)
@@ -24,7 +25,7 @@ def tt(d): return np.arange(int(SR * d)) / SR
 
 def put(sig, t, g=1.0, pan=0.0, buf=None):
     bl, br = (L, R) if buf is None else buf
-    i = int(t * SR); j = min(n, i + len(sig))
+    i = int((t + OFF) * SR); j = min(n, i + len(sig))
     if i >= n or j <= i: return
     s = sig[: j - i] * g
     bl[i:j] += s * (1 - max(0, pan)); br[i:j] += s * (1 + min(0, pan))
@@ -318,7 +319,7 @@ if src:
     for clip, ms, at, d, g, _ in E["source_audio"]:
         if g <= 0: continue
         a = load_src(src / f"{clip}.mp4", ms, d)
-        i = int(at * SR); j = min(n, i + len(a))
+        i = int((at + OFF) * SR); j = min(n, i + len(a))
         FX[0][i:j] += a[: j - i, 0] * g; FX[1][i:j] += a[: j - i, 1] * g
 
 # ---------- duck under the voiceover ----------
@@ -327,12 +328,12 @@ for vid, at in E["vo"]:
     p = ROOT / "assets" / "vo" / f"{vid}.mp3"
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(p), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
     v = np.abs(np.frombuffer(raw, dtype=np.float32).astype(float))
-    i = int(at * SR); j = min(n, i + len(v)); vo_env[i:j] = np.maximum(vo_env[i:j], v[: j - i])
+    i = int((at + OFF) * SR); j = min(n, i + len(v)); vo_env[i:j] = np.maximum(vo_env[i:j], v[: j - i])
 for name, clip, ms, at, d in E.get("dialogue", []):
     p = ROOT / "assets" / "dialogue" / f"{name}.mp3"
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(p), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
     v = np.abs(np.frombuffer(raw, dtype=np.float32).astype(float))
-    i = int(at * SR); j = min(n, i + len(v)); vo_env[i:j] = np.maximum(vo_env[i:j], v[: j - i])
+    i = int((at + OFF) * SR); j = min(n, i + len(v)); vo_env[i:j] = np.maximum(vo_env[i:j], v[: j - i])
 # smooth: fast attack (~20ms), slow release (~350ms), computed on 10ms blocks
 blk = SR // 100
 nb = n // blk + 1

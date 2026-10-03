@@ -2,7 +2,16 @@
 
 A 74s 16:9 teaser trailer that edits real football footage to the approved voiceover script (`vo.txt`), with motion design for the product beat and the end card. It uses the Floodlight (dark) look: ink, chalk and a single green accent, plus a letterbox. The paced arc runs slow, accelerates, then hits a hard silence, the product, an anthem and the end card.
 
-## Structure (global seconds, all values in `edit.json`)
+## v2 (current)
+
+- **Cold open (0–14.2s):** the user's commentator clip (`assets/coldopen/commentary.mp3`) plays over black with no music under it. The film then fades in from black. The film timeline is nested in a master timeline at `O = 14.2` (`index.html`). Every time in `edit.json` is film-relative, and `offset` shifts it.
+- **Narrator:** "Old Sorcerer" made dry, with no reverb at the user's request: Kokoro `bm_lewis` through `tools/voice-fx.py sorcerer-dry`. All 22 lines were Whisper-verified.
+- **Fan takes** are the user's lip-synced clips with their own audio (`assets/dialogue/`), cut on negative-shutter flashes. The old AI pub and barbershop footage is now a VHS/CRT "everyone has a take" montage.
+- **New shots:** the penalty is Haaland's saved penalty v Sheffield Utd, punched in so the real 36' scorebug is out of frame. The red card is a referee clip, with a negative strobe on the card.
+- **Look:** all type in Clash Display, and a slow moving aura gradient behind the motion-design beats.
+- New source clips: `n1` referee, `n2` penalty broadcast, `n3` ultra, `n4` pub man, `n5` barber. The same rights caveat applies to `n2`.
+
+## Structure (v1, film-relative) (global seconds, all values in `edit.json`)
 
 | Act | Time | Picture | Sound |
 |---|---|---|---|

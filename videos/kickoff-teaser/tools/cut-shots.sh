@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Cut, grade and upscale the source clips into the teaser's shots (1920x1080, 30fps, silent).
-# Usage: bash tools/cut-shots.sh <dir with c1..c7.mp4 and n1..n5.mp4>   (mapping in EDIT.md)
+# Usage: bash tools/cut-shots.sh <dir with c1..c7.mp4, n1..n5.mp4 and co.mp4>   (mapping in EDIT.md)
 set -euo pipefail
 SRC=${1:?source dir}; OUT=$(dirname "$0")/../assets/shots; mkdir -p "$OUT"
 
@@ -12,6 +12,7 @@ TEAL="eq=contrast=1.12:saturation=0.85:brightness=-0.04,colorbalance=bs=0.06:bm=
 BCAST="eq=contrast=1.14:saturation=0.82:brightness=-0.06:gamma=0.95,colorbalance=bs=0.05:rh=0.05,curves=all='0/0 0.2/0.13 1/0.97'"
 NOIR="eq=contrast=1.2:saturation=0.18:brightness=-0.05,colorbalance=bs=0.08:bm=0.04"
 VHS="scale=560:316,rgbashift=rh=-5:bh=5:rv=1,eq=contrast=1.2:saturation=1.3:brightness=-0.03,colorbalance=rs=0.05:bs=-0.04,scale=1920:1080:flags=bilinear,vignette=angle=PI/3.2"
+DUSK="eq=contrast=1.08:saturation=0.85:brightness=0.02:gamma=1.05,colorbalance=bs=0.04:bm=0.02:rh=0.03"
 NIGHT="eq=contrast=1.15:saturation=0.85:brightness=-0.04,colorbalance=bs=0.05,curves=all='0/0 0.2/0.13 1/1'"
 
 # shot <name> <src> <media-start> <timeline-dur> <rate> <grade> [extra pre-filter]
@@ -30,6 +31,8 @@ shot() {
   echo "$name  $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$OUT/$name.mp4")s"
 }
 
+# ── cold open (under the commentary; plays on the master timeline before the film)
+shot s00-coldopen    co 4.0   14.2 1.0  "$DUSK"
 # ── act 1 · origins
 shot s01-boardroom   c1 1.0   4.3  1.0  "$COLD"
 shot s02-streets     c7 0.2   2.3  1.0  "$WARM"

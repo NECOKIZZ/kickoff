@@ -2,7 +2,12 @@
 
 A 74s 16:9 teaser trailer that edits real football footage to the approved voiceover script (`vo.txt`), with motion design for the product beat and the end card. It uses the Floodlight (dark) look: ink, chalk and a single green accent, plus a letterbox. The paced arc runs slow, accelerates, then hits a hard silence, the product, an anthem and the end card.
 
-## v2 (current)
+## v3 (current)
+
+- **Narrator back to George** (Kokoro `bm_george`, plain, as in v1), per the user. The settings are in `vo.txt`, and every line is Whisper-verified. "Kickoff" is written "Kick off!" with a gentle tail trim, because the trimmed one-word version reads as "kick over".
+- **Cold open (0–14.2s):** the user's aerial stadium clip (`co.mp4` → `s00-coldopen`, dusk grade). It fades slowly up from black under the commentary. The commentary is subtitled phrase by phrase in Clash Display in the middle of the frame, then fades back to black before the film starts.
+
+## v2
 
 - **Cold open (0–14.2s):** the user's commentator clip (`assets/coldopen/commentary.mp3`) plays over black with no music under it. The film then fades in from black. The film timeline is nested in a master timeline at `O = 14.2` (`index.html`). Every time in `edit.json` is film-relative, and `offset` shifts it.
 - **Narrator:** "Old Sorcerer" made dry, with no reverb at the user's request: Kokoro `bm_lewis` through `tools/voice-fx.py sorcerer-dry`. All 22 lines were Whisper-verified.

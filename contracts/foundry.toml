@@ -11,6 +11,7 @@ fs_permissions = [{ access = "read", path = "./test/fixtures" }]
 
 [rpc_endpoints]
 robinhood_testnet = "https://rpc.testnet.chain.robinhood.com/rpc"
+bsc = "${BSC_RPC_URL}"
 
 # Blockscout verification — confirm exact verifier URL at deploy time (spec 🟡)
 [etherscan]

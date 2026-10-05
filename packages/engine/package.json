@@ -2,10 +2,11 @@
   "name": "@kickoff/engine",
   "version": "0.1.0",
   "private": true,
-  "description": "Kickoff proximity-markets settlement engine — BigInt fixed-point (SCALE 1e6), mirrored by the Solidity escrow",
+  "description": "Kickoff proximity-markets settlement engine \u2014 BigInt fixed-point (SCALE 1e6), mirrored by the Solidity escrow",
   "type": "module",
   "main": "./src/engine.ts",
   "exports": {
-    ".": "./src/engine.ts"
+    ".": "./src/engine.ts",
+    "./league": "./src/league.ts"
   }
 }

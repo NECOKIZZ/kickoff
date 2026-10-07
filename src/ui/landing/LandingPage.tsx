@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { label: "Markets", href: "/markets" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Positions", href: "/positions" },
+  { label: "Stocks ↗", href: "https://stocks.kickoff.cash" },
 ];
 
 // ── Navbar — floating glass pill, logo kept tight (brand: don't carry it wide) ──

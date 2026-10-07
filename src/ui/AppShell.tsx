@@ -18,6 +18,8 @@ const APP_TABS = [
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "My Positions", href: "/positions" },
   { label: "My Agent", href: "/agent" },
+  // Kickoff's stock league (Profit Markets), its own site.
+  { label: "Stocks ↗", href: "https://stocks.kickoff.cash" },
 ];
 
 /**

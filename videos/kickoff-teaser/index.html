@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Kickoff · Teaser</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-600.woff2") format("woff2"); font-weight: 600; }
+      @font-face { font-family: "Clash Display"; src: url("assets/fonts/clash-700.woff2") format("woff2"); font-weight: 700; }
+      :root { --ink: #111210; --tile: #1c1d1a; --tile2: #242521; --chalk: #f7f5f0; --muted: #8a8e81; --green: #00c805; --purple: #7b62f6; --red: #d3202b; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; color: var(--chalk); font-family: "Clash Display", sans-serif; }
+      .layer { position: absolute; inset: 0; }
+      .abs { position: absolute; }
+      .in { opacity: 0; }
+      /* all display type is Clash Display */
+      .head { font-weight: 700; letter-spacing: -0.02em; line-height: 0.95; text-transform: uppercase; }
+      .head span, .word { display: inline-block; }
+      .soft { font-weight: 600; letter-spacing: 0.01em; }
+      .caps { font-weight: 700; text-transform: uppercase; letter-spacing: 0.3em; }
+
+      /* footage */
+      #footage { position: absolute; inset: 0; }
+      .sw { position: absolute; inset: 0; overflow: hidden; }
+      .sw video { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+      #shadeB { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent); pointer-events: none; }
+      #shadeL { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.35) 45%, transparent 70%); opacity: 0; pointer-events: none; }
+      #redwash { position: absolute; inset: 0; background: var(--red); mix-blend-mode: multiply; opacity: 0; }
+
+      /* CRT / old-TV overlay for the "everyone has a take" montage */
+      #crt { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+      #crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.38) 0 2px, transparent 2px 5px); }
+      #crt .roll { position: absolute; left: 0; top: 0; width: 1920px; height: 220px; background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.09) 45%, rgba(255, 255, 255, 0.14) 50%, transparent); }
+      #crt .tube { position: absolute; inset: 0; border-radius: 70px; box-shadow: inset 0 0 220px 70px rgba(0, 0, 0, 0.92), 0 0 0 80px #000; }
+      #crt .osd { position: absolute; left: 150px; top: 150px; font-weight: 700; font-size: 44px; letter-spacing: 0.12em; color: #8dff6a; text-shadow: 0 0 14px rgba(120, 255, 90, 0.8); }
+      #crt .osd2 { left: auto; right: 150px; }
+
+      /* moving aura behind the motion-design beats */
+      #aura { position: absolute; inset: 0; background: #0a0b09; overflow: hidden; opacity: 0; }
+      .orb { position: absolute; left: 0; top: 0; border-radius: 50%; mix-blend-mode: screen; }
+      #o1 { width: 1300px; height: 1300px; background: radial-gradient(closest-side, rgba(0, 200, 5, 0.42), rgba(0, 200, 5, 0.12) 55%, transparent); }
+      #o2 { width: 1200px; height: 1200px; background: radial-gradient(closest-side, rgba(123, 98, 246, 0.38), rgba(123, 98, 246, 0.1) 55%, transparent); }
+      #o3 { width: 1000px; height: 1000px; background: radial-gradient(closest-side, rgba(0, 160, 140, 0.34), rgba(0, 160, 140, 0.08) 55%, transparent); }
+      #o4 { width: 900px; height: 900px; background: radial-gradient(closest-side, rgba(0, 200, 5, 0.3), transparent 70%); }
+      #auraGrain { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.6)); }
+
+      /* supers */
+      .super { left: 0; right: 0; bottom: 170px; text-align: center; font-size: 40px; color: var(--chalk); text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7); }
+      #people { left: 150px; top: 360px; font-size: 128px; }
+      #people > div { opacity: 0; }
+      #simple { left: 0; right: 0; bottom: 180px; text-align: center; font-size: 60px; color: rgba(247, 245, 240, 0.92); text-shadow: 0 2px 24px rgba(0, 0, 0, 0.8); }
+
+      /* yes / no */
+      .duo { position: absolute; left: 0; right: 0; top: 380px; display: flex; justify-content: center; align-items: center; gap: 70px; }
+      .duo .big { font-size: 280px; }
+      .duo .or { font-size: 64px; color: rgba(247, 245, 240, 0.5); text-transform: lowercase; }
+      .strike { position: absolute; left: 260px; width: 1400px; top: 520px; height: 12px; background: var(--chalk); transform-origin: left center; box-shadow: 0 0 30px rgba(0, 200, 5, 0.6); }
+
+      /* broadcast HUD (in the top letterbox bar) */
+      #hud { left: 72px; top: 26px; display: flex; align-items: center; gap: 18px; }
+      #hud .live { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 26px; letter-spacing: 0.16em; color: var(--chalk); }
+      .rdot { width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 12px var(--red); display: block; }
+      .gdot { width: 11px; height: 11px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); display: block; }
+      .tag { left: 72px; bottom: 150px; font-weight: 700; font-size: 30px; letter-spacing: 0.18em; text-transform: uppercase; padding: 12px 22px; background: rgba(17, 18, 16, 0.85); border-left: 6px solid var(--chalk); }
+
+      /* split-flap */
+      .board { position: absolute; display: flex; justify-content: center; }
+      .tile { position: relative; background: linear-gradient(180deg, var(--tile2) 0 49.6%, #0c0d0b 49.6% 50.4%, var(--tile) 50.4% 100%); border-radius: 8px; perspective: 500px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+      .face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--chalk); opacity: 0; }
+      .face.g { color: var(--green); text-shadow: 0 0 22px rgba(0, 200, 5, 0.55); }
+      .face::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: rgba(0, 0, 0, 0.55); }
+      .face.first { opacity: 1; }
+
+      /* scoreline wall */
+      #wall { position: absolute; left: 98px; top: 270px; width: 1724px; display: grid; grid-template-columns: repeat(14, 112px); gap: 12px; }
+      .sc { height: 64px; border-radius: 8px; background: linear-gradient(180deg, rgba(36, 37, 33, 0.92) 0 49.6%, #0c0d0b 49.6% 50.4%, rgba(28, 29, 26, 0.92) 50.4%); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; color: rgba(247, 245, 240, 0.85); opacity: 0; }
+      #one { left: 0; right: 0; top: 380px; }
+      #oneLab { left: 0; right: 0; top: 650px; text-align: center; font-size: 34px; color: rgba(247, 245, 240, 0.8); }
+
+      /* the takes */
+      .quote { left: 0; right: 0; bottom: 170px; text-align: center; font-size: 76px; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.85); }
+      .where { left: 72px; top: 150px; font-weight: 700; font-size: 26px; letter-spacing: 0.22em; text-transform: uppercase; padding: 10px 18px; background: rgba(17, 18, 16, 0.8); border-left: 5px solid var(--green); }
+
+      /* every fan, every city, every opinion: the flood */
+      .bub { position: absolute; padding: 14px 22px 16px; border-radius: 22px; background: rgba(247, 245, 240, 0.96); color: var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); opacity: 0; white-space: nowrap; }
+      .bub .q { font-weight: 600; font-size: 36px; letter-spacing: -0.005em; line-height: 1.15; }
+      .bub.l { border-bottom-left-radius: 6px; } .bub.r { border-bottom-right-radius: 6px; }
+      .bub.dk { background: rgba(28, 29, 26, 0.95); color: var(--chalk); border: 1px solid rgba(247, 245, 240, 0.12); }
+      #scrim { position: absolute; inset: 0; background: radial-gradient(ellipse 52% 32% at 50% 48%, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.35) 60%, transparent 85%); opacity: 0; pointer-events: none; }
+      #every { left: 0; right: 0; top: 440px; text-align: center; font-size: 168px; text-shadow: 0 8px 50px rgba(0, 0, 0, 0.8); }
+      #every > div { position: absolute; left: 0; right: 0; opacity: 0; }
+
+      /* call the score */
+      #s24 { opacity: 0; }
+      #gStage { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 655px 575px; }
+      #grid { position: absolute; left: 330px; top: 250px; display: grid; grid-template-columns: repeat(5, 118px); gap: 12px; transform-style: preserve-3d; }
+      .cell { position: relative; width: 118px; height: 118px; border-radius: 14px; background: rgba(17, 18, 16, 0.55); border: 1px solid rgba(247, 245, 240, 0.14); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 30px; color: rgba(247, 245, 240, 0.8); overflow: hidden; opacity: 0; }
+      .cell .heat { position: absolute; inset: 0; background: var(--green); opacity: 0; }
+      .cell span { position: relative; }
+      #pickRing { position: absolute; width: 138px; height: 138px; border-radius: 18px; border: 5px solid var(--green); box-shadow: 0 0 34px rgba(0, 200, 5, 0.8), inset 0 0 20px rgba(0, 200, 5, 0.4); opacity: 0; }
+      #cursor { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(247, 245, 240, 0.95); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6); opacity: 0; }
+      #ripple { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 4px solid var(--chalk); opacity: 0; }
+      .axis { position: absolute; font-weight: 600; font-size: 24px; letter-spacing: 0.16em; color: rgba(247, 245, 240, 0.65); }
+      #callT { left: 1110px; top: 370px; font-size: 128px; white-space: nowrap; }
+      #callPill { left: 1114px; top: 650px; }
+      .pill { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: 28px; letter-spacing: 0.08em; text-transform: uppercase; padding: 14px 26px; border-radius: 999px; border: 2px solid rgba(247, 245, 240, 0.2); background: rgba(28, 29, 26, 0.92); color: var(--chalk); white-space: nowrap; }
+      .pill.g { border-color: var(--green); color: var(--green); box-shadow: 0 0 22px rgba(0, 200, 5, 0.35); }
+      .pill.solid { background: var(--green); color: var(--ink); border-color: var(--green); }
+      #testnet { left: 72px; bottom: 140px; }
+
+      /* full time */
+      #s26 { opacity: 0; }
+      #ftLab { left: 0; right: 0; top: 250px; text-align: center; font-size: 30px; color: rgba(247, 245, 240, 0.75); }
+      #ft { left: 0; right: 0; top: 320px; }
+      #ftCall { left: 0; right: 0; top: 640px; display: flex; justify-content: center; }
+      #stamp { left: 1240px; top: 230px; font-weight: 700; font-size: 64px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--green); border: 6px solid var(--green); border-radius: 14px; padding: 6px 26px; text-shadow: 0 0 18px rgba(0, 200, 5, 0.5); box-shadow: 0 0 30px rgba(0, 200, 5, 0.35); opacity: 0; }
+      #conf { position: absolute; inset: 0; pointer-events: none; }
+      #conf i { position: absolute; left: 0; top: 0; width: 12px; height: 18px; border-radius: 2px; opacity: 0; display: block; }
+
+      /* anthem */
+      .anth { left: 0; right: 0; top: 400px; text-align: center; font-size: 132px; text-shadow: 0 6px 40px rgba(0, 0, 0, 0.75); }
+      .anth > div { opacity: 0; }
+
+      /* end card */
+      #end { opacity: 0; }
+      #bloom { position: absolute; left: 460px; top: 40px; width: 1000px; height: 1000px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 200, 5, 0.45), rgba(247, 245, 240, 0.12) 50%, transparent); opacity: 0; }
+      #mark { left: 885px; top: 300px; width: 150px; height: 151px; opacity: 0; }
+      #wordmark { left: 1060px; top: 296px; font-size: 172px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; clip-path: inset(0 100% 0 0); }
+      #tagline { left: 0; right: 0; top: 548px; text-align: center; font-size: 76px; }
+      #tagline .word { opacity: 0; }
+      #pills { left: 0; right: 0; top: 720px; display: flex; justify-content: center; gap: 18px; }
+
+      /* frame: flash, shutter blades, vignette, letterbox */
+      #flash { position: absolute; inset: 0; background: var(--chalk); opacity: 0; pointer-events: none; }
+      .blade { position: absolute; left: 0; width: 1920px; height: 560px; background: #000; transform-origin: 50% 0; }
+      #bladeT { top: 0; } #bladeB { bottom: 0; transform-origin: 50% 100%; }
+      #cosub { left: 0; right: 0; top: 330px; height: 80px; }
+      #cosub > div { position: absolute; left: 0; right: 0; text-align: center; font-weight: 600; font-size: 56px; letter-spacing: 0.01em; color: var(--chalk); text-shadow: 0 2px 30px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.6); opacity: 0; }
+      #black { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+      #vign { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55)); pointer-events: none; }
+      .bar { position: absolute; left: 0; width: 1920px; height: 200px; background: #000; }
+      #barT { top: -90px; } #barB { bottom: -90px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="91.2" data-width="1920" data-height="1080">
+      <!-- sound: score + crowd/commentary bed (pre-mixed, ducked under every voice), narrator lines, fan dialogue -->
+      <audio id="bed" src="assets/bed.mp3" data-start="0" data-duration="91.2" data-track-index="20" data-volume="1"></audio>
+      <!-- cold open: the commentary over black, then the film fades in at 14.2s -->
+      <audio id="coldopen" src="assets/coldopen/commentary.mp3" data-start="0.6" data-duration="13.37" data-track-index="23" data-volume="1.3"></audio>
+      <audio id="v01" src="assets/vo/v01.mp3" data-start="15.20" data-duration="3.04" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v02" src="assets/vo/v02.mp3" data-start="19.10" data-duration="3.88" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v03" src="assets/vo/v03.mp3" data-start="23.80" data-duration="1.79" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v04" src="assets/vo/v04.mp3" data-start="26.00" data-duration="1.21" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v05" src="assets/vo/v05.mp3" data-start="27.50" data-duration="1.21" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v06" src="assets/vo/v06.mp3" data-start="29.50" data-duration="1.87" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v07" src="assets/vo/v07.mp3" data-start="32.30" data-duration="1.74" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v08" src="assets/vo/v08.mp3" data-start="34.15" data-duration="1.76" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v09" src="assets/vo/v09.mp3" data-start="36.20" data-duration="2.60" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v10" src="assets/vo/v10.mp3" data-start="39.20" data-duration="2.13" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v11" src="assets/vo/v11.mp3" data-start="41.65" data-duration="1.68" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v12" src="assets/vo/v12.mp3" data-start="47.70" data-duration="3.04" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v13" src="assets/vo/v13.mp3" data-start="51.30" data-duration="1.95" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="take1" src="assets/dialogue/take1.mp3" data-start="53.50" data-duration="2.75" data-track-index="22" data-volume="1.25"></audio>
+      <audio id="take2" src="assets/dialogue/take2.mp3" data-start="56.25" data-duration="1.9" data-track-index="22" data-volume="1.25"></audio>
+      <audio id="take3" src="assets/dialogue/take3.mp3" data-start="58.15" data-duration="2.35" data-track-index="22" data-volume="1.25"></audio>
+      <audio id="v17" src="assets/vo/v17.mp3" data-start="60.70" data-duration="2.68" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v18" src="assets/vo/v18.mp3" data-start="64.40" data-duration="2.60" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v19" src="assets/vo/v19.mp3" data-start="67.40" data-duration="2.91" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v20" src="assets/vo/v20.mp3" data-start="70.80" data-duration="1.32" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v21" src="assets/vo/v21.mp3" data-start="73.40" data-duration="3.23" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v22" src="assets/vo/v22.mp3" data-start="77.80" data-duration="2.49" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v23" src="assets/vo/v23.mp3" data-start="80.40" data-duration="2.15" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v24" src="assets/vo/v24.mp3" data-start="83.30" data-duration="1.00" data-track-index="21" data-volume="1.3"></audio>
+      <audio id="v25" src="assets/vo/v25.mp3" data-start="84.80" data-duration="2.02" data-track-index="21" data-volume="1.3"></audio>
+
+      <!-- footage: each shot in an untimed wrapper; the whole stack sits in #footage so the negative flash can invert it -->
+      <div id="footage">
+        <div id="w-s00" class="sw"><video id="s00" class="clip" src="assets/shots/s00-coldopen.mp4" data-start="0" data-duration="14.2" data-track-index="2" muted playsinline></video></div>
+        <div id="w-s01" class="sw"><video id="s01" class="clip" src="assets/shots/s01-boardroom.mp4" data-start="14.50" data-duration="4.3" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s02" class="sw"><video id="s02" class="clip" src="assets/shots/s02-streets.mp4" data-start="18.80" data-duration="2.3" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s03" class="sw"><video id="s03" class="clip" src="assets/shots/s03-mud.mp4" data-start="21.10" data-duration="1.05" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s04" class="sw"><video id="s04" class="clip" src="assets/shots/s04-noise.mp4" data-start="22.15" data-duration="1.55" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s05" class="sw"><video id="s05" class="clip" src="assets/shots/s05-by.mp4" data-start="23.70" data-duration="2.2" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s06" class="sw"><video id="s06" class="clip" src="assets/shots/s06-of.mp4" data-start="25.90" data-duration="1.5" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s07" class="sw"><video id="s07" class="clip" src="assets/shots/s07-for.mp4" data-start="27.40" data-duration="1.8" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s08" class="sw"><video id="s08" class="clip" src="assets/shots/s08-simple.mp4" data-start="29.20" data-duration="2.8" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s10a" class="sw"><video id="s10a" class="clip" src="assets/shots/s10a-pen.mp4" data-start="36.10" data-duration="0.65" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s10b" class="sw"><video id="s10b" class="clip" src="assets/shots/s10b-save.mp4" data-start="36.75" data-duration="1.6" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s10c" class="sw"><video id="s10c" class="clip" src="assets/shots/s10c-reaction.mp4" data-start="38.35" data-duration="0.85" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s11" class="sw"><video id="s11" class="clip" src="assets/shots/s11-redcard.mp4" data-start="39.20" data-duration="2.45" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s12" class="sw"><video id="s12" class="clip" src="assets/shots/s12-goal.mp4" data-start="41.65" data-duration="3.9" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s13" class="sw"><video id="s13" class="clip" src="assets/shots/s13-aguero.mp4" data-start="45.55" data-duration="1.9" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s14a" class="sw"><video id="s14a" class="clip" src="assets/shots/s14a-tv.mp4" data-start="51.20" data-duration="1.1" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s14b" class="sw"><video id="s14b" class="clip" src="assets/shots/s14b-tv.mp4" data-start="52.30" data-duration="1.2" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s15" class="sw"><video id="s15" class="clip" src="assets/shots/s15-threenil.mp4" data-start="53.50" data-duration="2.75" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s16" class="sw"><video id="s16" class="clip" src="assets/shots/s16-bottle.mp4" data-start="56.25" data-duration="1.9" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s17" class="sw"><video id="s17" class="clip" src="assets/shots/s17-oneall.mp4" data-start="58.15" data-duration="2.35" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s19" class="sw"><video id="s19" class="clip" src="assets/shots/s19-fan.mp4" data-start="60.50" data-duration="1.2" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s20" class="sw"><video id="s20" class="clip" src="assets/shots/s20-city.mp4" data-start="61.70" data-duration="0.95" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s21" class="sw"><video id="s21" class="clip" src="assets/shots/s21-opinion.mp4" data-start="62.65" data-duration="1.25" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s22" class="sw"><video id="s22" class="clip" src="assets/shots/s22-noise.mp4" data-start="63.90" data-duration="3.3" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s23" class="sw"><video id="s23" class="clip" src="assets/shots/s23-right.mp4" data-start="67.20" data-duration="3.4" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s25" class="sw"><video id="s25" class="clip" src="assets/shots/s25-proves.mp4" data-start="73.20" data-duration="2.4" data-track-index="1" muted playsinline></video></div>
+        <div id="w-s27" class="sw"><video id="s27" class="clip" src="assets/shots/s27-people.mp4" data-start="77.60" data-duration="2.7" data-track-index="0" muted playsinline></video></div>
+        <div id="w-s28" class="sw"><video id="s28" class="clip" src="assets/shots/s28-reward.mp4" data-start="80.30" data-duration="2.4" data-track-index="1" muted playsinline></video></div>
+      </div>
+
+      <div id="redwash"></div>
+      <div id="crt"><div class="scan"></div><div class="roll" id="roll"></div><div class="tube"></div><div class="osd" id="osd1">CH 03</div><div class="osd osd2" id="osd2">▶ PLAY</div></div>
+      <div id="shadeB"></div>
+      <div id="shadeL"></div>
+
+      <!-- the aura: a slow living gradient behind every motion-design beat -->
+      <div id="aura"><div class="orb" id="o1"></div><div class="orb" id="o2"></div><div class="orb" id="o3"></div><div class="orb" id="o4"></div><div id="auraGrain"></div></div>
+
+      <!-- ACT 1 · origins -->
+      <div id="sup1" class="abs super caps in">The streets</div>
+      <div id="sup2" class="abs super caps in">The mud</div>
+      <div id="sup3" class="abs super caps in">The noise</div>
+      <div id="people" class="abs head">
+        <div id="pl1">By the people.</div>
+        <div id="pl2">Of the people.</div>
+        <div id="pl3">For the <span style="color: var(--green)">people.</span></div>
+      </div>
+      <div id="simple" class="abs soft in">And it has never been simple.</div>
+
+      <!-- ACT 2 · chaos -->
+      <div id="yn" class="layer">
+        <div class="duo"><div id="yes" class="big head"></div><div id="or1" class="or soft in">or</div><div id="no" class="big head"></div></div>
+        <div id="strike1" class="strike in"></div>
+      </div>
+      <div id="wl" class="layer">
+        <div class="duo"><div id="win" class="big head"></div><div id="or2" class="or soft in">or</div><div id="lose" class="big head"></div></div>
+        <div id="strike2" class="strike in"></div>
+      </div>
+      <div id="tag80" class="abs tag in">80' · Penalty missed</div>
+      <div id="tagRed" class="abs tag in" style="border-left-color: var(--red)">87' · Straight red</div>
+
+      <div id="sv" class="layer">
+        <div id="wall"></div>
+        <div id="one" class="board in"></div>
+        <div id="oneLab" class="abs caps in">One scoreline</div>
+      </div>
+
+      <!-- ACT 3 · the takes -->
+      <div id="wh1" class="abs where in">Highbury · the pub</div>
+      <div id="wh2" class="abs where in">Peckham · the barber's</div>
+      <div id="wh3" class="abs where in">The away end</div>
+      <div id="q1" class="abs quote head in">“3–0. Easy.”</div>
+      <div id="q2" class="abs quote head in">“They'll bottle it.”</div>
+      <div id="q3" class="abs quote head in">“1–1. Mark my words.”</div>
+      <div id="flood" class="layer"></div>
+      <div id="scrim"></div>
+      <div id="every" class="abs head">
+        <div id="ev1" data-layout-allow-overlap data-layout-allow-occlusion>Every fan.</div>
+        <div id="ev2" data-layout-allow-overlap data-layout-allow-occlusion>Every city.</div>
+        <div id="ev3" data-layout-allow-overlap data-layout-allow-occlusion>Every <span data-layout-allow-overlap data-layout-allow-occlusion style="color: var(--green)">opinion.</span></div>
+      </div>
+
+      <!-- ACT 4 · call the score (product) -->
+      <div id="s24" class="layer">
+        <div id="gStage">
+          <div id="grid"><div id="pickRing"></div><div id="cursor"></div><div id="ripple"></div></div>
+        </div>
+        <div class="axis" style="left: 330px; top: 196px">HOME ↓ · AWAY →</div>
+        <div id="callT" class="abs head" data-layout-allow-overlap><div id="ct1"></div><div id="ct2" style="color: var(--green)"></div></div>
+        <div id="callPill" class="abs"><span id="cp" class="pill g in"><i class="gdot"></i>Your call · 2–1</span></div>
+      </div>
+      <div id="s26" class="layer">
+        <div id="ftLab" class="abs caps in">Full time</div>
+        <div id="ft" class="board"></div>
+        <div id="ftCall" class="abs"><span id="fc" class="pill solid in">Your call · 2–1 ✓</span></div>
+        <div id="stamp" class="abs">Called it</div>
+      </div>
+      <div id="testnet" class="abs"><span id="tn" class="pill in"><i class="gdot"></i>Testnet · play money</span></div>
+
+      <!-- ACT 5 · anthem -->
+      <div id="an1" class="abs anth head"><div id="an1a">Football belongs</div><div id="an1b">to the people.</div></div>
+      <div id="an2" class="abs anth head"><div id="an2a">Now so does</div><div id="an2b" style="color: var(--green)">the reward.</div></div>
+
+      <!-- end card -->
+      <div id="end" class="layer">
+        <div id="bloom"></div>
+        <img id="mark" class="abs" src="assets/logo-white.svg" alt="Kickoff" />
+        <div id="wordmark" class="abs">Kickoff</div>
+        <div id="tagline" class="abs head"><span class="word" id="tg1">Beat the pack.</span>&nbsp;<span class="word" id="tg2" style="color: var(--green)">Keep the stack.</span></div>
+        <div id="pills" class="abs"><span id="p1" class="pill solid in">Join the waitlist</span><span id="p2" class="pill in">kickoff.cash</span><span id="p3" class="pill in"><i class="gdot"></i>Testnet · play money</span></div>
+      </div>
+      <div id="conf"></div>
+
+      <div id="flash"></div>
+      <div id="vign"></div>
+      <div id="bladeT" class="blade"></div>
+      <div id="bladeB" class="blade"></div>
+      <div id="barT" class="bar"></div>
+      <div id="barB" class="bar"></div>
+      <div id="hud" class="abs in"><div class="live"><i class="rdot"></i>LIVE</div><div id="clock" class="board" style="position: relative"></div></div>
+      <div id="black"></div>
+      <!-- cold-open subtitles: what the commentator says, one phrase at a time -->
+      <div id="cosub" class="abs">
+        <div id="cs1">They came with a ball and a belief.</div>
+        <div id="cs2">Ninety minutes.</div>
+        <div id="cs3">A thousand futures,</div>
+        <div id="cs4">and only one of them comes true.</div>
+        <div id="cs5">Ladies and gentlemen,</div>
+        <div id="cs6">it is time for kickoff.</div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const h = (i, s) => { const v = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return v - Math.floor(v); };
+      // the film is built on its own timeline (film time) and placed after the cold open on the master
+      const tl = gsap.timeline();
+      const E = -0.03; // impacts arrive a frame early
+      const DUR = 77;
+      const F = 1 / 30;
+
+      // ── helpers
+      const rise = (s, t, d = 0.18, y = 30) => tl.fromTo(s, { opacity: 0, y, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: d, ease: "power3.out", immediateRender: false }, t + E);
+      const out = (s, t, d = 0.14) => tl.to(s, { opacity: 0, filter: "blur(10px)", duration: d, ease: "power2.in" }, t);
+      const pop = (s, t, rot = 0) => tl.fromTo(s, { opacity: 0, scale: 0.7, rotation: rot - 6 }, { opacity: 1, scale: 1, rotation: rot, duration: 0.24, ease: "back.out(2)", immediateRender: false }, t + E);
+      const flash = (t, a = 0.8, d = 0.35) => tl.fromTo("#flash", { opacity: a }, { opacity: 0, duration: d, ease: "power2.out", immediateRender: false }, t + E);
+      const push = (s, t, d, a = 1.0, b = 1.08, x0 = 0, x1 = 0) => (x0 || x1)
+        ? tl.fromTo(s, { scale: a, x: x0 }, { scale: b, x: x1, duration: d, ease: "none", immediateRender: false }, t)
+        : tl.fromTo(s, { scale: a }, { scale: b, duration: d, ease: "none", immediateRender: false }, t);
+      const shake = (s, t, d = 0.35, amp = 14) => {
+        const n = Math.round(d / 0.033);
+        for (let k = 0; k < n; k++) {
+          const f = 1 - k / n;
+          tl.to(s, { x: (h(k, 7) - 0.5) * 2 * amp * f, y: (h(k, 9) - 0.5) * 2 * amp * f, duration: 0.033, ease: "none" }, t + k * 0.033);
+        }
+        tl.to(s, { x: 0, y: 0, duration: 0.033, ease: "none" }, t + d);
+      };
+      const OFF = [[-260, -160], [220, -120], [0, -220], [300, 100], [-240, 150], [180, -200]];
+      const letters = (sel, text) => { $(sel).innerHTML = [...text].map((c) => `<span class="in">${c === " " ? "&nbsp;" : c}</span>`).join(""); return [...document.querySelectorAll(sel + " span")]; };
+      const slam = (els, t, stag = 0.05) => els.forEach((el, i) => {
+        const [x, y] = OFF[i % OFF.length];
+        tl.fromTo(el, { opacity: 0, x, y, scale: 2, skewX: -15, filter: "blur(8px)" }, { opacity: 1, x: 0, y: 0, scale: 1, skewX: 0, filter: "blur(0px)", duration: 0.28, ease: "expo.out", immediateRender: false }, t + i * stag + E);
+      });
+
+      // ── the negative shutter: blades snap shut, the frame flips to photo-negative, then opens on the new shot.
+      //    flicker = the picture strobes in and out of negative a few times.
+      const NEG = "invert(1) contrast(1.25) saturate(1.2)";
+      const shutter = (t, flicker = false) => {
+        tl.fromTo("#bladeT", { scaleY: 0 }, { scaleY: 1, duration: 2 * F, ease: "power2.in", immediateRender: false }, t - 2 * F);
+        tl.fromTo("#bladeB", { scaleY: 0 }, { scaleY: 1, duration: 2 * F, ease: "power2.in", immediateRender: false }, t - 2 * F);
+        tl.to(["#bladeT", "#bladeB"], { scaleY: 0, duration: 3 * F, ease: "power2.out" }, t);
+        tl.set("#footage", { filter: NEG }, t);
+        tl.set("#footage", { filter: "none" }, t + 2 * F);
+        if (flicker) {
+          tl.set("#footage", { filter: NEG }, t + 5 * F);
+          tl.set("#footage", { filter: "none" }, t + 6 * F);
+          tl.set("#footage", { filter: NEG }, t + 9 * F);
+          tl.set("#footage", { filter: "none" }, t + 11 * F);
+        }
+        tl.fromTo("#flash", { opacity: 0.55 }, { opacity: 0, duration: 4 * F, ease: "power2.out", immediateRender: false }, t);
+      };
+      tl.set(["#bladeT", "#bladeB"], { scaleY: 0 }, 0);
+      tl.set("#footage", { filter: "none" }, 0);
+
+      // split-flap board: states [{t, text, g}] → per-tile flips
+      function board(sel, n, w, hgt, fs, states, stagger = 0.04, gap = 12) {
+        const el = $(sel); el.style.gap = gap + "px";
+        for (let i = 0; i < n; i++) {
+          const tile = document.createElement("div"); tile.className = "tile";
+          tile.style.width = w + "px"; tile.style.height = hgt + "px"; el.appendChild(tile);
+          const blank = document.createElement("div"); blank.className = "face first"; tile.appendChild(blank);
+          let cur = blank, curCh = " ";
+          states.forEach((st) => {
+            const ch = st.text[i] || " ";
+            if (ch === curCh) return;
+            const f = document.createElement("div"); f.className = "face" + (st.g ? " g" : "");
+            f.style.fontSize = fs + "px"; f.textContent = ch === " " ? "" : ch; tile.appendChild(f);
+            const t0 = st.t + i * stagger;
+            tl.to(cur, { rotationX: -90, duration: 0.07, ease: "power2.in" }, t0);
+            tl.set(cur, { opacity: 0 }, t0 + 0.07);
+            tl.fromTo(f, { rotationX: 90, opacity: 1 }, { rotationX: 0, opacity: 1, duration: 0.13, ease: "back.out(1.7)", immediateRender: false }, t0 + 0.07);
+            cur = f; curCh = ch;
+          });
+        }
+      }
+
+      const SEG = new Map();
+      const textAt = (el, t, text) => { if (!SEG.has(el)) SEG.set(el, []); SEG.get(el).push({ t, text }); };
+
+      // ═════ the aura: four soft orbs drifting for the whole film; shown behind each motion-design beat ═════
+      const ORB = [["#o1", 1300], ["#o2", 1200], ["#o3", 1000], ["#o4", 900]];
+      ORB.forEach(([sel, size], i) => {
+        const pos = (k) => ({ x: 960 - size / 2 + Math.sin(k * 0.9 + i * 2.1) * 560 + (h(k, i + 3) - 0.5) * 300, y: 540 - size / 2 + Math.cos(k * 0.7 + i * 1.3) * 300 + (h(k, i + 5) - 0.5) * 200, scale: 0.85 + h(k, i + 7) * 0.45 });
+        tl.set(sel, pos(0), 0);
+        const step = 2.6 + i * 0.35;
+        for (let k = 1, t = 0; t < DUR; k++, t += step) tl.to(sel, { ...pos(k), duration: step, ease: "sine.inOut" }, t);
+      });
+      const auraOn = (t, d = 0.25) => tl.to("#aura", { opacity: 1, duration: d, ease: "power2.out" }, t);
+      const auraOff = (t, d = 0.2) => tl.to("#aura", { opacity: 0, duration: d, ease: "power2.in" }, t);
+
+      // ═════ open ═════
+      tl.fromTo("#black", { opacity: 1 }, { opacity: 0, duration: 1.2, ease: "power2.inOut", immediateRender: false }, 0.3);
+
+      // ═════ ACT 1 · origins (slow) ═════
+      push("#w-s01", 0.3, 4.3, 1.0, 1.12);
+      shutter(4.6);
+      push("#w-s02", 4.6, 2.3, 1.12, 1.02);
+      rise("#sup1", 5.94); out("#sup1", 6.8);
+      push("#w-s03", 6.9, 1.05, 1.18, 1.05);
+      rise("#sup2", 7.04); out("#sup2", 7.85);
+      push("#w-s04", 7.95, 1.55, 1.0, 1.08);
+      rise("#sup3", 8.18); out("#sup3", 9.35);
+      shake("#w-s04", 7.95, 0.4, 10);
+
+      tl.to("#shadeL", { opacity: 1, duration: 0.3 }, 9.5);
+      push("#w-s05", 9.5, 2.2, 1.0, 1.06, 0, -40);
+      rise("#pl1", 10.32, 0.22);
+      push("#w-s06", 11.7, 1.5, 1.04, 1.1);
+      tl.to("#pl1", { opacity: 0.35, duration: 0.2 }, 11.7);
+      rise("#pl2", 11.8, 0.22);
+      push("#w-s07", 13.2, 1.8, 1.0, 1.12);
+      tl.to("#pl2", { opacity: 0.35, duration: 0.2 }, 13.2);
+      rise("#pl3", 13.3, 0.22);
+      tl.to("#people", { opacity: 0, filter: "blur(12px)", y: -20, duration: 0.35, ease: "power2.in" }, 14.65);
+      tl.to("#shadeL", { opacity: 0, duration: 0.3 }, 14.8);
+
+      push("#w-s08", 15.0, 2.8, 1.0, 1.1);
+      rise("#simple", 15.4, 0.4, 16);
+      tl.to("#simple", { opacity: 0, duration: 0.35 }, 17.3);
+
+      // ═════ ACT 2 · chaos: type on the living aura ═════
+      auraOn(17.7, 0.3);
+      slam(letters("#yes", "Yes"), 18.56);
+      rise("#or1", 18.84, 0.16, 10);
+      slam(letters("#no", "No"), 19.28);
+      tl.fromTo("#strike1", { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.2, ease: "power3.out", immediateRender: false }, 19.62);
+      tl.to("#yn", { opacity: 0, scale: 1.4, filter: "blur(16px)", duration: 0.16, ease: "power2.in" }, 19.85);
+      slam(letters("#win", "Win"), 20.41);
+      rise("#or2", 20.65, 0.16, 10);
+      slam(letters("#lose", "Lose"), 21.11);
+      tl.fromTo("#strike2", { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.18, ease: "power3.out", immediateRender: false }, 21.45);
+      tl.to("#wl", { opacity: 0, scale: 1.4, filter: "blur(16px)", duration: 0.14, ease: "power2.in" }, 21.72);
+      auraOff(21.78, 0.12);
+
+      // broadcast HUD: the clock runs out
+      tl.fromTo("#hud", { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.2, ease: "power3.out", immediateRender: false }, 21.9);
+      board("#clock", 5, 40, 54, 32, [
+        { t: 21.95, text: "  80'" },
+        { t: 25.0, text: "  87'" },
+        { t: 27.45, text: "90+3'" },
+        { t: 30.83, text: "90+4'", g: true },
+      ], 0.03, 5);
+      tl.to("#hud", { opacity: 0, duration: 0.2 }, 33.05);
+
+      // the missed penalty: real-time run-up, slow-mo strike and save, the reaction
+      shutter(21.9);
+      push("#w-s10a", 21.9, 0.65, 1.0, 1.06);
+      push("#w-s10b", 22.55, 1.6, 1.06, 1.28);
+      shake("#w-s10b", 23.68, 0.3, 12);
+      flash(23.68, 0.3, 0.25);
+      tl.fromTo("#tag80", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.2, ease: "power3.out", immediateRender: false }, 23.7);
+      push("#w-s10c", 24.15, 0.85, 1.1, 1.2);
+      out("#tag80", 24.85);
+
+      // red card: the card goes up and the picture strobes in and out of negative
+      push("#w-s11", 25.0, 2.45, 1.0, 1.12);
+      shutter(25.6, true);
+      tl.fromTo("#redwash", { opacity: 0 }, { opacity: 0.3, duration: 0.15, immediateRender: false }, 25.62);
+      tl.to("#redwash", { opacity: 0, duration: 0.3 }, 27.2);
+      shake("#w-s11", 25.6, 0.3, 12);
+      tl.fromTo("#tagRed", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.2, ease: "power3.out", immediateRender: false }, 25.84);
+      out("#tagRed", 27.25);
+
+      // the 94th: the real commentary carries it, white-out on the goal
+      push("#w-s12", 27.45, 3.38, 1.05, 1.32);
+      flash(30.83, 1.0, 0.6);
+      shake("#w-s12", 30.83, 0.4, 20);
+      push("#w-s13", 31.35, 1.9, 1.15, 1.0);
+
+      // ═════ a thousand variables → one scoreline (on the aura) ═════
+      auraOn(33.2, 0.15);
+      const wall = $("#wall");
+      const COLS = 14, ROWS = 7;
+      const sl = (k) => `${Math.floor(h(k, 3) * 6)}–${Math.floor(h(k, 4) * 6)}`;
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const el = document.createElement("div"); el.className = "sc"; wall.appendChild(el);
+        const i = r * COLS + c;
+        const dist = Math.hypot((c - 6.5) / 6.5, (r - 3) / 3) / Math.SQRT2;
+        const t0 = 33.3 + dist * 0.9 + h(i, 1) * 0.12;
+        el.textContent = sl(i * 31);
+        tl.fromTo(el, { opacity: 0, scale: 0.6, filter: "blur(6px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.14, ease: "power3.out", immediateRender: false }, t0);
+        let k = 0;
+        for (let t = t0 + 0.12 + h(i, 2) * 0.1; t < 35.4; t += 0.11 + h(i, k + 5) * 0.12) textAt(el, t, sl(i * 31 + ++k));
+        const x = c * 124 + 56, y = r * 76 + 32;
+        tl.to(el, { x: 862 - x, y: 260 - y, scale: 0.2, opacity: 0, filter: "blur(8px)", duration: 0.26, ease: "power3.in" }, 35.2 + h(i, 6) * 0.1);
+      }
+      push("#wall", 33.25, 2.0, 1.0, 1.04);
+      board("#one", 3, 190, 250, 190, [{ t: 35.44, text: "3–2", g: true }], 0.05, 16);
+      tl.fromTo("#one", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(1.6)", immediateRender: false }, 35.42);
+      rise("#oneLab", 35.72);
+      flash(35.46, 0.25, 0.3);
+      tl.to("#sv", { opacity: 0, scale: 1.08, filter: "blur(10px)", duration: 0.2, ease: "power2.in" }, 36.75);
+      auraOff(36.8, 0.15);
+
+      // ═════ ACT 3 · everyone has a take: VHS montage, then three real takes cut on the shutter ═════
+      shutter(37.0, true);
+      tl.set("#crt", { opacity: 1 }, 37.0);
+      tl.fromTo("#roll", { y: -240 }, { y: 1100, duration: 1.1, ease: "none", immediateRender: false }, 37.0);
+      tl.fromTo("#roll", { y: -240 }, { y: 1100, duration: 1.2, ease: "none", immediateRender: false }, 38.1);
+      push("#w-s14a", 37.0, 1.1, 1.06, 1.12);
+      shutter(38.1);
+      textAt($("#osd1"), 38.1, "CH 07");
+      push("#w-s14b", 38.1, 1.2, 1.04, 1.12);
+      shake("#w-s14b", 38.1, 0.2, 6);
+      tl.set("#crt", { opacity: 0 }, 39.3);
+
+      shutter(39.3);
+      push("#w-s15", 39.3, 2.75, 1.0, 1.08);
+      rise("#wh1", 39.35); rise("#q1", 39.42, 0.2);
+      tl.set(["#wh1", "#q1"], { opacity: 0 }, 42.05);
+      shutter(42.05);
+      push("#w-s16", 42.05, 1.9, 1.04, 1.12);
+      rise("#wh2", 42.1); rise("#q2", 42.65, 0.2);
+      tl.set(["#wh2", "#q2"], { opacity: 0 }, 43.95);
+      shutter(43.95);
+      push("#w-s17", 43.95, 2.35, 1.0, 1.1);
+      rise("#wh3", 44.0); rise("#q3", 44.1, 0.2);
+      tl.set(["#wh3", "#q3"], { opacity: 0 }, 46.3);
+
+      // every fan / city / opinion: takes multiply into noise
+      push("#w-s19", 46.3, 1.2, 1.0, 1.08);
+      push("#w-s20", 47.5, 0.95, 1.0, 1.06);
+      shutter(48.45, true);
+      tl.set("#crt", { opacity: 1 }, 48.45);
+      tl.fromTo("#roll", { y: -240 }, { y: 1100, duration: 1.25, ease: "none", immediateRender: false }, 48.45);
+      textAt($("#osd1"), 48.45, "CH 11");
+      push("#w-s21", 48.45, 1.25, 1.0, 1.1);
+      tl.set("#crt", { opacity: 0 }, 49.7);
+      const TAKES = ["2–0 easy", "We're finished", "4–4 madness", "0–0. Snooze.", "Bottlers.", "3–1, trust me", "Ref's bent", "Late winner", "No chance", "Clean sheet", "Hat-trick incoming", "1–0 ugly win", "Sack him", "5–0", "Always a draw", "2–2", "Title's ours", "Upset incoming", "3–2 thriller", "Bench him", "Park the bus", "Own goal, watch", "1–2 away win", "Penalties", "Easy money", "Never in doubt"];
+      const flood = $("#flood"); const fb = [];
+      TAKES.forEach((q, i) => {
+        const el = document.createElement("div"); el.className = "bub" + (i % 3 === 1 ? " dk" : "") + (i % 2 ? " r" : " l");
+        el.innerHTML = `<div data-layout-allow-overlap data-layout-allow-occlusion class="q">${q}</div>`; flood.appendChild(el);
+        el.style.left = (60 + h(i, 11) * 1500) + "px"; el.style.top = (150 + h(i, 12) * 700) + "px";
+        const p = i / TAKES.length; const t = 46.5 + 3.0 * (1 - Math.pow(1 - p, 0.6));
+        tl.fromTo(el, { opacity: 0, scale: 0.5, rotation: (h(i, 13) - 0.5) * 16 }, { opacity: 1, scale: 1, rotation: (h(i, 13) - 0.5) * 8, duration: 0.16, ease: "back.out(2)", immediateRender: false }, t);
+        fb.push(el);
+      });
+      tl.fromTo("#scrim", { opacity: 0 }, { opacity: 1, duration: 0.15, immediateRender: false }, 46.45);
+      [["#ev1", 46.5, 47.56], ["#ev2", 47.56, 48.5], ["#ev3", 48.5, 49.7]].forEach(([s, a, b]) => {
+        tl.fromTo(s, { opacity: 0, scale: 1.25, filter: "blur(14px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.16, ease: "power3.out", immediateRender: false }, a + E);
+        tl.set(s, { opacity: 0 }, b + E);
+      });
+      tl.set("#scrim", { opacity: 0 }, 49.7);
+
+      // ═════ the silence: the noise falls away ═════
+      push("#w-s22", 49.7, 3.3, 1.0, 1.12);
+      fb.forEach((el, i) => {
+        const t = 50.3 + h(i, 21) * 1.4;
+        tl.to(el, { y: 700 + h(i, 22) * 300, rotation: (h(i, 23) - 0.5) * 70, opacity: 0, filter: "blur(6px)", duration: 1.4 + h(i, 24) * 0.6, ease: "power2.in" }, t);
+      });
+      tl.to("#barT", { y: 40, duration: 6.7, ease: "power1.inOut" }, 49.7);
+      tl.to("#barB", { y: -40, duration: 6.7, ease: "power1.inOut" }, 49.7);
+      push("#w-s23", 53.0, 3.4, 1.0, 1.16);
+
+      // ═════ ACT 4 · call the score (on the aura) ═════
+      tl.set("#barT", { y: 0 }, 56.4); tl.set("#barB", { y: 0 }, 56.4);
+      auraOn(56.38, 0.1);
+      tl.set("#s24", { opacity: 1 }, 56.4);
+      flash(56.4, 0.5, 0.3);
+      const grid = $("#grid"); const cells = [];
+      const HEAT = [[0.25, 0.35, 0.15, 0.05, 0], [0.45, 0.6, 0.3, 0.1, 0.05], [0.5, 0.85, 0.4, 0.15, 0.05], [0.3, 0.45, 0.25, 0.1, 0], [0.1, 0.15, 0.1, 0.05, 0]];
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+        const el = document.createElement("div"); el.className = "cell";
+        el.innerHTML = `<div class="heat"></div><span>${r === 4 ? "4+" : r}–${c === 4 ? "4+" : c}</span>`; grid.insertBefore(el, $("#pickRing")); cells.push(el);
+        const d = Math.hypot(r - 2, c - 1);
+        tl.fromTo(el, { opacity: 0, z: -120, filter: "blur(8px)" }, { opacity: 1, z: 0, filter: "blur(0px)", duration: 0.18, ease: "power3.out", immediateRender: false }, 56.42 + d * 0.06);
+        tl.fromTo(el.firstChild, { opacity: 0 }, { opacity: HEAT[r][c] * 0.3, duration: 0.3, immediateRender: false }, 56.7 + d * 0.07);
+      }
+      tl.fromTo("#grid", { rotationX: 38, rotationY: 16, rotationZ: -6, scale: 0.92 }, { rotationX: 14, rotationY: 6, rotationZ: -2, scale: 1, duration: 2.6, ease: "power2.out", immediateRender: false }, 56.4);
+      const pick = cells[2 * 5 + 1];
+      const px = 1 * 130 + 59, py = 2 * 130 + 59; // cell centre in grid space
+      tl.fromTo("#cursor", { opacity: 0, x: px + 260, y: py + 260 }, { opacity: 1, x: px + 10, y: py + 10, duration: 0.42, ease: "power3.out", immediateRender: false }, 56.75);
+      tl.to("#cursor", { scale: 0.8, duration: 0.06 }, 57.14);
+      tl.to("#cursor", { scale: 1, duration: 0.12 }, 57.21);
+      tl.fromTo("#ripple", { opacity: 0.9, x: px + 10, y: py + 10, scale: 1 }, { opacity: 0, scale: 3.4, duration: 0.45, ease: "power2.out", immediateRender: false }, 57.16);
+      tl.to(pick.firstChild, { opacity: 1, duration: 0.12 }, 57.16);
+      tl.to(pick, { color: "#111210", z: 40, scale: 1.08, duration: 0.2, ease: "back.out(2)" }, 57.16);
+      tl.fromTo("#pickRing", { opacity: 0, x: px - 69, y: py - 69, scale: 1.4 }, { opacity: 1, scale: 1.08, duration: 0.22, ease: "back.out(2)", immediateRender: false }, 57.18);
+      tl.to("#cursor", { opacity: 0, x: px + 120, y: py + 160, duration: 0.3, ease: "power2.in" }, 57.55);
+      slam(letters("#ct1", "Call the"), 56.6, 0.035);
+      slam(letters("#ct2", "score."), 57.2, 0.04);
+      pop("#cp", 57.5);
+      pop("#tn", 56.6);
+      tl.to("#s24", { opacity: 0, scale: 1.06, filter: "blur(10px)", duration: 0.16, ease: "power2.in" }, 58.84);
+      auraOff(58.86, 0.12);
+
+      // the game proves you right: knee slide, then the full-time board matches your call
+      push("#w-s25", 59.0, 2.4, 1.12, 1.0);
+      shutter(61.4);
+      auraOn(61.4, 0.05);
+      tl.set("#s26", { opacity: 1 }, 61.4);
+      rise("#ftLab", 61.4, 0.14);
+      board("#ft", 6, 150, 200, 150, [{ t: 61.4, text: "FT 2–1" }, { t: 61.65, text: "FT 2–1", g: true }], 0.045, 14);
+      pop("#fc", 61.62);
+      tl.fromTo("#stamp", { opacity: 0, scale: 2.4, rotation: -40 }, { opacity: 1, scale: 1, rotation: -9, duration: 0.3, ease: "back.out(2.5)", immediateRender: false }, 61.62);
+      shake("#s26", 61.75, 0.25, 8);
+      tl.to("#s26", { opacity: 0, duration: 0.15 }, 63.25);
+      tl.to("#tn", { opacity: 0, duration: 0.15 }, 63.25);
+      auraOff(63.25, 0.15);
+      const conf = $("#conf"); const COL = ["#00C805", "#F7F5F0", "#00C805", "#8a8e81"];
+      for (let i = 0; i < 48; i++) { const el = document.createElement("i"); el.style.background = COL[i % 4]; conf.appendChild(el); }
+      const bits = [...conf.children]; const cb = { v: 0 };
+      tl.fromTo(cb, { v: 0 }, { v: 1.6, duration: 1.6, ease: "none", immediateRender: false, onUpdate: () => {
+        const t = cb.v;
+        bits.forEach((el, i) => {
+          if (t <= 0) { el.style.opacity = 0; return; }
+          const ang = -Math.PI / 2 + (h(i, 1) - 0.5) * 2.8, sp = 900 + h(i, 2) * 1200;
+          const x = 960 + Math.cos(ang) * sp * t * 0.6, y = 420 + Math.sin(ang) * sp * t * 0.6 + 0.5 * 1600 * t * t;
+          el.style.transform = `translate(${x}px, ${y}px) rotate(${(h(i, 3) - 0.5) * 1400 * t}deg) scaleY(${0.4 + Math.abs(Math.sin(t * 9 + i))})`;
+          el.style.opacity = t < 1.2 ? 1 : Math.max(0, 1 - (t - 1.2) / 0.4);
+        });
+      } }, 61.65);
+
+      // ═════ ACT 5 · anthem ═════
+      push("#w-s27", 63.4, 2.7, 1.0, 1.1, 0, 40);
+      tl.fromTo("#scrim", { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 63.4);
+      rise("#an1a", 63.6, 0.25); rise("#an1b", 64.86, 0.25);
+      tl.to("#an1", { opacity: 0, filter: "blur(12px)", duration: 0.2 }, 65.9);
+      push("#w-s28", 66.1, 2.4, 1.0, 1.12);
+      rise("#an2a", 66.2, 0.25); rise("#an2b", 67.08, 0.25);
+      tl.to("#an2", { opacity: 0, filter: "blur(12px)", duration: 0.2 }, 68.3);
+      tl.to("#scrim", { opacity: 0, duration: 0.15 }, 68.35);
+      tl.to("#black", { opacity: 1, duration: 0.08 }, 68.5);
+
+      // ═════ end card (on the aura) ═════
+      tl.set("#black", { opacity: 0 }, 69.1);
+      tl.set("#aura", { opacity: 1 }, 69.1);
+      tl.set("#end", { opacity: 1 }, 69.1);
+      tl.fromTo("#bloom", { opacity: 1, scale: 0.4 }, { opacity: 0.25, scale: 1.7, duration: 1.4, ease: "power2.out", immediateRender: false }, 69.1 + E);
+      flash(69.1, 0.7, 0.4);
+      tl.fromTo("#mark", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)", immediateRender: false }, 69.1 + E);
+      tl.to("#mark", { x: -300, duration: 0.5, ease: "power3.inOut" }, 69.45);
+      tl.fromTo("#wordmark", { clipPath: "inset(0 100% 0 0)", x: -300 }, { clipPath: "inset(0 0% 0 0)", x: -300, duration: 0.5, ease: "power3.inOut", immediateRender: false }, 69.45);
+      rise("#tg1", 70.6, 0.3); rise("#tg2", 71.9, 0.3);
+      pop("#p1", 73.2); pop("#p2", 73.35); pop("#p3", 73.5);
+      tl.fromTo("#end", { scale: 1 }, { scale: 1.03, duration: DUR - 69.1, ease: "none", immediateRender: false }, 69.1);
+      tl.to("#black", { opacity: 1, duration: 1.2, ease: "power2.in" }, DUR - 1.3);
+
+      // text driver
+      const INIT = new Map(); SEG.forEach((v, el) => { INIT.set(el, el.textContent); v.sort((a, b) => a.t - b.t); });
+      const clk = { t: 0 };
+      tl.fromTo(clk, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: () => {
+        const T = clk.t;
+        SEG.forEach((v, el) => {
+          let o = INIT.get(el); for (const g of v) { if (g.t <= T) o = g.text; else break; }
+          if (el.textContent !== o) el.textContent = o;
+        });
+      } }, 0);
+      tl.set({}, {}, DUR);
+
+      // ═════ master: black cold open (the commentary plays over it), then the film from O ═════
+      const O = 14.2;
+      const master = gsap.timeline({ paused: true });
+      // a slow fade up from black into the stadium, the commentary subtitled in the middle of the frame,
+      // then back to black as he finishes, before the film starts
+      master.set(["#bladeT", "#bladeB"], { scaleY: 0 }, 0); // the shutter blades rest open (the film re-sets them at its own 0)
+      master.fromTo("#black", { opacity: 1 }, { opacity: 0, duration: 2.4, ease: "power1.inOut" }, 0);
+      master.fromTo("#w-s00", { scale: 1.0 }, { scale: 1.07, duration: 14.2, ease: "none" }, 0);
+      master.to("#black", { opacity: 1, duration: 0.7, ease: "power1.in" }, 13.45);
+      [["#cs1", 0.6, 3.05], ["#cs2", 3.15, 4.95], ["#cs3", 5.75, 6.8], ["#cs4", 6.85, 9.4], ["#cs5", 10.1, 11.4], ["#cs6", 11.95, 13.75]].forEach(([sel, a, b]) => {
+        master.fromTo(sel, { opacity: 0, y: 14, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.35, ease: "power3.out", immediateRender: false }, a);
+        master.to(sel, { opacity: 0, filter: "blur(8px)", duration: 0.25, ease: "power2.in" }, b - 0.25);
+      });
+      master.add(tl, O);
+      master.set({}, {}, O + DUR);
+      window.__timelines["main"] = master;
+    </script>
+  </body>
+</html>

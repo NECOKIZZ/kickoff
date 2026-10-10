@@ -5,12 +5,15 @@ import { agentStakingHalted } from "@/lib/chain";
 import { MANAGED_ENABLED, MANAGED_MODEL } from "@/lib/managedAgent";
 import { sql } from "drizzle-orm";
 
-// $ per million tokens (input, output) for the run-cost estimate. Estimates
-// only: cache reads are billed lower, so real spend is at or below this.
+// $ per million tokens (input, output) for the run-cost estimate, at
+// OpenRouter's list prices. Estimates only: cache reads are billed lower, so
+// real spend is at or below this.
 const PRICES: Record<string, [number, number]> = {
-  "claude-opus-5": [5, 25],
-  "claude-sonnet-5": [2, 10],
-  "claude-haiku-4-5": [1, 5],
+  "anthropic/claude-opus-5.5": [4, 20],
+  "anthropic/claude-opus-5": [5, 25],
+  "anthropic/claude-sonnet-5.5": [2, 10],
+  "anthropic/claude-sonnet-5": [2, 10],
+  "anthropic/claude-haiku-5.5": [0.1, 0.5],
 };
 
 /**

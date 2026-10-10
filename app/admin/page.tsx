@@ -359,7 +359,7 @@ function AgentsTab() {
           <ActionBtn danger={!data.stakingHalted} disabled={busy || data.stakingHalted == null} onClick={() => act("/api/admin/agents/halt", { halted: !data.stakingHalted }, data.stakingHalted ? "resume" : "halt")}>
             {data.stakingHalted ? "Resume all agent staking" : "Halt all agent staking"}
           </ActionBtn>
-          {!data.managedEnabled && <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>Set ANTHROPIC_API_KEY to enable managed agents.</span>}
+          {!data.managedEnabled && <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>Set OPENROUTER_API_KEY to enable managed agents.</span>}
         </div>
         {note && <p style={{ fontSize: "0.78rem", color: "var(--ui-accent)", marginTop: 8, overflowWrap: "anywhere" }}>{note}</p>}
       </section>

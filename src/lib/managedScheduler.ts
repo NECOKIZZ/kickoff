@@ -35,7 +35,7 @@ export async function runDueManagedAgents(
   trigger: "cron" | "admin",
   caller?: ModelCaller,
 ): Promise<TickSummary | { disabled: string }> {
-  if (!MANAGED_ENABLED && !caller) return { disabled: "ANTHROPIC_API_KEY is not set" };
+  if (!MANAGED_ENABLED && !caller) return { disabled: "OPENROUTER_API_KEY is not set" };
 
   const pack = await buildDataPack();
   const horizon = Date.now() + LOOKAHEAD_HOURS * 3_600_000;

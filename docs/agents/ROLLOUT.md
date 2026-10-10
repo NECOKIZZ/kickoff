@@ -19,7 +19,8 @@ is merged to `main`.
   hash/`when` `drizzle-kit migrate` writes, so future migrations line up.
   Verified: 4 `agent*` tables, 3 enums, 5 FKs, 6 indexes.
 - [x] **Step 4**: Vercel env vars set (escrow, AgentVault, CRON_SECRET,
-  ANTHROPIC_API_KEY, KICKOFF_DATA_*).
+  ANTHROPIC_API_KEY, KICKOFF_DATA_*). Managed agents moved to
+  OpenRouter on 2026-10-10: set `OPENROUTER_API_KEY` instead.
 - [x] **Step 5**: shipped to `main` (PR #1).
 - [x] **Step 6**: human-to-human smoke test passed (market #5, 2 wallets,
   settled on-chain). Agent create/claim still to exercise.

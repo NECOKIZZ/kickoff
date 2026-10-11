@@ -13,7 +13,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fixturesDir } from "./mockDir";
-import { archiveRaw } from "./archive";
+import { archiveRaw, type ArchiveOptions } from "./archive";
 import { mirrorSpend } from "./budget";
 import { log } from "./log";
 
@@ -39,7 +39,7 @@ function mockFileFor(endpoint: string): string {
   return `fpl-${endpoint.replaceAll("/", "_")}.json`;
 }
 
-async function apiGet(endpoint: string): Promise<any> {
+async function apiGet(endpoint: string, archive: ArchiveOptions | false = {}): Promise<any> {
   if (isMockMode()) {
     const raw = await readFile(path.join(fixturesDir(), mockFileFor(endpoint)), "utf8");
     return JSON.parse(raw);
@@ -64,7 +64,7 @@ async function apiGet(endpoint: string): Promise<any> {
   // No hard budget wall (free API) — the mirror gives politeness observability.
   mirrorSpend("fpl", today());
   // Archive BEFORE normalization (spec §4) — the settlement evidence trail.
-  await archiveRaw("fpl", endpoint, body);
+  if (archive) await archiveRaw("fpl", endpoint, body, archive);
   return body;
 }
 
@@ -144,15 +144,31 @@ export interface FplFixture {
 // Getters
 // ---------------------------------------------------------------------------
 
+function envSeconds(name: string, fallback: number): number {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+/** bootstrap-static is ~2MB and changes constantly (transfers, live points):
+ *  archive one copy per this interval, and only from fpl.bootstrapSync. */
+const BOOTSTRAP_ARCHIVE_INTERVAL = envSeconds("KICKOFF_DATA_ARCHIVE_FPL_BOOTSTRAP_SECONDS", 6 * 3600);
+/** /event/{gw}/live changes every poll in play — keep a periodic sample;
+ *  unchanged post-match payloads dedupe to one row regardless. */
+const LIVE_ARCHIVE_INTERVAL = envSeconds("KICKOFF_DATA_ARCHIVE_FPL_LIVE_SECONDS", 30 * 60);
+
 /** Players + teams + gameweeks. Also the ONLY place data_checked lives, so
- *  this doubles as the finality watch. */
-export async function getBootstrap(): Promise<FplBootstrap> {
-  return (await apiGet("/bootstrap-static/")) as FplBootstrap;
+ *  this doubles as the finality watch. Hot-path callers (live/fixture polls)
+ *  pass archive=false — they only need team slugs and gameweek flags. */
+export async function getBootstrap(opts: { archive?: boolean } = {}): Promise<FplBootstrap> {
+  const archive = opts.archive === false ? false : { minIntervalSeconds: BOOTSTRAP_ARCHIVE_INTERVAL };
+  return (await apiGet("/bootstrap-static/", archive)) as FplBootstrap;
 }
 
 /** Every player's live points for one gameweek — a single call. */
 export async function getEventLive(gw: number): Promise<{ elements: FplLiveElement[] }> {
-  return (await apiGet(`/event/${gw}/live/`)) as { elements: FplLiveElement[] };
+  return (await apiGet(`/event/${gw}/live/`, { minIntervalSeconds: LIVE_ARCHIVE_INTERVAL })) as {
+    elements: FplLiveElement[];
+  };
 }
 
 /** FPL's fixture list, optionally scoped to one gameweek. */

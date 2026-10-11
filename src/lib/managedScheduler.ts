@@ -6,7 +6,7 @@
 import { db, schema } from "@/db";
 import { and, desc, eq, gt, isNotNull } from "drizzle-orm";
 import { buildDataPack } from "@/lib/dataPack";
-import { MANAGED_ENABLED, runManagedAgent, type ModelCaller, type RunResult } from "@/lib/managedAgent";
+import { MANAGED_ENABLED, isRateLimited, runManagedAgent, type ModelCaller, type RunResult } from "@/lib/managedAgent";
 
 const LOOKAHEAD_HOURS = Number(process.env.MANAGED_AGENT_LOOKAHEAD_HOURS ?? 12);
 const MAX_RUNS_PER_AGENT_PER_DAY = Number(process.env.MANAGED_AGENT_MAX_RUNS_PER_DAY ?? 4);
@@ -70,6 +70,12 @@ export async function runDueManagedAgents(
     // rest read it; and a bad tick can't fan out into a burst of spend.
     const r = await runManagedAgent(agent, { trigger, pack, caller });
     summary.ran.push({ agentId: agent.id, ...r });
+    // Still rate limited after the caller's retries: don't hammer the
+    // provider with the remaining agents — they go next tick.
+    if (isRateLimited(r)) {
+      summary.capped = true;
+      break;
+    }
   }
   return summary;
 }

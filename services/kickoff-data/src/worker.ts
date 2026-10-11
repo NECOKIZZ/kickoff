@@ -11,7 +11,7 @@
 import { sql } from "drizzle-orm";
 import { plan, jobKey, type Job, type PlannerFixture, type PlannerGameweek } from "./scheduler/planner";
 import { runners, seasonFor } from "./jobs";
-import { installDbSink } from "./archive";
+import { installDbSink, pruneArchive } from "./archive";
 import { installDbBudgetStore } from "./budget";
 import { budgetState, restoreBudget, isMockMode } from "./apiFootball";
 import { isMockMode as fplMockMode } from "./fpl";
@@ -37,6 +37,9 @@ const backingOff = (key: string, now: Date) => {
   return at !== undefined && now.getTime() - at.getTime() < RETRY_BACKOFF_MS;
 };
 const startedAt = new Date();
+// Raw-archive retention sweep cadence (first sweep on the first tick).
+const PRUNE_EVERY_MS = 6 * 3600_000;
+let lastPruneAt = 0;
 
 async function heartbeat(now: Date, jobsRun: number): Promise<void> {
   try {
@@ -135,6 +138,16 @@ async function tick(): Promise<number> {
     await sweepPlayerPoints(now);
   } catch (e) {
     log.error("worker", "player-points sweep failed", { error: e as Error });
+  }
+
+  // Raw-archive retention — keeps raw_payloads from eating the DB quota.
+  if (now.getTime() - lastPruneAt >= PRUNE_EVERY_MS) {
+    lastPruneAt = now.getTime();
+    try {
+      await pruneArchive(now);
+    } catch (e) {
+      log.error("worker", "archive prune failed", { error: e as Error });
+    }
   }
 
   return jobsRun;

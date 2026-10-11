@@ -241,7 +241,7 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
   /** Per-gameweek fixture refresh — liveness/finality flags move fast on
    *  matchdays; the full-list sync above is too slow for that. */
   "fpl.fixtureSync": async (job, now) => {
-    const b = await getBootstrap();
+    const b = await getBootstrap({ archive: false });
     const season = seasonFor(now);
     const fx = await getFplFixtures(job.gw);
     await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
@@ -257,7 +257,7 @@ export const runners: Partial<Record<Job["kind"], JobRunner>> = {
     const live = await getEventLive(job.gw);
     const players = await loadFplPlayerMap(season);
     await upsertFplPoints(normalizeFplLive(job.gw, season, live.elements, players), null, now);
-    const b = await getBootstrap();
+    const b = await getBootstrap({ archive: false });
     const fx = await getFplFixtures(job.gw);
     await upsertFplFixtures(normalizeFplFixtures(fx, fplTeamSlugs(b), season));
     await applyFplRoles(fx, b, season, now);

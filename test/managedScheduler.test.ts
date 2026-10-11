@@ -18,4 +18,9 @@ describe("isDue", () => {
   it("respects the daily cap even with new markets", () => {
     expect(isDue([9], [{ marketIds: [1] }, { marketIds: [2] }], 2)).toBe(false);
   });
+  it("errored runs don't mark markets as seen, but count toward the cap", () => {
+    expect(isDue([1, 2], [{ marketIds: [1, 2], status: "error" }])).toBe(true);
+    expect(isDue([1, 2], [{ marketIds: [1, 2], status: "ok" }])).toBe(false);
+    expect(isDue([1], [{ marketIds: [1], status: "error" }, { marketIds: [1], status: "error" }], 2)).toBe(false);
+  });
 });

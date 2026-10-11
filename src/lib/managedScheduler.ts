@@ -12,14 +12,16 @@ const LOOKAHEAD_HOURS = Number(process.env.MANAGED_AGENT_LOOKAHEAD_HOURS ?? 12);
 const MAX_RUNS_PER_AGENT_PER_DAY = Number(process.env.MANAGED_AGENT_MAX_RUNS_PER_DAY ?? 4);
 const MAX_AGENTS_PER_TICK = Number(process.env.MANAGED_AGENT_MAX_PER_TICK ?? 25);
 
-/** Pure: should this agent run now? */
+/** Pure: should this agent run now? Errored runs count toward the daily cap
+ *  (a broken key can't burn spend) but don't mark markets as seen — the model
+ *  never answered, so the next tick retries them. */
 export function isDue(
   dueMarketIds: number[],
-  recentRuns: Array<{ marketIds: number[] }>, // this agent's runs in the last 24h
+  recentRuns: Array<{ marketIds: number[]; status?: string }>, // this agent's runs in the last 24h
   maxRunsPerDay = MAX_RUNS_PER_AGENT_PER_DAY,
 ): boolean {
   if (dueMarketIds.length === 0 || recentRuns.length >= maxRunsPerDay) return false;
-  const seen = new Set(recentRuns.flatMap((r) => r.marketIds));
+  const seen = new Set(recentRuns.filter((r) => r.status !== "error").flatMap((r) => r.marketIds));
   return dueMarketIds.some((id) => !seen.has(id));
 }
 
@@ -56,7 +58,7 @@ export async function runDueManagedAgents(
       break;
     }
     const recent = await db
-      .select({ marketIds: schema.agentRuns.marketIds })
+      .select({ marketIds: schema.agentRuns.marketIds, status: schema.agentRuns.status })
       .from(schema.agentRuns)
       .where(and(eq(schema.agentRuns.agentId, agent.id), gt(schema.agentRuns.createdAt, since)))
       .orderBy(desc(schema.agentRuns.createdAt));

@@ -1,5 +1,6 @@
 import { createPublicClient, createWalletClient, http, parseEventLogs, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import { waitForReceipt } from "@/lib/receipt";
 import {
   AGENT_VAULT_ADDRESS,
   ESCROW_ADDRESS,
@@ -110,7 +111,7 @@ export async function createMarketOnChain(
       nonce,
     }),
   );
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await waitForReceipt(publicClient, hash);
   if (receipt.status !== "success") throw new Error(`createMarket reverted (${hash})`);
   const [created] = parseEventLogs({ abi: escrowAbi, eventName: "MarketCreated", logs: receipt.logs });
   if (!created) throw new Error(`createMarket emitted no MarketCreated (${hash})`);
@@ -135,7 +136,7 @@ async function writeAndWait(functionName: any, args: any): Promise<Hex> {
   const hash = await submit(wallet, (nonce) =>
     wallet.writeContract({ address: ESCROW_ADDRESS!, abi: escrowAbi, functionName, args, nonce }),
   );
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await waitForReceipt(publicClient, hash);
   if (receipt.status !== "success") throw new Error(`${functionName} reverted (${hash})`);
   return hash;
 }
@@ -244,7 +245,7 @@ export async function dripTestFunds(to: Hex): Promise<DripResult | null> {
 
   if ((await publicClient.getBalance({ address: to })) < MIN_ETH_WEI) {
     const hash = await submit(wallet, (nonce) => wallet.sendTransaction({ to, value: DRIP_ETH_WEI, nonce }));
-    const r = await publicClient.waitForTransactionReceipt({ hash });
+    const r = await waitForReceipt(publicClient, hash);
     if (r.status !== "success") throw new Error(`ETH drip reverted (${hash})`);
     out.ethTxHash = hash;
   }
@@ -255,11 +256,11 @@ export async function dripTestFunds(to: Hex): Promise<DripResult | null> {
     const mint = await submit(wallet, (nonce) =>
       wallet.writeContract({ address: usdc, abi: tusdcAbi, functionName: "faucet", args: [DRIP_TUSDC], nonce }),
     );
-    await publicClient.waitForTransactionReceipt({ hash: mint });
+    await waitForReceipt(publicClient, mint);
     const hash = await submit(wallet, (nonce) =>
       wallet.writeContract({ address: usdc, abi: tusdcAbi, functionName: "transfer", args: [to, DRIP_TUSDC], nonce }),
     );
-    const r = await publicClient.waitForTransactionReceipt({ hash });
+    const r = await waitForReceipt(publicClient, hash);
     if (r.status !== "success") throw new Error(`tUSDC drip reverted (${hash})`);
     out.tusdcTxHash = hash;
   }
@@ -285,7 +286,7 @@ async function operatorWrite(functionName: any, args: any): Promise<Hex> {
   const hash = await submit(wallet, (nonce) =>
     wallet.writeContract({ address: AGENT_VAULT_ADDRESS!, abi: agentVaultAbi, functionName, args, nonce }),
   );
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await waitForReceipt(publicClient, hash);
   if (receipt.status !== "success") throw new Error(`AgentVault.${functionName} reverted (${hash})`);
   return hash;
 }
@@ -333,7 +334,7 @@ export async function setAgentStakingHalted(halted: boolean): Promise<Hex | null
       nonce,
     }),
   );
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await waitForReceipt(publicClient, hash);
   if (receipt.status !== "success") throw new Error(`setStakingHalted reverted (${hash})`);
   return hash;
 }

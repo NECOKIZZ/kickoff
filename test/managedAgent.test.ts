@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 // The caller only needs fetch; stub the DB module so no DATABASE_URL is needed.
 vi.mock("@/db", () => ({ db: {}, schema: {} }));
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test";
-const { claudeCaller, parseModelJson, MANAGED_MODEL } = await import("../src/lib/managedAgent");
+const { claudeCaller, parseModelJson, MANAGED_MODEL, withRetry, ModelApiError, isRateLimited } = await import("../src/lib/managedAgent");
 
 const req = { system: "sys", pack: '{"openFixtures":[]}', soul: "be bold" };
 
@@ -65,5 +65,44 @@ describe("claudeCaller (OpenRouter)", () => {
     const r = await claudeCaller(req);
     expect(r.refused).toBe(true);
     expect(r.output).toBeNull();
+  });
+});
+
+describe("withRetry (429 backoff)", () => {
+  const ok = { output: { picks: [] }, refused: false, usage: { input: 0, output: 0, cacheRead: 0 } };
+  const rateLimited = (retryAfter?: number) => new ModelApiError(429, "could not verify credits", retryAfter);
+
+  it("retries a 429 twice with backoff, then succeeds", async () => {
+    const sleeps: number[] = [];
+    const inner = vi.fn().mockRejectedValueOnce(rateLimited()).mockRejectedValueOnce(rateLimited()).mockResolvedValueOnce(ok);
+    const r = await withRetry(inner, async (ms) => void sleeps.push(ms))(req);
+    expect(r).toBe(ok);
+    expect(inner).toHaveBeenCalledTimes(3);
+    expect(sleeps).toEqual([5000, 15000]);
+  });
+
+  it("gives up after 3 requests total", async () => {
+    const inner = vi.fn().mockRejectedValue(rateLimited());
+    await expect(withRetry(inner, async () => {})(req)).rejects.toThrow("model API 429");
+    expect(inner).toHaveBeenCalledTimes(3);
+  });
+
+  it("honours Retry-After, capped at 30s", async () => {
+    const sleeps: number[] = [];
+    const inner = vi.fn().mockRejectedValueOnce(rateLimited(12)).mockRejectedValueOnce(rateLimited(600)).mockResolvedValueOnce(ok);
+    await withRetry(inner, async (ms) => void sleeps.push(ms))(req);
+    expect(sleeps).toEqual([12000, 30000]);
+  });
+
+  it("does not retry other errors", async () => {
+    const inner = vi.fn().mockRejectedValue(new ModelApiError(401, "bad key"));
+    await expect(withRetry(inner, async () => {})(req)).rejects.toThrow("model API 401");
+    expect(inner).toHaveBeenCalledTimes(1);
+  });
+
+  it("isRateLimited spots 429 run errors only", () => {
+    expect(isRateLimited({ status: "error", error: "model API 429: slow down" })).toBe(true);
+    expect(isRateLimited({ status: "error", error: "model API 401: bad key" })).toBe(false);
+    expect(isRateLimited({ status: "ok" })).toBe(false);
   });
 });

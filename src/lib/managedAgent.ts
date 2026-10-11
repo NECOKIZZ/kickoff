@@ -73,6 +73,8 @@ export class ModelApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    /** Seconds from the provider's Retry-After header, when sent. */
+    readonly retryAfterSec?: number,
   ) {
     super(`model API ${status}: ${message}`);
   }
@@ -89,8 +91,8 @@ export function parseModelJson(text: string | null | undefined): unknown {
   }
 }
 
-/** The real caller: one request, no tools, schema-constrained output. */
-export const claudeCaller: ModelCaller = async ({ system, pack, soul }) => {
+/** One request, no tools, schema-constrained output. */
+const callOpenRouter: ModelCaller = async ({ system, pack, soul }) => {
   const res = await fetch(`${OPENROUTER_URL}/chat/completions`, {
     method: "POST",
     headers: {
@@ -127,7 +129,12 @@ export const claudeCaller: ModelCaller = async ({ system, pack, soul }) => {
   // OpenRouter can also report a failure inside a 200 body.
   if (!res.ok || body?.error) {
     const status = body?.error?.code && Number.isInteger(body.error.code) ? body.error.code : res.status;
-    throw new ModelApiError(status, body?.error?.message ?? res.statusText ?? "request failed");
+    const retryAfter = Number(res.headers.get("retry-after"));
+    throw new ModelApiError(
+      status,
+      body?.error?.message ?? res.statusText ?? "request failed",
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
+    );
   }
 
   const choice = body?.choices?.[0];
@@ -142,6 +149,36 @@ export const claudeCaller: ModelCaller = async ({ system, pack, soul }) => {
     },
   };
 };
+
+/** 429 backoff: at most 2 retries (3 requests total) per agent run, waiting
+ *  5s then 15s, or the provider's Retry-After when longer, capped at 30s. A
+ *  run that still gets 429 errors out; the scheduler then ends the tick. */
+const RETRY_DELAYS_SEC = [5, 15];
+const MAX_RETRY_WAIT_SEC = 30;
+
+export function withRetry(
+  caller: ModelCaller,
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): ModelCaller {
+  return async (req) => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await caller(req);
+      } catch (err) {
+        const delay = RETRY_DELAYS_SEC[attempt];
+        if (!(err instanceof ModelApiError) || err.status !== 429 || delay === undefined) throw err;
+        await sleep(Math.min(Math.max(delay, err.retryAfterSec ?? 0), MAX_RETRY_WAIT_SEC) * 1000);
+      }
+    }
+  };
+}
+
+/** The real caller. */
+export const claudeCaller: ModelCaller = withRetry(callOpenRouter);
+
+/** True when a run failed on provider rate limiting / credit checks. */
+export const isRateLimited = (r: { status: string; error?: string }) =>
+  r.status === "error" && !!r.error?.startsWith("model API 429");
 
 export interface RunResult {
   runId: number;

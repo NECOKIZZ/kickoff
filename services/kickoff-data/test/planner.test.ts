@@ -217,6 +217,23 @@ describe("planner: FPL live poll", () => {
     expect(kinds(cold)).not.toContain("fpl.livePoll");
   });
 
+  it("player points off: post-match polling stops once the GW is finished", () => {
+    const polled = new Map([["fpl.livePoll:gw3", new Date(T0.getTime() - (CADENCE.fplPostMatch + 60) * 1000)]]);
+    // Between matches of an unfinished GW: still polls (fixture flags, votes).
+    expect(kinds(state({ gameweeks: [gw()], lastRun: new Map(polled), playerPoints: false }))).toContain("fpl.livePoll");
+    // Finished: done, even though no points settlement will ever be recorded.
+    const done = state({ gameweeks: [gw({ finished: true })], lastRun: new Map(polled), playerPoints: false });
+    expect(kinds(done)).not.toContain("fpl.livePoll");
+  });
+
+  it("player points off: no finality watch", () => {
+    const lastRun = new Map([
+      ["fpl.bootstrapSync", new Date(T0.getTime() - (CADENCE.fplFinalityWatch + 60) * 1000)],
+    ]);
+    const s = state({ gameweeks: [gw({ finished: true, dataChecked: false })], lastRun, playerPoints: false });
+    expect(kinds(s)).not.toContain("fpl.bootstrapSync");
+  });
+
   it("a settled GW never polls again", () => {
     const polled = new Map([["fpl.livePoll:gw3", new Date(T0.getTime() - 24 * 3600_000)]]);
     const s = state({ gameweeks: [gw({ finished: true, dataChecked: true, settled: true, anyFixtureActive: false })], lastRun: polled });

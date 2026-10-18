@@ -21,7 +21,7 @@ import { deliver, webhookConfigFromEnv } from "./api/webhooks";
 import { freezeDue, needsTiebreak, escalateStalled, installSettlementEmitter, s3Trusted } from "./settlementLane";
 import { sweepPlayerPoints, installPlayerPointsEmitter } from "./fplSettlementLane";
 import { db, schema } from "./db";
-import { jobEnabled, disabledSources, listsFixtures, settlementRoster } from "./sources";
+import { jobEnabled, disabledSources, listsFixtures, settlementRoster, playerPointsEnabled } from "./sources";
 import { log } from "./log";
 
 const TICK_SECONDS = Number(process.env.KICKOFF_DATA_TICK_SECONDS ?? 30);
@@ -83,7 +83,7 @@ async function tick(): Promise<number> {
 
   // Sources switched off by KICKOFF_DATA_NO_MOCKS never run (and never count
   // as failures); lastRun stays unset so they start the moment a key lands.
-  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining, gameweeks }).filter(
+  const jobs = plan({ now, fixtures, lastRun, s1Remaining: budgetState().remaining, gameweeks, playerPoints: playerPointsEnabled() }).filter(
     (j) => jobEnabled(j.kind) && !backingOff(jobKey(j), now),
   );
   let jobsRun = 0;
@@ -134,10 +134,12 @@ async function tick(): Promise<number> {
 
   // FPL player-points sweep — advances gameweeks through the two-stage
   // finality ladder (provisional at bonus-in, frozen at data_checked).
-  try {
-    await sweepPlayerPoints(now);
-  } catch (e) {
-    log.error("worker", "player-points sweep failed", { error: e as Error });
+  if (playerPointsEnabled()) {
+    try {
+      await sweepPlayerPoints(now);
+    } catch (e) {
+      log.error("worker", "player-points sweep failed", { error: e as Error });
+    }
   }
 
   // Raw-archive retention — keeps raw_payloads from eating the DB quota.
@@ -184,6 +186,7 @@ async function main(): Promise<void> {
     fplMock: fplMockMode(),
     s3Trusted: s3Trusted(),
     disabledSources: disabledSources(),
+    playerPoints: playerPointsEnabled(),
     // Parsed here so a bad KICKOFF_DATA_SETTLEMENT_* config fails at boot, not mid-tick.
     settlement: settlementRoster(),
     fplLists: listsFixtures("fpl"),

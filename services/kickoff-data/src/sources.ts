@@ -31,6 +31,15 @@ const mockOf: Record<Source, () => boolean> = {
   fpl: fplMock,
 };
 
+/** FPL player-points lane: live points, player identity, points settlement.
+ *  KICKOFF_DATA_FPL_PLAYER_POINTS=0 switches it off while player markets are
+ *  paused — score markets only need FPL's fixture list, and the per-minute
+ *  points upsert was most of the service's outbound bandwidth. */
+export function playerPointsEnabled(): boolean {
+  const v = process.env.KICKOFF_DATA_FPL_PLAYER_POINTS;
+  return v !== "0" && v !== "false";
+}
+
 /** Jobs switched off by KICKOFF_DATA_DISABLED_JOBS, e.g. "s1.lineups,s1.postMatch"
  *  while player markets are paused (they only feed those, and spend S1 budget). */
 function disabledJobs(): Set<string> {

@@ -72,6 +72,14 @@ services:
       # would spend the free plan's 100 requests/day. Remove to re-enable.
       - key: KICKOFF_DATA_DISABLED_JOBS
         value: s1.lineups,s1.postMatch
+      # Same reason: FPL live player points (every player, every minute in
+      # play) were most of the 5 GB/month Hobby outbound bandwidth — every DB
+      # write to Supabase is billed. Score markets only need FPL fixtures.
+      - key: KICKOFF_DATA_FPL_PLAYER_POINTS
+        value: "0"
+      # The ~1.8MB bootstrap-static archive copy: once a day, not every 6h.
+      - key: KICKOFF_DATA_ARCHIVE_FPL_BOOTSTRAP_SECONDS
+        value: "86400"
       - key: KICKOFF_DATA_NO_MOCKS
         value: "1"
       - key: KICKOFF_DATA_S3_TRUSTED

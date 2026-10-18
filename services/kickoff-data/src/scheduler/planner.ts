@@ -63,6 +63,10 @@ export interface PlannerState {
   s1Remaining: number;
   /** FPL gameweeks (absent until the first bootstrap sync lands). */
   gameweeks?: PlannerGameweek[];
+  /** Player-points lane on (default). Off: no finality watch, and a GW stops
+   *  polling once FPL marks it finished instead of waiting for its points
+   *  settlement (which never comes). */
+  playerPoints?: boolean;
 }
 
 /** FPL gameweek context for job emission. */
@@ -166,11 +170,12 @@ export function plan(state: PlannerState): Job[] {
 
   // --- FPL lane (free API — no budget gate, cadences are politeness) ---
   const gws = state.gameweeks ?? [];
+  const playerPoints = state.playerPoints !== false;
 
   // bootstrap-static is the only place data_checked lives: tighten its
   // cadence while any GW is finished-but-unchecked — that IS the finality
   // sweep. First run happens immediately (no lastRun key → due).
-  const finalityPending = gws.some((g) => g.finished && !g.dataChecked && !g.settled);
+  const finalityPending = playerPoints && gws.some((g) => g.finished && !g.dataChecked && !g.settled);
   const bootstrapInterval = finalityPending ? CADENCE.fplFinalityWatch : CADENCE.fplBootstrapSync;
   if (due(state, { kind: "fpl.bootstrapSync" }, bootstrapInterval)) {
     jobs.push({ kind: "fpl.bootstrapSync" });
@@ -195,7 +200,10 @@ export function plan(state: PlannerState): Job[] {
     let liveInterval: number | null = null;
     if (g.anyFixtureActive) {
       liveInterval = CADENCE.fplLivePoll;
-    } else if (ranEver(state, liveJob) && (!g.finished || !g.provisionalRecorded || !g.dataChecked)) {
+    } else if (
+      ranEver(state, liveJob) &&
+      (!g.finished || (playerPoints && (!g.provisionalRecorded || !g.dataChecked)))
+    ) {
       // ranEver gate: don't start polling a GW that never went live (past
       // seasons, blank GWs) — only keep polling ones we saw activity in.
       liveInterval = CADENCE.fplPostMatch;

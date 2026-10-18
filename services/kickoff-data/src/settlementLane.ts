@@ -10,7 +10,7 @@
 // after which it is IMMUTABLE — corrections insert version N+1 via the
 // admin override, never touch N.
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, notExists } from "drizzle-orm";
 import type { SettlementVote, WebhookEvent } from "@kickoff/schema";
 import { db, schema } from "./db";
 import { archiveRaw } from "./archive";
@@ -179,15 +179,33 @@ const STALL_SECONDS = Number(process.env.KICKOFF_DATA_SETTLEMENT_STALL_SECONDS ?
 
 export async function escalateStalled(now: Date): Promise<number> {
   const cutoff = new Date(now.getTime() - STALL_SECONDS * 1000);
+  // Settled fixtures are filtered in SQL: this runs every tick, and a
+  // per-fixture lookup over every FT fixture of the season grew into
+  // hundreds of queries a tick (all of it billed outbound bandwidth).
+  // updated_at last advanced when the fixture hit FT (or later) — a cheap
+  // conservative proxy for "FT since"; it only ever under-counts the wait.
   const ftFixtures = await db
-    .select({ id: schema.fixtures.id, updatedAt: schema.fixtures.updatedAt })
+    .select({ id: schema.fixtures.id })
     .from(schema.fixtures)
-    .where(eq(schema.fixtures.status, "ft"));
+    .where(
+      and(
+        eq(schema.fixtures.status, "ft"),
+        lte(schema.fixtures.updatedAt, cutoff),
+        notExists(
+          db
+            .select({ id: schema.settlementSnapshots.id })
+            .from(schema.settlementSnapshots)
+            .where(
+              and(
+                eq(schema.settlementSnapshots.fixtureId, schema.fixtures.id),
+                eq(schema.settlementSnapshots.status, "frozen"),
+              ),
+            ),
+        ),
+      ),
+    );
   let escalated = 0;
   for (const f of ftFixtures) {
-    // updated_at last advanced when the fixture hit FT (or later) — a cheap
-    // conservative proxy for "FT since"; it only ever under-counts the wait.
-    if (new Date(f.updatedAt) > cutoff) continue;
     const { frozenVersion, working } = await loadLatest(f.id);
     if (frozenVersion > 0) continue; // settled
     if (working?.state.status === "disputed") continue; // already escalated

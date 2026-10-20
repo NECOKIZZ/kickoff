@@ -10,6 +10,7 @@ Motion-design videos for Kickoff, made with [HyperFrames](https://github.com/hey
 | `kickoff-launch/` | v1 (dark theme, slower motion). Kept for comparison only. |
 | `kickoff-walkthrough/` | 89s product walkthrough: real kickoff.cash captures in a browser frame, AI voiceover (George), captions, house-style recreations for the steps that need a login. |
 | `kickoff-floodlight/` | 45s motion piece in the Floodlight (dark) look: split-flap scoreboard, 3D pitch grid, match clock, tactics-board distances, payouts, 90/5/5 split, season wall. No voiceover. |
+| `kickoff-teaser/` | 74s teaser trailer: real football footage cut to the "Football belongs to the people" voiceover, graded per shot, with an original synthesised score, a letterbox, a match-clock HUD and motion-design product and end-card beats. Source clips aren't committed; see its `EDIT.md` to rebuild. |
 | `tools/matchday-track.py` | Original 45s, 128 BPM track (intro, two drops, break, referee whistles) that `kickoff-floodlight` is cut to. |
 | `tools/placeholder-music.py` | Generates a licence-free draft track in the reference's phrase shape (`out.wav [seconds]`). |
 | `tools/redeem-invite.mjs`, `tools/capture-pages.mjs` | Redeem an invite code headlessly, then capture the gated app pages at 2× for walkthroughs. |

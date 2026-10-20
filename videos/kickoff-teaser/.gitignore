@@ -1,0 +1,5 @@
+out/
+beats/
+.hyperframes/
+snapshots/
+assets/shots/*.mp4
